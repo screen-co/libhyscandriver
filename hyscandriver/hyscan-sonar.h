@@ -18,10 +18,9 @@
  * - генератор излучаемого сигнала;
  * - регулировка усиления и дискретизации эхосигнала;
  *
- * Управление излучением в штатном режиме осуществляется с использованием внутреннего
- * таймера гидролокатора или внешней команды. Для некоторых гидролокаторов существует
- * возможность программного управления синхронизацией излучения. Выбрать режим
- * синхонизации излучения можно с помощью функции #hyscan_sonar_set_software_ping.
+ * Перед началом работы рекомендуется задать профиль скорости звука. Для этого
+ * используется функция #hyscan_sonar_set_sound_velocity. По умолчанию используется
+ * фиксированное значение скорости звука, равное 1500 м/с.
  *
  * В зависимости от типа, гидролокатор может иметь различное число источников
  * данных. Каждый из источников гидролокационных данных связан с одним из «бортов»
@@ -103,6 +102,11 @@
  * Включить или выключить управление усилением можно с помощью функции
  * #hyscan_sonar_tvg_set_enable. В выключенном состоянии устанавливается минимально
  * возможное усиление.
+ *
+ * Управление излучением в штатном режиме осуществляется с использованием внутреннего
+ * таймера гидролокатора или внешней команды. Для некоторых гидролокаторов существует
+ * возможность программного управления синхронизацией излучения. Выбрать режим
+ * синхонизации излучения можно с помощью функции #hyscan_sonar_set_software_ping.
  *
  * Включить гидролокатор в рабочий режим, в соответствии с установленными
  * параметрами, можно при помощи функции #hyscan_sonar_start, остановить
@@ -273,15 +277,6 @@ typedef enum
   HYSCAN_SONAR_TVG_MODE_LOGARITHMIC            = (1 << 3)      /**< Управление усилением по логарифмическому закону. */
 } HyScanSonarTVGModeType;
 
-/** \brief Типы синхронизации излучения */
-typedef enum
-{
-  HYSCAN_SONAR_SYNC_INVALID                    = 0,            /**< Недопустимый тип, ошибка. */
-
-  HYSCAN_SONAR_SYNC_AUTO                       = 101,          /**< Автоматическая синхронизация (выбирается драйвером). */
-  HYSCAN_SONAR_SYNC_SOFTWARE                   = 102           /**< Программная синхронизация. */
-} HyScanSonarSyncType;
-
 #define HYSCAN_TYPE_SONAR            (hyscan_sonar_get_type ())
 #define HYSCAN_SONAR(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_SONAR, HyScanSonar))
 #define HYSCAN_IS_SONAR(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HYSCAN_TYPE_SONAR))
@@ -294,8 +289,9 @@ struct _HyScanSonarInterface
 {
   GTypeInterface                         g_iface;
 
-  gboolean                               (*set_sync_type)                      (HyScanSonar                    *sonar,
-                                                                                HyScanSonarSyncType             sync_type);
+  gboolean                               (*set_sound_velocity)                 (HyScanSonar                    *sonar,
+                                                                                HyScanSoundVelocity            *sound_velocity,
+                                                                                guint32                         n_points);
 
   gboolean                               (*receiver_set_time)                  (HyScanSonar                    *sonar,
                                                                                 HyScanSourceType                source,
@@ -357,6 +353,8 @@ struct _HyScanSonarInterface
                                                                                 HyScanSourceType                source,
                                                                                 gboolean                        enable);
 
+  gboolean                               (*set_software_ping)                  (HyScanSonar                    *sonar);
+
   gboolean                               (*start)                              (HyScanSonar                    *sonar,
                                                                                 const gchar                    *track_name,
                                                                                 HyScanTrackType                 track_type);
@@ -370,6 +368,22 @@ struct _HyScanSonarInterface
 
 HYSCAN_API
 GType                                    hyscan_sonar_get_type                 (void);
+
+/**
+ *
+ * Функция задаёт таблицу профиля скорости звука.
+ *
+ * \param sonar указатель на \link HyScanSonar \endlink;
+ * \param sound_velocity таблица профиля скорости звука;
+ * \param n_points число элементов таблицы профиля скорости звука.
+ *
+ * \return TRUE - если команда выполнена успешно, FALSE - в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean                                 hyscan_sonar_set_sound_velocity       (HyScanSonar                    *sonar,
+                                                                                HyScanSoundVelocity            *sound_velocity,
+                                                                                guint32                         n_points);
 
 /**
  *
@@ -612,7 +626,8 @@ gboolean                                 hyscan_sonar_tvg_set_enable           (
 /**
  *
  * Функция устанавливает программное управление излучением. Данная функция должна
- * быть вызвана перед запуском гидролокатора с помощью функции #hyscan_sonar_start.
+ * быть вызвана перед запуском гидролокатора с помощью функции #hyscan_sonar_start,
+ * если до этого он находился в ждущем режиме.
  *
  * \param sonar указатель на \link HyScanSonar \endlink.
  *

@@ -48,16 +48,17 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
 }
 
 gboolean
-hyscan_sonar_set_sync_type (HyScanSonar         *sonar,
-                            HyScanSonarSyncType  sync_type)
+hyscan_sonar_set_sound_velocity (HyScanSonar         *sonar,
+                                 HyScanSoundVelocity *sound_velocity,
+                                 guint32              n_points)
 {
   HyScanSonarInterface *iface;
 
   g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
 
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->set_sync_type != NULL)
-    return (* iface->set_sync_type) (sonar, sync_type);
+  if (iface->set_sound_velocity != NULL)
+    return (* iface->set_sound_velocity) (sonar, sound_velocity, n_points);
 
   return FALSE;
 }
@@ -274,6 +275,20 @@ hyscan_sonar_tvg_set_enable (HyScanSonar      *sonar,
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->tvg_set_enable != NULL)
     return (* iface->tvg_set_enable) (sonar, source, enable);
+
+  return FALSE;
+}
+
+gboolean
+hyscan_sonar_set_software_ping (HyScanSonar *sonar)
+{
+  HyScanSonarInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
+
+  iface = HYSCAN_SONAR_GET_IFACE (sonar);
+  if (iface->set_software_ping != NULL)
+    return (* iface->set_software_ping) (sonar);
 
   return FALSE;
 }

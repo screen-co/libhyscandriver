@@ -28,6 +28,22 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
 }
 
 gboolean
+hyscan_sensor_set_sound_velocity (HyScanSensor        *sensor,
+                                  HyScanSoundVelocity *sound_velocity,
+                                  guint32              n_points)
+{
+  HyScanSensorInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SENSOR (sensor), FALSE);
+
+  iface = HYSCAN_SENSOR_GET_IFACE (sensor);
+  if (iface->set_sound_velocity != NULL)
+    return (* iface->set_sound_velocity) (sensor, sound_velocity, n_points);
+
+  return FALSE;
+}
+
+gboolean
 hyscan_sensor_set_channel (HyScanSensor *sensor,
                            const gchar  *name,
                            guint         channel)

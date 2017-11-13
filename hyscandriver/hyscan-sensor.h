@@ -16,6 +16,10 @@
  * Каждый из датчиков подключается к точке ввода информации, называемой
  * портом. К одному порту может быть подключен только один датчик.
  *
+ * Перед началом работы рекомендуется задать профиль скорости звука. Для этого
+ * используется функция #hyscan_sonar_set_sound_velocity. По умолчанию используется
+ * фиксированное значение скорости звука, равное 1500 м/с.
+ *
  * В системе могут использоваться несколько однотипных датчиков, например
  * два и более датчиков систем позиционирования ГЛОНАСС или GPS. Для того,
  * чтобы различать информацию от этих датчиков, имеется возможность добавить
@@ -99,6 +103,10 @@ struct _HyScanSensorInterface
 {
   GTypeInterface       g_iface;
 
+  gboolean             (*set_sound_velocity)                   (HyScanSensor                  *sensor,
+                                                                HyScanSoundVelocity           *sound_velocity,
+                                                                guint32                        n_points);
+
   gboolean             (*set_channel)                          (HyScanSensor                  *sensor,
                                                                 const gchar                   *name,
                                                                 guint                          channel);
@@ -114,6 +122,22 @@ struct _HyScanSensorInterface
 
 HYSCAN_API
 GType                  hyscan_sensor_get_type                  (void);
+
+/**
+ *
+ * Функция задаёт таблицу профиля скорости звука.
+ *
+ * \param sensor указатель на \link HyScanSensor \endlink;
+ * \param sound_velocity таблица профиля скорости звука;
+ * \param n_points число элементов таблицы профиля скорости звука.
+ *
+ * \return TRUE - если команда выполнена успешно, FALSE - в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean               hyscan_sensor_set_sound_velocity        (HyScanSensor                  *sensor,
+                                                                HyScanSoundVelocity           *sound_velocity,
+                                                                guint32                        n_points);
 
 /**
  *
