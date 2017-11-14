@@ -356,6 +356,7 @@ struct _HyScanSonarInterface
   gboolean                               (*set_software_ping)                  (HyScanSonar                    *sonar);
 
   gboolean                               (*start)                              (HyScanSonar                    *sonar,
+                                                                                const gchar                    *project_name,
                                                                                 const gchar                    *track_name,
                                                                                 HyScanTrackType                 track_type);
 
@@ -642,6 +643,7 @@ gboolean                                 hyscan_sonar_set_software_ping        (
  * Функция переводит гидролокатор в рабочий режим.
  *
  * \param sonar указатель на \link HyScanSonar \endlink;
+ * \param project_name название проекта, в который записывать данные;
  * \param track_name название галса, в который записывать данные;
  * \param track_type тип галса.
  *
@@ -650,6 +652,7 @@ gboolean                                 hyscan_sonar_set_software_ping        (
  */
 HYSCAN_API
 gboolean                                 hyscan_sonar_start                    (HyScanSonar                    *sonar,
+                                                                                const gchar                    *project_name,
                                                                                 const gchar                    *track_name,
                                                                                 HyScanTrackType                 track_type);
 

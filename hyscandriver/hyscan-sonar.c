@@ -295,6 +295,7 @@ hyscan_sonar_set_software_ping (HyScanSonar *sonar)
 
 gboolean
 hyscan_sonar_start (HyScanSonar     *sonar,
+                    const gchar     *project_name,
                     const gchar     *track_name,
                     HyScanTrackType  track_type)
 {
@@ -304,7 +305,7 @@ hyscan_sonar_start (HyScanSonar     *sonar,
 
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->start != NULL)
-    return (* iface->start) (sonar, track_name, track_type);
+    return (* iface->start) (sonar, project_name, track_name, track_type);
 
   return FALSE;
 }
