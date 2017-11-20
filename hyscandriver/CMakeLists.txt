@@ -23,6 +23,8 @@ add_custom_command (OUTPUT "${CMAKE_BINARY_DIR}/marshallers/hyscan-driver-marsha
 add_library (${HYSCAN_DRIVER_LIBRARY} SHARED
              hyscan-sonar.c
              hyscan-sensor.c
+             hyscan-driver.c
+             hyscan-discover.c
              "${CMAKE_BINARY_DIR}/marshallers/hyscan-driver-marshallers.c")
 
 target_link_libraries (${HYSCAN_DRIVER_LIBRARY} ${GLIB2_LIBRARIES} ${HYSCAN_LIBRARIES} ${URPC_LIBRARIES})
@@ -48,6 +50,8 @@ install (FILES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hyscandriver-${HYSCAN_MAJOR_VE
 
 install (FILES hyscan-sonar.h
                hyscan-sensor.h
+               hyscan-driver.h
+               hyscan-discover.h
          COMPONENT development
          DESTINATION "include/hyscan-${HYSCAN_MAJOR_VERSION}/hyscandriver"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

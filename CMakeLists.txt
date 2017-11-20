@@ -68,3 +68,4 @@ include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/hyscandriver")
 
 add_definitions (-DG_LOG_DOMAIN="HyScanDriver")
 add_subdirectory (hyscandriver)
+add_subdirectory (tests)
