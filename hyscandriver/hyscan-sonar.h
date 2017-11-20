@@ -287,88 +287,88 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
 
 struct _HyScanSonarInterface
 {
-  GTypeInterface                         g_iface;
+  GTypeInterface       g_iface;
 
-  gboolean                               (*set_sound_velocity)                 (HyScanSonar                    *sonar,
-                                                                                HyScanSoundVelocity            *sound_velocity,
-                                                                                guint32                         n_points);
+  gboolean             (*set_sound_velocity)                   (HyScanSonar                    *sonar,
+                                                                HyScanSoundVelocity            *sound_velocity,
+                                                                guint32                         n_points);
 
-  gboolean                               (*receiver_set_time)                  (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         receive_time);
+  gboolean             (*receiver_set_time)                    (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         receive_time);
 
-  gboolean                               (*receiver_set_auto)                  (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source);
+  gboolean             (*receiver_set_auto)                    (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source);
 
-  gboolean                               (*receiver_set_enable)                (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gboolean                        enable);
+  gboolean             (*receiver_set_enable)                  (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gboolean                        enable);
 
-  gboolean                               (*generator_set_preset)               (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gint64                          preset);
+  gboolean             (*generator_set_preset)                 (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gint64                          preset);
 
-  gboolean                               (*generator_set_auto)                 (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                HyScanSonarGeneratorSignalType  signal);
+  gboolean             (*generator_set_auto)                   (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                HyScanSonarGeneratorSignalType  signal);
 
-  gboolean                               (*generator_set_simple)               (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                HyScanSonarGeneratorSignalType  signal,
-                                                                                gdouble                         power);
+  gboolean             (*generator_set_simple)                 (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                HyScanSonarGeneratorSignalType  signal,
+                                                                gdouble                         power);
 
-  gboolean                               (*generator_set_extended)             (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                HyScanSonarGeneratorSignalType  signal,
-                                                                                gdouble                         duration,
-                                                                                gdouble                         power);
+  gboolean             (*generator_set_extended)               (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                HyScanSonarGeneratorSignalType  signal,
+                                                                gdouble                         duration,
+                                                                gdouble                         power);
 
-  gboolean                               (*generator_set_enable)               (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gboolean                        enable);
+  gboolean             (*generator_set_enable)                 (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gboolean                        enable);
 
-  gboolean                               (*tvg_set_auto)                       (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         level,
-                                                                                gdouble                         sensitivity);
+  gboolean             (*tvg_set_auto)                         (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         level,
+                                                                gdouble                         sensitivity);
 
-  gboolean                               (*tvg_set_points)                     (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         time_step,
-                                                                                gdouble                        *gains,
-                                                                                guint32                         n_gains);
+  gboolean             (*tvg_set_points)                       (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         time_step,
+                                                                gdouble                        *gains,
+                                                                guint32                         n_gains);
 
-  gboolean                               (*tvg_set_linear_db)                  (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         gain0,
-                                                                                gdouble                         gain_step);
+  gboolean             (*tvg_set_linear_db)                    (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         gain0,
+                                                                gdouble                         gain_step);
 
-  gboolean                               (*tvg_set_logarithmic)                (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         gain0,
-                                                                                gdouble                         beta,
-                                                                                gdouble                         alpha);
+  gboolean             (*tvg_set_logarithmic)                  (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         gain0,
+                                                                gdouble                         beta,
+                                                                gdouble                         alpha);
 
-  gboolean                               (*tvg_set_enable)                     (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gboolean                        enable);
+  gboolean             (*tvg_set_enable)                       (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gboolean                        enable);
 
-  gboolean                               (*set_software_ping)                  (HyScanSonar                    *sonar);
+  gboolean             (*set_software_ping)                    (HyScanSonar                    *sonar);
 
-  gboolean                               (*start)                              (HyScanSonar                    *sonar,
-                                                                                const gchar                    *project_name,
-                                                                                const gchar                    *track_name,
-                                                                                HyScanTrackType                 track_type);
+  gboolean             (*start)                                (HyScanSonar                    *sonar,
+                                                                const gchar                    *project_name,
+                                                                const gchar                    *track_name,
+                                                                HyScanTrackType                 track_type);
 
-  gboolean                               (*stop)                               (HyScanSonar                    *sonar);
+  gboolean             (*stop)                                 (HyScanSonar                    *sonar);
 
-  gboolean                               (*sync)                               (HyScanSonar                    *sonar);
+  gboolean             (*sync)                                 (HyScanSonar                    *sonar);
 
-  gboolean                               (*ping)                               (HyScanSonar                    *sonar);
+  gboolean             (*ping)                                 (HyScanSonar                    *sonar);
 };
 
 HYSCAN_API
-GType                                    hyscan_sonar_get_type                 (void);
+GType                  hyscan_sonar_get_type                   (void);
 
 /**
  *
@@ -382,9 +382,9 @@ GType                                    hyscan_sonar_get_type                 (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_set_sound_velocity       (HyScanSonar                    *sonar,
-                                                                                HyScanSoundVelocity            *sound_velocity,
-                                                                                guint32                         n_points);
+gboolean               hyscan_sonar_set_sound_velocity         (HyScanSonar                    *sonar,
+                                                                HyScanSoundVelocity            *sound_velocity,
+                                                                guint32                         n_points);
 
 /**
  *
@@ -398,9 +398,9 @@ gboolean                                 hyscan_sonar_set_sound_velocity       (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_receiver_set_time        (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         receive_time);
+gboolean               hyscan_sonar_receiver_set_time          (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         receive_time);
 
 /**
  *
@@ -413,8 +413,8 @@ gboolean                                 hyscan_sonar_receiver_set_time        (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_receiver_set_auto        (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source);
+gboolean               hyscan_sonar_receiver_set_auto          (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source);
 
 /**
  *
@@ -428,9 +428,9 @@ gboolean                                 hyscan_sonar_receiver_set_auto        (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_receiver_set_enable      (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gboolean                        enable);
+gboolean               hyscan_sonar_receiver_set_enable        (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gboolean                        enable);
 
 
 
@@ -446,9 +446,9 @@ gboolean                                 hyscan_sonar_receiver_set_enable      (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_generator_set_preset     (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gint64                          preset);
+gboolean               hyscan_sonar_generator_set_preset       (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gint64                          preset);
 
 /**
  *
@@ -462,9 +462,9 @@ gboolean                                 hyscan_sonar_generator_set_preset     (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_generator_set_auto       (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                HyScanSonarGeneratorSignalType  signal);
+gboolean               hyscan_sonar_generator_set_auto         (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                HyScanSonarGeneratorSignalType  signal);
 
 /**
  *
@@ -479,10 +479,10 @@ gboolean                                 hyscan_sonar_generator_set_auto       (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_generator_set_simple     (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                HyScanSonarGeneratorSignalType  signal,
-                                                                                gdouble                         power);
+gboolean               hyscan_sonar_generator_set_simple       (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                HyScanSonarGeneratorSignalType  signal,
+                                                                gdouble                         power);
 
 /**
  *
@@ -498,11 +498,11 @@ gboolean                                 hyscan_sonar_generator_set_simple     (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_generator_set_extended   (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                HyScanSonarGeneratorSignalType  signal,
-                                                                                gdouble                         duration,
-                                                                                gdouble                         power);
+gboolean               hyscan_sonar_generator_set_extended     (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                HyScanSonarGeneratorSignalType  signal,
+                                                                gdouble                         duration,
+                                                                gdouble                         power);
 
 /**
  *
@@ -516,9 +516,9 @@ gboolean                                 hyscan_sonar_generator_set_extended   (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_generator_set_enable     (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gboolean                        enable);
+gboolean               hyscan_sonar_generator_set_enable       (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gboolean                        enable);
 
 /**
  *
@@ -536,10 +536,10 @@ gboolean                                 hyscan_sonar_generator_set_enable     (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_tvg_set_auto             (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         level,
-                                                                                gdouble                         sensitivity);
+gboolean               hyscan_sonar_tvg_set_auto               (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         level,
+                                                                gdouble                         sensitivity);
 
 /**
  *
@@ -556,11 +556,11 @@ gboolean                                 hyscan_sonar_tvg_set_auto             (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_tvg_set_points           (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         time_step,
-                                                                                gdouble                        *gains,
-                                                                                guint32                         n_gains);
+gboolean               hyscan_sonar_tvg_set_points             (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         time_step,
+                                                                gdouble                        *gains,
+                                                                guint32                         n_gains);
 
 /**
  *
@@ -579,10 +579,10 @@ gboolean                                 hyscan_sonar_tvg_set_points           (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_tvg_set_linear_db        (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         gain0,
-                                                                                gdouble                         gain_step);
+gboolean               hyscan_sonar_tvg_set_linear_db          (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         gain0,
+                                                                gdouble                         gain_step);
 
 /**
  *
@@ -603,11 +603,11 @@ gboolean                                 hyscan_sonar_tvg_set_linear_db        (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_tvg_set_logarithmic      (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gdouble                         gain0,
-                                                                                gdouble                         beta,
-                                                                                gdouble                         alpha);
+gboolean               hyscan_sonar_tvg_set_logarithmic        (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         gain0,
+                                                                gdouble                         beta,
+                                                                gdouble                         alpha);
 
 /**
  *
@@ -621,9 +621,9 @@ gboolean                                 hyscan_sonar_tvg_set_logarithmic      (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_tvg_set_enable           (HyScanSonar                    *sonar,
-                                                                                HyScanSourceType                source,
-                                                                                gboolean                        enable);
+gboolean               hyscan_sonar_tvg_set_enable             (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gboolean                        enable);
 /**
  *
  * Функция устанавливает программное управление излучением. Данная функция должна
@@ -636,7 +636,7 @@ gboolean                                 hyscan_sonar_tvg_set_enable           (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_set_software_ping        (HyScanSonar                    *sonar);
+gboolean               hyscan_sonar_set_software_ping          (HyScanSonar                    *sonar);
 
 /**
  *
@@ -651,10 +651,10 @@ gboolean                                 hyscan_sonar_set_software_ping        (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_start                    (HyScanSonar                    *sonar,
-                                                                                const gchar                    *project_name,
-                                                                                const gchar                    *track_name,
-                                                                                HyScanTrackType                 track_type);
+gboolean               hyscan_sonar_start                      (HyScanSonar                    *sonar,
+                                                                const gchar                    *project_name,
+                                                                const gchar                    *track_name,
+                                                                HyScanTrackType                 track_type);
 
 /**
  *
@@ -666,7 +666,7 @@ gboolean                                 hyscan_sonar_start                    (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_stop                     (HyScanSonar                    *sonar);
+gboolean               hyscan_sonar_stop                       (HyScanSonar                    *sonar);
 
 /**
  *
@@ -681,7 +681,7 @@ gboolean                                 hyscan_sonar_stop                     (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_sync                     (HyScanSonar                    *sonar);
+gboolean               hyscan_sonar_sync                       (HyScanSonar                    *sonar);
 
 /**
  *
@@ -696,7 +696,7 @@ gboolean                                 hyscan_sonar_sync                     (
  *
  */
 HYSCAN_API
-gboolean                                 hyscan_sonar_ping                     (HyScanSonar                    *sonar);
+gboolean               hyscan_sonar_ping                       (HyScanSonar                    *sonar);
 
 G_END_DECLS
 
