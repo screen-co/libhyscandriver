@@ -1,40 +1,24 @@
-/**
- * \file hyscan-driver.h
+/* hyscan-driver.h
  *
- * \brief Заголовочный файл класса загрузки драйверов гидролокаторов и датчиков
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2016
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
- * \defgroup HyScanDriver HyScanDriver - класс загрузки драйверов гидролокаторов и датчиков
+ * This file is part of HyScanDriver library.
  *
- * Класс предназначен для загрузки драйверов гидролокаторов и датчиков и реализует
- * интерфейс \link HyScanDiscover \endlink.
+ * HyScanDriver is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Загрузка драйвера производится при создании объекта функцией #hyscan_driver_new.
- * Если загрузка драйвера выполнена успешно, возврашается указатель на новый объект.
- * Иначе возвращается NULL.
+ * HyScanDriver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Драйвер, загруженный с помощью функции #hyscan_driver_new, не выгружается из памяти
- * до окончания работы программы, даже если удалить объект HyScanDriver.
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
- * Информацию о загруженном драйвере можно узнать с помощью функции #hyscan_driver_get_info.
- * Информация возвращается в виде схемы данных со значениями по умолчанию. Обязательными
- * полями являются следующие:
- *
- * - /schema/id - идентификатор схемы (число, #HYSCAN_DRIVER_SCHEMA_ID);
- * - /schema/version - версия схемы (число, #HYSCAN_DRIVER_SCHEMA_VERSION);
- * - /info/name - название драйвера (строка);
- * - /info/description - описание драйвера (строка);
- * - /info/version - версия драйвера (строка);
- * - /info/id - идентификатор сборки (строка);
- * - /api/version - версия API интерфейса HyScanDiscover (число, \link HYSCAN_DISCOVER_API \endlink).
- *
- * Схема данных может содержать дополнительные поля.
- *
- * Функция #hyscan_driver_list возвращает список драйверов, доступных для загрузки из
- * указанного каталога.
- *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
  */
 
 #ifndef __HYSCAN_DRIVER_H__
@@ -45,8 +29,19 @@
 
 G_BEGIN_DECLS
 
-#define HYSCAN_DRIVER_SCHEMA_ID        6327345620348565983     /**< Идентификатор схемы. */
-#define HYSCAN_DRIVER_SCHEMA_VERSION   20170100                /**< Версия схемы. */
+/**
+ * HYSCAN_DRIVER_SCHEMA_ID:
+ *
+ * Идентификатор схемы информации о драйвере.
+ */
+#define HYSCAN_DRIVER_SCHEMA_ID        6327345620348565983
+
+/**
+ * HYSCAN_DRIVER_SCHEMA_VERSION:
+ *
+ * Версия схемы информации о драйвере.
+ */
+#define HYSCAN_DRIVER_SCHEMA_VERSION   20170100
 
 #define HYSCAN_TYPE_DRIVER             (hyscan_driver_get_type ())
 #define HYSCAN_DRIVER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_DRIVER, HyScanDriver))
@@ -74,45 +69,14 @@ struct _HyScanDriverClass
 HYSCAN_API
 GType                  hyscan_driver_get_type          (void);
 
-/**
- *
- * Функция загружает драйвер из указанного каталога.
- *
- * \param path путь к каталогу с драйверами;
- * \param name имя драйвера.
- *
- * \return Указатель на \link HyScanDriver \endlink или NULL.
- *
- */
 HYSCAN_API
 HyScanDriver *         hyscan_driver_new               (const gchar           *path,
                                                         const gchar           *name);
 
-/**
- *
- * Функция возвращает информацию о загруженном драйвере.
- *
- * \param path путь к каталогу с драйверами;
- * \param name имя драйвера.
- *
- * \return Информация о драйвере.
- *
- */
 HYSCAN_API
 HyScanDataSchema *     hyscan_driver_get_info          (const gchar           *path,
                                                         const gchar           *name);
 
-/**
- *
- * Функция возвращает список драйверов доступных для загрузки из указанного
- * каталога. После использования память, используемая списком должна быть
- * освобождена с помощью функции g_strfreev.
- *
- * \param path путь к каталогу с драйверами.
- *
- * \return Список драйверов.
- *
- */
 HYSCAN_API
 gchar **               hyscan_driver_list              (const gchar           *path);
 

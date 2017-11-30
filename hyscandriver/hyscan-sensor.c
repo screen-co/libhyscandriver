@@ -1,11 +1,56 @@
-/*
- * \file hyscan-sensor.c
+/* hyscan-sensor.c
  *
- * \brief Исходный файл интерфейса управления датчиками
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2017
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
+ * This file is part of HyScanDriver library.
+ *
+ * HyScanDriver is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HyScanDriver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
+ */
+
+/**
+ * SECTION: hyscan-sensor
+ * @Short_description: интерфейс управления датчиком
+ * @Title: HyScanSensor
+ *
+ * Датчиком является любая система, предназначенная для дополнения
+ * гидролокационных данных вспомогательной информацией. Это может
+ * быть: навигационная информация, информация об ориентации в пространстве,
+ * информация о скорости звука и т.п.
+ *
+ * Каждый из датчиков подключается к точке ввода информации, называемой
+ * портом. К одному порту может быть подключен только один датчик.
+ *
+ * Перед началом работы рекомендуется задать профиль скорости звука. Для этого
+ * используется функция #hyscan_sensor_set_sound_velocity. По умолчанию используется
+ * фиксированное значение скорости звука, равное 1500 м/с.
+ *
+ * В системе могут использоваться несколько однотипных датчиков, например
+ * два и более датчиков систем позиционирования ГЛОНАСС или GPS. Для того,
+ * чтобы различать информацию от этих датчиков, имеется возможность добавить
+ * метку к данным каждого из портов. Такой меткой является номер канала.
+ * Для задания номера канала предназначена функция #hyscan_sensor_set_channel.
+ *
+ * Часто, данные от датчиков имеют определённую задержку во времени. Это
+ * связанно с необходимостью обработки данных датчиком или использованием
+ * низкоскоростных каналов связи. Для компенсации этой задержки, время приёма
+ * данных портом уменьшается на величину заданную функцией #hyscan_sensor_set_latency.
+ *
+ * Приём данных каждым из датчиков можно включить или выключить с помощью
+ * функции #hyscan_sensor_set_enable.
  */
 
 #include "hyscan-sensor.h"
@@ -16,21 +61,54 @@ G_DEFINE_INTERFACE (HyScanSensor, hyscan_sensor, G_TYPE_OBJECT)
 static void
 hyscan_sensor_default_init (HyScanSensorInterface *iface)
 {
+  /**
+   * HyScanSensor::sensor-data:
+   * @sensor: указатель на #HyScanSensor
+   * @name: название порта
+   * @time: время приёма данных, мкс
+   * @type: тип данных #HyScanDataType
+   * @size: размер данных в байтах
+   * @data: данные
+   *
+   * Данный сигнал посылается при получении данных от датчика.
+   */
   g_signal_new ("sensor-data", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
-                hyscan_driver_marshal_VOID__POINTER_INT64_INT_UINT_POINTER,
-                G_TYPE_NONE, 5, G_TYPE_POINTER, G_TYPE_INT64, G_TYPE_INT, G_TYPE_UINT, G_TYPE_POINTER);
+                hyscan_driver_marshal_VOID__STRING_INT64_INT_UINT_STRING,
+                G_TYPE_NONE, 5, G_TYPE_STRING, G_TYPE_INT64, G_TYPE_INT, G_TYPE_UINT, G_TYPE_STRING);
 
+  /**
+   * HyScanSensor::sensor-log:
+   * @sensor: указатель на #HyScanSensor
+   * @name: название порта
+   * @time: время приёма сообщения, мкс
+   * @level: тип сообщения #HyScanLogLevel
+   * @message: сообщение (NULL терминированная строка)
+   *
+   * В процессе работы драйвер может отправлять различные информационные и
+   * диагностические сообщения. При получении такого сообщения интерфейс
+   * посылает данный сигнал, в котором передаёт их пользователю. Принятое
+   * сообщение имеет отнощение к тому порту, название которого указано в name.
+   * Если name = NULL, сообщение относится к драйверу в целом.
+   */
   g_signal_new ("sensor-log", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
-                hyscan_driver_marshal_VOID__POINTER_INT64_INT_POINTER,
-                G_TYPE_NONE, 4, G_TYPE_POINTER, G_TYPE_INT64, G_TYPE_INT, G_TYPE_POINTER);
+                hyscan_driver_marshal_VOID__STRING_INT64_INT_STRING,
+                G_TYPE_NONE, 4, G_TYPE_STRING, G_TYPE_INT64, G_TYPE_INT, G_TYPE_STRING);
 }
 
+/**
+ * hyscan_sensor_set_sound_velocity:
+ * @sensor: указатель на #HyScanSensor
+ * @svp: (element-type: HyScanSoundVelocity): таблица профиля скорости звука
+ *
+ * Функция задаёт таблицу профиля скорости звука.
+ *
+ * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ */
 gboolean
-hyscan_sensor_set_sound_velocity (HyScanSensor        *sensor,
-                                  HyScanSoundVelocity *sound_velocity,
-                                  guint32              n_points)
+hyscan_sensor_set_sound_velocity (HyScanSensor *sensor,
+                                  GList        *svp)
 {
   HyScanSensorInterface *iface;
 
@@ -38,11 +116,21 @@ hyscan_sensor_set_sound_velocity (HyScanSensor        *sensor,
 
   iface = HYSCAN_SENSOR_GET_IFACE (sensor);
   if (iface->set_sound_velocity != NULL)
-    return (* iface->set_sound_velocity) (sensor, sound_velocity, n_points);
+    return (* iface->set_sound_velocity) (sensor, svp);
 
   return FALSE;
 }
 
+/**
+ * hyscan_sensor_set_channel:
+ * @sensor: указатель на #HyScanSensor
+ * @name: название порта
+ * @channel: номер канала
+ *
+ * Функция устанавливает номер приёмного канала для указанного порта.
+ *
+ * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ */
 gboolean
 hyscan_sensor_set_channel (HyScanSensor *sensor,
                            const gchar  *name,
@@ -59,6 +147,16 @@ hyscan_sensor_set_channel (HyScanSensor *sensor,
   return FALSE;
 }
 
+/**
+ * hyscan_sensor_set_latency:
+ * @sensor: указатель на #HyScanSensor
+ * @name: название порта
+ * @latency: задержка приёма данных, мкс
+ *
+ * Функция устанавливает величину компенсации задержки при приёме данных портом.
+ *
+ * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ */
 gboolean
 hyscan_sensor_set_latency (HyScanSensor *sensor,
                            const gchar  *name,
@@ -75,6 +173,16 @@ hyscan_sensor_set_latency (HyScanSensor *sensor,
   return FALSE;
 }
 
+/**
+ * hyscan_sensor_set_enable:
+ * @sensor: указатель на #HyScanSensor
+ * @name: название порта
+ * @enable: включён или выключен
+ *
+ * Функция включает или выключает приём данных.
+ *
+ * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ */
 gboolean
 hyscan_sensor_set_enable (HyScanSensor *sensor,
                           const gchar  *name,

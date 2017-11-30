@@ -1,60 +1,24 @@
-/**
- * \file hyscan-discover.h
+/* hyscan-discover.h
  *
- * \brief Заголовочный файл интерфейса обнаружения гидролокаторов и датчиков
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2016
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
- * \defgroup HyScanDiscover HyScanDiscover - интерфейс обнаружения гидролокаторов и датчиков
+ * This file is part of HyScanDriver library.
  *
- * Интерфейс предназначен для обнаружения гидролокаторов и датчиков подключенных
- * к компьютеру. Реализация данного интерфейса зависит от устройства и должна
- * размещаться в его драйвере.
+ * HyScanDriver is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Интерфейс содержит функции, управляющие процессом обнаружения устройств:
+ * HyScanDriver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * - #hyscan_discover_start - инициирует обнаружение устройст;
- * - #hyscan_discover_stop - прерывает обнаружение устройств;
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
- * Список обнаруженных устройств можно получить функцией #hyscan_discover_list.
- * Память, используемая списоком, должена быть освобождена функцией #hyscan_discover_free_info.
- *
- * При подключении к устройству, можно дополнительно передать параметры драйвера.
- * Список параметров драйвера можно узнать с помощью функции #hyscan_discover_config.
- *
- * Для подключения к устройству используется функция #hyscan_discover_connect.
- * После подключения возвращается указатель на объект реализующий интерфейсы
- * \link HyScanParam \endlink, \link HyScanSonar \endlink и \link HyScanSensor \endlink.
- * Если произведено подключение к гидролокатору, который не содержит встроенных датчиков
- * интерфейс \link HyScanSensor \endlink может быть не реализован. Аналогично,
- * при подключении к датчику не реализуется интерфейс \link HyScanSonar \endlink.
- *
- * В процесс обнаружения устройств посылаются сигналы: "discover-progress" и
- * "discover-completed". Сигнал "discover-progress" периодически посылается
- * во время процесса обнаружения и несёт информацию о его прогрессе. Прототип
- * обработчика сигнала:
- *
- * \code
- *
- * void    discover_progress  (HyScanDiscover       *discover,
- *                             gdouble               progress,
- *                             gpointer              user_data);
- *
- * \endcode
- *
- * Где progress - прогресс поиска в процентах (0 - 100).
- *
- * Сигнал "discover-completed" посылается при завершении процесса поиска.
- * Прототип обработчика сигнала:
- *
- * \code
- *
- * void    discover_completed (HyScanDiscover       *discover,
- *                             gpointer              user_data);
- *
- * \endcode
- *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
  */
 
 #ifndef __HYSCAN_DISCOVER_H__
@@ -65,16 +29,12 @@
 
 G_BEGIN_DECLS
 
-#define HYSCAN_DISCOVER_API    20170100        /**< Версия API интерфейса. */
-
-/** \brief Общая информация о гидролокаторе или датчике. */
-typedef struct
-{
-  const gchar                 *model;          /**< Модель гидролокатора или датчика. */
-  const gchar                 *uri;            /**< Путь для подключения. */
-} HyScanDiscoverInfo;
-
-typedef GObject HyScanDiscoverConnect;
+/**
+ * HYSCAN_DISCOVER_API:
+ *
+ * Версия API интерфейса обнаружения устройств.
+ */
+#define HYSCAN_DISCOVER_API    20170100
 
 #define HYSCAN_TYPE_DISCOVER            (hyscan_discover_get_type ())
 #define HYSCAN_DISCOVER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_DISCOVER, HyScanDiscover))
@@ -83,7 +43,38 @@ typedef GObject HyScanDiscoverConnect;
 
 typedef struct _HyScanDiscover HyScanDiscover;
 typedef struct _HyScanDiscoverInterface HyScanDiscoverInterface;
+typedef struct _HyScanDiscoverInfo HyScanDiscoverInfo;
 
+/**
+ * HyScanDiscoverConnect:
+ *
+ * Абстрактный тип, описывающий подключение к устройству.
+ *
+ */
+typedef GObject HyScanDiscoverConnect;
+
+/**
+ * HyScanDiscoverInfo:
+ * @info: Краткая информация об устройстве
+ * @uri: Путь для подключения к устройству
+ *
+ * Структура содержит общую информацию об устройстве.
+ */
+struct _HyScanDiscoverInfo
+{
+  const gchar                 *info;
+  const gchar                 *uri;
+};
+
+/**
+ * HyScanDiscoverInterface:
+ * @g_iface: Базовый интерфейс.
+ * @start: Функция инициирует процесс обнаружения устройств.
+ * @stop: Функция принудительно останавливает процесс обнаружения устройств.
+ * @list: Функция возвращает список обнаруженных устройств с общей информацией о них.
+ * @config: Функция возвращает схему с параметрами драйвера устройства.
+ * @connect: Функция производит подключение к устройству.
+ */
 struct _HyScanDiscoverInterface
 {
   GTypeInterface               g_iface;
@@ -92,8 +83,7 @@ struct _HyScanDiscoverInterface
 
   void                         (*stop)                         (HyScanDiscover                *discover);
 
-  HyScanDiscoverInfo **        (*list)                         (HyScanDiscover                *discover,
-                                                                guint32                       *n_devices);
+  GList *                      (*list)                         (HyScanDiscover                *discover);
 
   HyScanDataSchema *           (*config)                       (HyScanDiscover                *discover,
                                                                 const gchar                   *uri);
@@ -106,90 +96,33 @@ struct _HyScanDiscoverInterface
 HYSCAN_API
 GType                          hyscan_discover_get_type        (void);
 
-/**
- *
- * Функция инициирует процесс обнаружения гидролокаторов и датчиков.
- *
- * \param discover указатель на интерфейс \link HyScanDiscover \endlink.
- *
- * \return Нет.
- *
- */
 HYSCAN_API
 void                           hyscan_discover_start           (HyScanDiscover                *discover);
 
-/**
- *
- * Функция останавливает процесс обнаружения гидролокаторов и датчиков.
- *
- * \param discover указатель на интерфейс \link HyScanDiscover \endlink.
- *
- * \return Нет.
- *
- */
 HYSCAN_API
 void                           hyscan_discover_stop            (HyScanDiscover                *discover);
 
-/**
- *
- * Функция возвращает список обнаруженных устройств с общей информацией о них.
- * Память выделенная под список должна быть освобождена после использования
- * функцией #hyscan_discover_free_info.
- *
- * \param discover указатель на интерфейс \link HyScanDiscover \endlink;
- * \param n_devices число обнаруженных устройств.
- *
- * \return Список устройств или NULL.
- *
- */
 HYSCAN_API
-HyScanDiscoverInfo **          hyscan_discover_list            (HyScanDiscover                *discover,
-                                                                guint32                       *n_devices);
+GList *                        hyscan_discover_list            (HyScanDiscover                *discover);
 
-/**
- *
- * Функция возвращает схему с параметрами драйвера устройства. Эти параметры
- * можно передать в функцию #hyscan_discover_connect.
- *
- * Если драйвер не содержит настраиваемых параметров, функция вернёт NULL.
- *
- * \param discover указатель на интерфейс \link HyScanDiscover \endlink;
- * \param uri путь для подключения к устройству.
- *
- * \return Указатель на \link HyScanDataSchema \endlink или NULL.
- *
- */
 HYSCAN_API
 HyScanDataSchema *             hyscan_discover_config          (HyScanDiscover                *discover,
                                                                 const gchar                   *uri);
 
-/**
- *
- * Функция производит подключение к гидролокатору или датчику.
- *
- * \param discover указатель на интерфейс \link HyScanDiscover \endlink;
- * \param uri путь для подключения;
- * \param params параметры драйвера или NULL.
- *
- * \return Указатель на подключение или NULL.
- *
- */
 HYSCAN_API
 HyScanDiscoverConnect *        hyscan_discover_connect         (HyScanDiscover                *discover,
                                                                 const gchar                   *uri,
                                                                 HyScanParamList               *params);
 
-/**
- *
- * Функция освобождает память занятую списоком устройств.
- *
- * \param list список устройств \link HyScanDiscoverInfo \endlink.
- *
- * \return Нет.
- *
- */
 HYSCAN_API
-void                           hyscan_discover_free_info       (HyScanDiscoverInfo           **list);
+HyScanDiscoverInfo *           hyscan_discover_info_new        (const gchar                   *info,
+                                                                const gchar                   *uri);
+
+HYSCAN_API
+HyScanDiscoverInfo *           hyscan_discover_info_copy       (HyScanDiscoverInfo            *info);
+
+HYSCAN_API
+void                           hyscan_discover_info_free       (HyScanDiscoverInfo            *info);
 
 G_END_DECLS
 

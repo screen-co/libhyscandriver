@@ -1,11 +1,57 @@
-/*
- * \file hyscan-driver.c
+/* hyscan-driver.c
  *
- * \brief Исходный файл класса загрузки драйверов гидролокаторов и датчиков
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2016
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
+ * This file is part of HyScanDriver library.
+ *
+ * HyScanDriver is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HyScanDriver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
+ */
+
+/**
+ * SECTION: hyscan-driver
+ * @Short_description: класс загрузки драйверов устройств
+ * @Title: HyScanDriver
+ *
+ * Класс предназначен для загрузки драйверов гидролокаторов и датчиков и реализует
+ * интерфейс #HyScanDiscover.
+ *
+ * Загрузка драйвера производится при создании объекта функцией #hyscan_driver_new.
+ * Если загрузка драйвера выполнена успешно, возврашается указатель на новый объект,
+ * иначе возвращается NULL.
+ *
+ * Драйвер, загруженный с помощью функции #hyscan_driver_new, не выгружается из памяти
+ * до окончания работы программы, даже если удалить объект #HyScanDriver.
+ *
+ * Информацию о драйвере можно узнать с помощью функции #hyscan_driver_get_info.
+ * Информация возвращается в виде схемы данных со значениями по умолчанию.
+ * Обязательными полями являются следующие:
+ *
+ * - /schema/id - идентификатор схемы (число, #HYSCAN_DRIVER_SCHEMA_ID);
+ * - /schema/version - версия схемы (число, #HYSCAN_DRIVER_SCHEMA_VERSION);
+ * - /info/name - название драйвера (строка);
+ * - /info/description - описание драйвера (строка);
+ * - /info/version - версия драйвера (строка);
+ * - /info/id - идентификатор сборки (строка);
+ * - /api/version - версия API интерфейса HyScanDiscover (число, #HYSCAN_DISCOVER_API).
+ *
+ * Схема данных может содержать дополнительные поля.
+ *
+ * Функция #hyscan_driver_list возвращает список драйверов, доступных для загрузки из
+ * указанного каталога.
  */
 
 #include "hyscan-driver.h"
@@ -272,16 +318,15 @@ hyscan_driver_discover_stop (HyScanDiscover *discover)
     hyscan_discover_stop (driver->priv->discover);
 }
 
-static HyScanDiscoverInfo **
-hyscan_driver_discover_list (HyScanDiscover *discover,
-                             guint32        *n_devices)
+static GList *
+hyscan_driver_discover_list (HyScanDiscover *discover)
 {
   HyScanDriver *driver = HYSCAN_DRIVER (discover);
 
   if (driver->priv->discover == NULL)
     return NULL;
 
-  return hyscan_discover_list (driver->priv->discover, n_devices);
+  return hyscan_discover_list (driver->priv->discover);
 }
 
 static HyScanDataSchema *
@@ -309,7 +354,15 @@ hyscan_driver_discover_connect (HyScanDiscover  *discover,
   return hyscan_discover_connect (driver->priv->discover, uri, params);
 }
 
-/* Функция загружает драйвер из указанного каталога. */
+/**
+ * hyscan_driver_new:
+ * @path: путь к каталогу с драйверами
+ * @name: название драйвера
+ *
+ * Функция загружает драйвер из указанного каталога.
+ *
+ * Returns: #HyScanDriver. Для удаления #g_object_unref.
+ */
 HyScanDriver *
 hyscan_driver_new (const gchar *path,
                    const gchar *name)
@@ -327,7 +380,15 @@ hyscan_driver_new (const gchar *path,
   return driver;
 }
 
-/* Функция возвращает информацию о загруженном драйвере. */
+/**
+ * hyscan_driver_get_info:
+ * @path: путь к каталогу с драйверами
+ * @name: название драйвера
+ *
+ * Функция возвращает информацию о драйвере.
+ *
+ * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
+ */
 HyScanDataSchema *
 hyscan_driver_get_info (const gchar *path,
                         const gchar *name)
@@ -343,6 +404,15 @@ hyscan_driver_get_info (const gchar *path,
   return info;
 }
 
+/**
+ * hyscan_driver_list:
+ * @path: путь к каталогу с драйверами
+ *
+ * Функция возвращает список названий драйверов доступных для загрузки из
+ * указанного каталога.
+ *
+ * Returns (transfer full): список названий драйверов. Для удаления #g_strfreev.
+ */
 gchar **
 hyscan_driver_list (const gchar *path)
 {

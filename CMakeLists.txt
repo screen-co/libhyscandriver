@@ -50,18 +50,12 @@ add_definitions (${GLIB2_CFLAGS} ${LIBXML2_CFLAGS})
 
 if (HYSCAN_USE_SYS_LIBS)
   pkg_check_modules (HYSCAN REQUIRED "hyscantypes-${HYSCAN_MAJOR_VERSION}")
-  pkg_check_modules (URPC REQUIRED urpc)
-
-  link_directories (${HYSCAN_LIBRARY_DIRS} ${URPC_LIBRARY_DIRS})
-  add_definitions (${HYSCAN_CFLAGS} ${URPC_CFLAGS})
+  link_directories (${HYSCAN_LIBRARY_DIRS})
+  add_definitions (${HYSCAN_CFLAGS})
 else ()
   include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/../libhyscantypes/hyscantypes")
   link_directories ("${CMAKE_CURRENT_SOURCE_DIR}/../libhyscantypes/bin")
   set (HYSCAN_LIBRARIES "hyscantypes-${HYSCAN_MAJOR_VERSION}")
-
-  include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/../urpc/urpc")
-  link_directories ("${CMAKE_CURRENT_SOURCE_DIR}/../urpc/bin")
-  set (URPC_LIBRARIES urpc)
 endif ()
 
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/hyscandriver")
