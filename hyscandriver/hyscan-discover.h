@@ -21,6 +21,17 @@
  * Contact the Screen LLC in this case - info@screen-co.ru
  */
 
+/* HyScanDriver имеет двойную лицензию.
+ *
+ * Во первых, вы можете распространять HyScanDriver на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
+ */
+
 #ifndef __HYSCAN_DISCOVER_H__
 #define __HYSCAN_DISCOVER_H__
 
@@ -34,7 +45,9 @@ G_BEGIN_DECLS
  *
  * Версия API интерфейса обнаружения устройств.
  */
-#define HYSCAN_DISCOVER_API    20170100
+#define HYSCAN_DISCOVER_API             20170100
+
+#define HYSCAN_TYPE_DISCOVER_INFO       (hyscan_discover_info_get_type ())
 
 #define HYSCAN_TYPE_DISCOVER            (hyscan_discover_get_type ())
 #define HYSCAN_DISCOVER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_DISCOVER, HyScanDiscover))
@@ -92,6 +105,9 @@ struct _HyScanDiscoverInterface
                                                                 const gchar                   *uri,
                                                                 HyScanParamList               *params);
 };
+
+HYSCAN_API
+GType                          hyscan_discover_info_get_type   (void);
 
 HYSCAN_API
 GType                          hyscan_discover_get_type        (void);

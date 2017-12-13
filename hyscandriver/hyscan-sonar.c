@@ -21,6 +21,17 @@
  * Contact the Screen LLC in this case - info@screen-co.ru
  */
 
+/* HyScanDriver имеет двойную лицензию.
+ *
+ * Во первых, вы можете распространять HyScanDriver на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
+ */
+
 /**
  * SECTION: hyscan-sonar
  * @Short_description: интерфейс управления гидролокатором
@@ -260,7 +271,7 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
  *
  * Функция задаёт таблицу профиля скорости звука.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_set_sound_velocity (HyScanSonar *sonar,
@@ -285,7 +296,7 @@ hyscan_sonar_set_sound_velocity (HyScanSonar *sonar,
  *
  * Функция задаёт время приёма эхосигнала.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_receiver_set_time (HyScanSonar      *sonar,
@@ -310,7 +321,7 @@ hyscan_sonar_receiver_set_time (HyScanSonar      *sonar,
  *
  * Функция задаёт автоматический выбор времени приёма эхосигнала.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_receiver_set_auto (HyScanSonar      *sonar,
@@ -335,7 +346,7 @@ hyscan_sonar_receiver_set_auto (HyScanSonar      *sonar,
  *
  * Функция включает или выключает приём эхосигнала.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_receiver_set_enable (HyScanSonar      *sonar,
@@ -361,7 +372,7 @@ hyscan_sonar_receiver_set_enable (HyScanSonar      *sonar,
  *
  * Функция включает преднастроенный режим работы генератора.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_generator_set_preset (HyScanSonar      *sonar,
@@ -387,7 +398,7 @@ hyscan_sonar_generator_set_preset (HyScanSonar      *sonar,
  *
  * Функция включает автоматический режим работы генератора.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_generator_set_auto (HyScanSonar                    *sonar,
@@ -414,7 +425,7 @@ hyscan_sonar_generator_set_auto (HyScanSonar                    *sonar,
  *
  * Функция включает упрощённый режим работы генератора.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_generator_set_simple (HyScanSonar                    *sonar,
@@ -443,7 +454,7 @@ hyscan_sonar_generator_set_simple (HyScanSonar                    *sonar,
  *
  * Функция включает расширенный режим работы генератора.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_generator_set_extended (HyScanSonar                    *sonar,
@@ -471,7 +482,7 @@ hyscan_sonar_generator_set_extended (HyScanSonar                    *sonar,
  *
  * Функция включает или выключает формирование сигнала генератором.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_generator_set_enable (HyScanSonar      *sonar,
@@ -501,7 +512,7 @@ hyscan_sonar_generator_set_enable (HyScanSonar      *sonar,
  * Если в качестве значений параметров уровня сигнала и (или) чувствительности
  * передать отрицательное число, будут установлены значения по умолчанию.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_tvg_set_auto (HyScanSonar      *sonar,
@@ -531,7 +542,7 @@ hyscan_sonar_tvg_set_auto (HyScanSonar      *sonar,
  * Функция устанавливает усиление определённое контрольными точками,
  * заданными на равномерной временной оси.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_tvg_set_points (HyScanSonar      *sonar,
@@ -564,7 +575,7 @@ hyscan_sonar_tvg_set_points (HyScanSonar      *sonar,
  * возможного усиления. Величина изменения усиления должна находится в пределах от 0
  * до 40 дБ.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_tvg_set_linear_db (HyScanSonar      *sonar,
@@ -598,7 +609,7 @@ hyscan_sonar_tvg_set_linear_db (HyScanSonar      *sonar,
  * пределах от 0 дБ до 40 дБ. Значение коэффициента затухания должно находится в
  * пределах от 0 дБ/м до 1 дБ/м.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_tvg_set_logarithmic (HyScanSonar      *sonar,
@@ -626,7 +637,7 @@ hyscan_sonar_tvg_set_logarithmic (HyScanSonar      *sonar,
  *
  * Функция включает или выключает систему ВАРУ.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_tvg_set_enable (HyScanSonar      *sonar,
@@ -652,7 +663,7 @@ hyscan_sonar_tvg_set_enable (HyScanSonar      *sonar,
  * быть вызвана перед запуском гидролокатора с помощью функции #hyscan_sonar_start,
  * если до этого он находился в ждущем режиме.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_set_software_ping (HyScanSonar *sonar)
@@ -677,7 +688,7 @@ hyscan_sonar_set_software_ping (HyScanSonar *sonar)
  *
  * Функция переводит гидролокатор в рабочий режим.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_start (HyScanSonar     *sonar,
@@ -702,7 +713,7 @@ hyscan_sonar_start (HyScanSonar     *sonar,
  *
  * Функция переводит гидролокатор в ждущий режим и отключает запись данных.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_stop (HyScanSonar *sonar)
@@ -727,7 +738,7 @@ hyscan_sonar_stop (HyScanSonar *sonar)
  * время работы гидролокатора. При переводе гидролокатора в рабочий режим данная
  * функция вызывается автоматически.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_sync (HyScanSonar *sonar)
@@ -752,7 +763,7 @@ hyscan_sonar_sync (HyScanSonar *sonar)
  * #hyscan_sonar_set_software_ping. Гидролокатор должен находится в рабочем режиме
  * (#hyscan_sonar_start).
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sonar_ping (HyScanSonar *sonar)

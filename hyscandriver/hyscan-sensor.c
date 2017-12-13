@@ -21,6 +21,17 @@
  * Contact the Screen LLC in this case - info@screen-co.ru
  */
 
+/* HyScanDriver имеет двойную лицензию.
+ *
+ * Во первых, вы можете распространять HyScanDriver на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
+ */
+
 /**
  * SECTION: hyscan-sensor
  * @Short_description: интерфейс управления датчиком
@@ -104,7 +115,7 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
  *
  * Функция задаёт таблицу профиля скорости звука.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sensor_set_sound_velocity (HyScanSensor *sensor,
@@ -129,7 +140,7 @@ hyscan_sensor_set_sound_velocity (HyScanSensor *sensor,
  *
  * Функция устанавливает номер приёмного канала для указанного порта.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sensor_set_channel (HyScanSensor *sensor,
@@ -155,7 +166,7 @@ hyscan_sensor_set_channel (HyScanSensor *sensor,
  *
  * Функция устанавливает величину компенсации задержки при приёме данных портом.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sensor_set_latency (HyScanSensor *sensor,
@@ -181,7 +192,7 @@ hyscan_sensor_set_latency (HyScanSensor *sensor,
  *
  * Функция включает или выключает приём данных.
  *
- * Returns: %TRUE если команда выполнена успешно, %FALSE - в случае ошибки.
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
 hyscan_sensor_set_enable (HyScanSensor *sensor,
