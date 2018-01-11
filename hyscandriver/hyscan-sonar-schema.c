@@ -1,6 +1,6 @@
 /* hyscan-sonar-schema.c
  *
- * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -206,6 +206,15 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema *schema,
 
   prefix = g_strdup_printf ("/sources/%s", source_name);
 
+  /* Признак наличия источника данных. */
+  key_id = g_strdup_printf ("%s/id", prefix);
+  hyscan_data_schema_builder_key_string_create (builder, key_id, "id", NULL, source_name);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (!status)
+    goto exit;
+
   /* Диаграмма направленности антенны в вертикальной плоскости. */
   key_id = g_strdup_printf ("%s/antenna/pattern/vertical", prefix);
   hyscan_data_schema_builder_key_double_create (builder, key_id, "vertical-pattern", NULL, antenna_vpattern);
@@ -275,7 +284,7 @@ exit:
 }
 
 /**
- * hyscan_sonar_schema_source_set_antenna_position:
+ * hyscan_sonar_schema_source_set_position:
  * @schema: указатель на #HyScanSonarSchema
  * @source: тип источника данных
  * @position: местоположение антенны по умолчанию
@@ -285,9 +294,9 @@ exit:
  * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_schema_source_set_antenna_position (HyScanSonarSchema     *schema,
-                                                 HyScanSourceType       source,
-                                                 HyScanAntennaPosition *position)
+hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
+                                         HyScanSourceType       source,
+                                         HyScanAntennaPosition *position)
 {
   HyScanDataSchemaBuilder *builder;
   const gchar *source_name;

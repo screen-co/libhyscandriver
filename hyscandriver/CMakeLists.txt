@@ -26,6 +26,7 @@ add_library (${HYSCAN_DRIVER_LIBRARY} SHARED
              hyscan-driver.c
              hyscan-discover.c
              hyscan-sonar-schema.c
+             hyscan-sensor-schema.c
              "${CMAKE_BINARY_DIR}/marshallers/hyscan-driver-marshallers.c")
 
 target_link_libraries (${HYSCAN_DRIVER_LIBRARY} ${GLIB2_LIBRARIES} ${HYSCAN_LIBRARIES})
@@ -54,6 +55,7 @@ install (FILES hyscan-sonar.h
                hyscan-driver.h
                hyscan-discover.h
                hyscan-sonar-schema.h
+               hyscan-sensor-schema.h
          COMPONENT development
          DESTINATION "include/hyscan-${HYSCAN_MAJOR_VERSION}/hyscandriver"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

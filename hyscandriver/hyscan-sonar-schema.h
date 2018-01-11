@@ -1,6 +1,6 @@
 /* hyscan-sonar-schema.h
  *
- * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -99,7 +99,7 @@ gboolean               hyscan_sonar_schema_source_add                  (HyScanSo
                                                                         gboolean                       auto_receive_time);
 
 HYSCAN_API
-gboolean               hyscan_sonar_schema_source_set_antenna_position (HyScanSonarSchema             *schema,
+gboolean               hyscan_sonar_schema_source_set_position         (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
                                                                         HyScanAntennaPosition         *position);
 
