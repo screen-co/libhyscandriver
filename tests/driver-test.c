@@ -20,8 +20,11 @@ main (int    argc,
   path = argv[1];
   names = hyscan_driver_list (path);
 
+  if (names == NULL)
+    g_error ("can't get drivers list");
+
   /* Проверяем работу на драйверах - заглушках (dummy*). */
-  for (i = 0; names != NULL && names[i] != NULL; i++)
+  for (i = 0; names[i] != NULL; i++)
     {
       HyScanDriver *driver;
       HyScanDataSchema *info;
