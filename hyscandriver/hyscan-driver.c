@@ -352,7 +352,7 @@ hyscan_driver_discover_config (HyScanDiscover *discover,
   return hyscan_discover_config (driver->priv->discover, uri);
 }
 
-static HyScanDiscoverConnect *
+static HyScanDevice *
 hyscan_driver_discover_connect (HyScanDiscover  *discover,
                                 const gchar     *uri,
                                 HyScanParamList *params)

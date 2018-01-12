@@ -59,12 +59,12 @@ typedef struct _HyScanDiscoverInterface HyScanDiscoverInterface;
 typedef struct _HyScanDiscoverInfo HyScanDiscoverInfo;
 
 /**
- * HyScanDiscoverConnect:
+ * HyScanDevice:
  *
  * Абстрактный тип, описывающий подключение к устройству.
  *
  */
-typedef GObject HyScanDiscoverConnect;
+typedef GObject HyScanDevice;
 
 /**
  * HyScanDiscoverInfo:
@@ -101,7 +101,7 @@ struct _HyScanDiscoverInterface
   HyScanDataSchema *           (*config)                       (HyScanDiscover                *discover,
                                                                 const gchar                   *uri);
 
-  HyScanDiscoverConnect *      (*connect)                      (HyScanDiscover                *discover,
+  HyScanDevice *               (*connect)                      (HyScanDiscover                *discover,
                                                                 const gchar                   *uri,
                                                                 HyScanParamList               *params);
 };
@@ -126,7 +126,7 @@ HyScanDataSchema *             hyscan_discover_config          (HyScanDiscover  
                                                                 const gchar                   *uri);
 
 HYSCAN_API
-HyScanDiscoverConnect *        hyscan_discover_connect         (HyScanDiscover                *discover,
+HyScanDevice *                 hyscan_discover_connect         (HyScanDiscover                *discover,
                                                                 const gchar                   *uri,
                                                                 HyScanParamList               *params);
 

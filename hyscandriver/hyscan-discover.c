@@ -189,9 +189,9 @@ hyscan_discover_config (HyScanDiscover *discover,
  *
  * Функция производит подключение к устройству.
  *
- * Returns: (transfer full): #HyScanDiscoverConnect или NULL в случае ошибки. Для удаления #g_object_unref.
+ * Returns: (transfer full): #HyScanDevice или NULL в случае ошибки. Для удаления #g_object_unref.
  */
-HyScanDiscoverConnect *
+HyScanDevice *
 hyscan_discover_connect (HyScanDiscover  *discover,
                          const gchar     *uri,
                          HyScanParamList *params)
