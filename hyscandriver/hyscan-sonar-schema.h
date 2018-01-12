@@ -99,23 +99,18 @@ gboolean               hyscan_sonar_schema_source_add                  (HyScanSo
                                                                         gboolean                       auto_receive_time);
 
 HYSCAN_API
-gboolean               hyscan_sonar_schema_source_set_position         (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source,
-                                                                        HyScanAntennaPosition         *position);
+gboolean               hyscan_sonar_schema_source_set_master           (HyScanSonarSchema             *schema,
+                                                                        HyScanSourceType               master,
+                                                                        HyScanSourceType               slave);
 
 HYSCAN_API
-gboolean               hyscan_sonar_schema_channel_add                 (HyScanSonarSchema             *schema,
+gboolean               hyscan_sonar_schema_source_add_channel          (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
                                                                         guint                          channel,
                                                                         gdouble                        antenna_voffset,
                                                                         gdouble                        antenna_hoffset,
                                                                         gint                           adc_offset,
                                                                         gfloat                         adc_vref);
-
-HYSCAN_API
-gboolean               hyscan_sonar_schema_source_set_acoustic         (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source,
-                                                                        gboolean                       is_acoustic);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_generator_add               (HyScanSonarSchema             *schema,
@@ -145,6 +140,11 @@ gboolean               hyscan_sonar_schema_tvg_add                     (HyScanSo
                                                                         gdouble                        min_gain,
                                                                         gdouble                        max_gain,
                                                                         gboolean                       can_decrease);
+
+HYSCAN_API
+gboolean               hyscan_sonar_schema_source_set_position         (HyScanSonarSchema             *schema,
+                                                                        HyScanSourceType               source,
+                                                                        HyScanAntennaPosition         *position);
 
 G_END_DECLS
 

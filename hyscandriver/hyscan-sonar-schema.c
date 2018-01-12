@@ -47,10 +47,10 @@
 struct _HyScanSonarSchemaPrivate
 {
   GHashTable                  *sources;                        /* Наличие источников данных. */
+  GHashTable                  *slaves;                         /* Ведомые источники данных. */
   GHashTable                  *generators;                     /* Наличие генераторов. */
   GHashTable                  *tvgs;                           /* Наличие ВАРУ. */
   GHashTable                  *channels;                       /* Наличие приёмного канала. */
-  GHashTable                  *acoustics;                      /* Наличие источника "акустических" данных. */
 };
 
 static void    hyscan_sonar_schema_object_constructed          (GObject                       *object);
@@ -83,10 +83,10 @@ hyscan_sonar_schema_object_constructed (GObject *object)
   G_OBJECT_CLASS (hyscan_sonar_schema_parent_class)->constructed (object);
 
   priv->sources = g_hash_table_new (g_direct_hash, g_direct_equal);
+  priv->slaves = g_hash_table_new (g_direct_hash, g_direct_equal);
   priv->generators = g_hash_table_new (g_direct_hash, g_direct_equal);
   priv->tvgs = g_hash_table_new (g_direct_hash, g_direct_equal);
   priv->channels = g_hash_table_new (g_direct_hash, g_direct_equal);
-  priv->acoustics = g_hash_table_new (g_direct_hash, g_direct_equal);
 
   /* Версия и идентификатор схемы данных гидролокатора. */
   hyscan_data_schema_builder_key_integer_create (builder, "/schema/id", "id",
@@ -105,10 +105,10 @@ hyscan_sonar_schema_object_finalize (GObject *object)
   HyScanSonarSchemaPrivate *priv = schema->priv;
 
   g_hash_table_unref (priv->sources);
+  g_hash_table_unref (priv->slaves);
   g_hash_table_unref (priv->generators);
   g_hash_table_unref (priv->tvgs);
   g_hash_table_unref (priv->channels);
-  g_hash_table_unref (priv->acoustics);
 
   G_OBJECT_CLASS (hyscan_sonar_schema_parent_class)->finalize (object);
 }
@@ -284,87 +284,57 @@ exit:
 }
 
 /**
- * hyscan_sonar_schema_source_set_position:
+ * hyscan_sonar_schema_source_set_master:
  * @schema: указатель на #HyScanSonarSchema
- * @source: тип источника данных
- * @position: местоположение антенны по умолчанию
+ * @master: ведущий источник данных
+ * @slave: ведомый источик данных
  *
- * Функция устанавливает местоположение антенны по умолчанию.
+ * Функция устанавливает связь ведущего и ведомого источников данных.
  *
  * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
-                                         HyScanSourceType       source,
-                                         HyScanAntennaPosition *position)
+hyscan_sonar_schema_source_set_master (HyScanSonarSchema *schema,
+                                       HyScanSourceType   master,
+                                       HyScanSourceType   slave)
 {
   HyScanDataSchemaBuilder *builder;
-  const gchar *source_name;
+  const gchar *master_name;
+  const gchar *slave_name;
   gboolean status;
-  gchar *prefix;
   gchar *key_id;
 
   g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
 
   builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
 
-  source_name = hyscan_source_get_name_by_type (source);
-  if (source_name == NULL)
+  master_name = hyscan_source_get_name_by_type (master);
+  slave_name = hyscan_source_get_name_by_type (slave);
+  if ((master_name == NULL) || (slave_name == NULL))
     return FALSE;
 
-  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
+  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (master)))
     return FALSE;
 
-  prefix = g_strdup_printf ("/sources/%s/position", source_name);
+  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (slave)))
+    return FALSE;
 
-  /* Местоположение антенны. */
-  key_id = g_strdup_printf ("%s/x", prefix);
-  hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, position->x);
+  if (g_hash_table_contains (schema->priv->slaves, GINT_TO_POINTER (slave)))
+    return FALSE;
+
+  if (g_hash_table_contains (schema->priv->generators, GINT_TO_POINTER (slave)))
+    return FALSE;
+
+  if (g_hash_table_contains (schema->priv->tvgs, GINT_TO_POINTER (slave)))
+    return FALSE;
+
+  key_id = g_strdup_printf ("/sources/%s/master", slave_name);
+  hyscan_data_schema_builder_key_string_create (builder, key_id, "master", NULL, master_name);
   status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   g_free (key_id);
 
-  if (!status)
-    goto exit;
-
-  key_id = g_strdup_printf ("%s/y", prefix);
-  hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  position->y);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  key_id = g_strdup_printf ("%s/z", prefix);
-  hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  position->z);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  key_id = g_strdup_printf ("%s/psi", prefix);
-  hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, position->psi);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  key_id = g_strdup_printf ("%s/gamma", prefix);
-  hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, position->gamma);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  key_id = g_strdup_printf ("%s/theta", prefix);
-  hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, position->theta);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-exit:
-  g_free (prefix);
+  if (status)
+    g_hash_table_insert (schema->priv->slaves, GINT_TO_POINTER (slave), GINT_TO_POINTER (master));
 
   return status;
 }
@@ -384,13 +354,13 @@ exit:
  * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_schema_channel_add (HyScanSonarSchema *schema,
-                                 HyScanSourceType   source,
-                                 guint              channel,
-                                 gdouble            antenna_voffset,
-                                 gdouble            antenna_hoffset,
-                                 gint               adc_offset,
-                                 gfloat             adc_vref)
+hyscan_sonar_schema_source_add_channel (HyScanSonarSchema *schema,
+                                        HyScanSourceType   source,
+                                        guint              channel,
+                                        gdouble            antenna_voffset,
+                                        gdouble            antenna_hoffset,
+                                        gint               adc_offset,
+                                        gfloat             adc_vref)
 {
   HyScanDataSchemaBuilder *builder;
   const gchar *source_name;
@@ -459,52 +429,6 @@ exit:
 }
 
 /**
- * hyscan_sonar_schema_source_set_acoustic:
- * @schema: указатель на #HyScanSonarSchema
- * @source: тип источника данных
- * @is_acoustic: признак наличия акустических данных
- *
- * Функция устанавливает признак наличия акустических данных.
- *
- * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_schema_source_set_acoustic (HyScanSonarSchema *schema,
-                                         HyScanSourceType   source,
-                                         gboolean           is_acoustic)
-{
-  HyScanDataSchemaBuilder *builder;
-  const gchar *source_name;
-  gboolean status;
-  gchar *key_id;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), -1);
-
-  builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
-
-  source_name = hyscan_source_get_name_by_type (source);
-  if (source_name == NULL)
-    return -1;
-
-  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
-    return -1;
-
-  if (g_hash_table_contains (schema->priv->acoustics, GINT_TO_POINTER (source)))
-    return -1;
-
-  /* Идентификатор источника "акустических" данных. */
-  key_id = g_strdup_printf ("/sources/%s/acoustic", source_name);
-  hyscan_data_schema_builder_key_boolean_create (builder, key_id, "id", NULL, is_acoustic);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (status)
-    g_hash_table_insert (schema->priv->acoustics, GINT_TO_POINTER (source), NULL);
-
-  return status;
-}
-
-/**
  * hyscan_sonar_schema_generator_add:
  * @schema: указатель на #HyScanSonarSchema
  * @source: тип источника данных
@@ -536,6 +460,9 @@ hyscan_sonar_schema_generator_add (HyScanSonarSchema              *schema,
     return FALSE;
 
   if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
+    return FALSE;
+
+  if (g_hash_table_contains (schema->priv->slaves, GINT_TO_POINTER (source)))
     return FALSE;
 
   if (g_hash_table_contains (schema->priv->generators, GINT_TO_POINTER (source)))
@@ -684,13 +611,14 @@ hyscan_sonar_schema_generator_add_preset (HyScanSonarSchema *schema,
   if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
     return FALSE;
 
-  if (g_hash_table_contains (schema->priv->generators, GINT_TO_POINTER (source)))
+  if (!g_hash_table_contains (schema->priv->generators, GINT_TO_POINTER (source)))
     return FALSE;
 
   /* Преднастройка генератора. */
   key_id = g_strdup_printf ("/sources/%s/generator/presets/%d", source_name, preset_id);
-  hyscan_data_schema_builder_key_integer_create (builder, key_id, preset_name, preset_description, preset_id);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  status = hyscan_data_schema_builder_key_integer_create (builder, key_id, preset_name, preset_description, preset_id);
+  if (status)
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   g_free (key_id);
 
   return status;
@@ -734,6 +662,9 @@ hyscan_sonar_schema_tvg_add (HyScanSonarSchema      *schema,
   if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
     return FALSE;
 
+  if (g_hash_table_contains (schema->priv->slaves, GINT_TO_POINTER (source)))
+    return FALSE;
+
   if (g_hash_table_contains (schema->priv->tvgs, GINT_TO_POINTER (source)))
     return FALSE;
 
@@ -772,6 +703,92 @@ hyscan_sonar_schema_tvg_add (HyScanSonarSchema      *schema,
 
   if (status)
     g_hash_table_insert (schema->priv->tvgs, GINT_TO_POINTER (source), NULL);
+
+exit:
+  g_free (prefix);
+
+  return status;
+}
+
+/**
+ * hyscan_sonar_schema_source_set_position:
+ * @schema: указатель на #HyScanSonarSchema
+ * @source: тип источника данных
+ * @position: местоположение антенны по умолчанию
+ *
+ * Функция устанавливает местоположение антенны по умолчанию.
+ *
+ * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
+                                         HyScanSourceType       source,
+                                         HyScanAntennaPosition *position)
+{
+  HyScanDataSchemaBuilder *builder;
+  const gchar *source_name;
+  gboolean status;
+  gchar *prefix;
+  gchar *key_id;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
+
+  builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
+
+  source_name = hyscan_source_get_name_by_type (source);
+  if (source_name == NULL)
+    return FALSE;
+
+  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
+    return FALSE;
+
+  prefix = g_strdup_printf ("/sources/%s/position", source_name);
+
+  /* Местоположение антенны. */
+  key_id = g_strdup_printf ("%s/x", prefix);
+  hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, position->x);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (!status)
+    goto exit;
+
+  key_id = g_strdup_printf ("%s/y", prefix);
+  hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  position->y);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (!status)
+    goto exit;
+
+  key_id = g_strdup_printf ("%s/z", prefix);
+  hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  position->z);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (!status)
+    goto exit;
+
+  key_id = g_strdup_printf ("%s/psi", prefix);
+  hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, position->psi);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (!status)
+    goto exit;
+
+  key_id = g_strdup_printf ("%s/gamma", prefix);
+  hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, position->gamma);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (!status)
+    goto exit;
+
+  key_id = g_strdup_printf ("%s/theta", prefix);
+  hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, position->theta);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
 
 exit:
   g_free (prefix);
