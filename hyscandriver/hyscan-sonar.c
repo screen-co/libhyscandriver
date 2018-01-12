@@ -658,6 +658,7 @@ hyscan_sonar_tvg_set_enable (HyScanSonar      *sonar,
 /**
  * hyscan_sonar_set_software_ping:
  * @sonar: указатель на #HyScanSonar
+ * @enable: признак программного управления излучением
  *
  * Функция устанавливает программное управление излучением. Данная функция должна
  * быть вызвана перед запуском гидролокатора с помощью функции #hyscan_sonar_start,
@@ -666,7 +667,8 @@ hyscan_sonar_tvg_set_enable (HyScanSonar      *sonar,
  * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_set_software_ping (HyScanSonar *sonar)
+hyscan_sonar_set_software_ping (HyScanSonar *sonar,
+                                gboolean     enable)
 {
   HyScanSonarInterface *iface;
 
@@ -674,7 +676,7 @@ hyscan_sonar_set_software_ping (HyScanSonar *sonar)
 
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->set_software_ping != NULL)
-    return (* iface->set_software_ping) (sonar);
+    return (* iface->set_software_ping) (sonar, enable);
 
   return FALSE;
 }

@@ -198,7 +198,8 @@ struct _HyScanSonarInterface
                                                                 HyScanSourceType                source,
                                                                 gboolean                        enable);
 
-  gboolean             (*set_software_ping)                    (HyScanSonar                    *sonar);
+  gboolean             (*set_software_ping)                    (HyScanSonar                    *sonar,
+                                                                gboolean                        enable);
 
   gboolean             (*start)                                (HyScanSonar                    *sonar,
                                                                 const gchar                    *project_name,
@@ -293,7 +294,8 @@ gboolean               hyscan_sonar_tvg_set_enable             (HyScanSonar     
                                                                 gboolean                        enable);
 
 HYSCAN_API
-gboolean               hyscan_sonar_set_software_ping          (HyScanSonar                    *sonar);
+gboolean               hyscan_sonar_set_software_ping          (HyScanSonar                    *sonar,
+                                                                gboolean                        enable);
 
 HYSCAN_API
 gboolean               hyscan_sonar_start                      (HyScanSonar                    *sonar,
