@@ -45,7 +45,7 @@ G_BEGIN_DECLS
  *
  * Идентификатор схемы гидролокатора.
  */
-#define HYSCAN_SONAR_SCHEMA_ID               0x4D45484353524E53
+#define HYSCAN_SONAR_SCHEMA_ID               1374652938475623487
 
 /**
  * HYSCAN_SONAR_SCHEMA_VERSION:

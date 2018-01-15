@@ -80,7 +80,7 @@ hyscan_sensor_schema_object_constructed (GObject *object)
 
   priv->ports = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
-  /* Версия и идентификатор схемы данных гидролокатора. */
+  /* Версия и идентификатор схемы данных датчиков. */
   hyscan_data_schema_builder_key_integer_create (builder, "/schema/id", "id",
                                                  "Sensor schema id", HYSCAN_SENSOR_SCHEMA_ID);
   hyscan_data_schema_builder_key_set_access (builder, "/schema/id", HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
