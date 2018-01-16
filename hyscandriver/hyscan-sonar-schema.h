@@ -81,7 +81,10 @@ HYSCAN_API
 GType                  hyscan_sonar_schema_get_type                    (void);
 
 HYSCAN_API
-HyScanSonarSchema     *hyscan_sonar_schema_new                         (void);
+HyScanSonarSchema *    hyscan_sonar_schema_new                         (void);
+
+HYSCAN_API
+HyScanDataSchema *     hyscan_sonar_schema_get_schema                  (HyScanSonarSchema             *schema);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_set_software_ping           (HyScanSonarSchema             *schema,
@@ -110,7 +113,7 @@ gboolean               hyscan_sonar_schema_source_add_channel          (HyScanSo
                                                                         gdouble                        antenna_voffset,
                                                                         gdouble                        antenna_hoffset,
                                                                         gint                           adc_offset,
-                                                                        gfloat                         adc_vref);
+                                                                        gdouble                        adc_vref);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_generator_add               (HyScanSonarSchema             *schema,

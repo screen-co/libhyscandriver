@@ -129,6 +129,31 @@ hyscan_sonar_schema_new (void)
 }
 
 /**
+ * hyscan_sonar_schema_get_schema:
+ * @schema: указатель на #HyScanSonarSchema
+ *
+ * Функция возвращает схему гидролокатора.
+ *
+ * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
+ */
+HyScanDataSchema *
+hyscan_sonar_schema_get_schema (HyScanSonarSchema *schema)
+{
+  HyScanDataSchemaBuilder *builder;
+  HyScanDataSchema *sonar_schema;
+  gchar *data;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), NULL);
+
+  builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
+  data = hyscan_data_schema_builder_get_data (builder);
+  sonar_schema = hyscan_data_schema_new_from_string (data, "sonar");
+  g_free (data);
+
+  return sonar_schema;
+}
+
+/**
  * hyscan_sonar_schema_set_software_ping:
  * @schema: указатель на #HyScanSonarSchema
  * @software_ping: возможность программного управления излучением
@@ -360,7 +385,7 @@ hyscan_sonar_schema_source_add_channel (HyScanSonarSchema *schema,
                                         gdouble            antenna_voffset,
                                         gdouble            antenna_hoffset,
                                         gint               adc_offset,
-                                        gfloat             adc_vref)
+                                        gdouble            adc_vref)
 {
   HyScanDataSchemaBuilder *builder;
   const gchar *source_name;

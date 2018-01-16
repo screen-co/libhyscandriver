@@ -65,6 +65,7 @@ typedef struct _HyScanDiscoverInfo HyScanDiscoverInfo;
  *
  */
 typedef GObject HyScanDevice;
+#define HYSCAN_DEVICE(obj)              (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_TYPE_OBJECT, HyScanDevice))
 
 /**
  * HyScanDiscoverInfo:

@@ -151,7 +151,7 @@ hyscan_discover_list (HyScanDiscover *discover)
 
   iface = HYSCAN_DISCOVER_GET_IFACE (discover);
   if (iface->list != NULL)
-    (* iface->list) (discover);
+    return (* iface->list) (discover);
 
   return NULL;
 }
@@ -176,7 +176,7 @@ hyscan_discover_config (HyScanDiscover *discover,
 
   iface = HYSCAN_DISCOVER_GET_IFACE (discover);
   if (iface->config != NULL)
-    (* iface->config) (discover, uri);
+    return (* iface->config) (discover, uri);
 
   return NULL;
 }
@@ -202,7 +202,7 @@ hyscan_discover_connect (HyScanDiscover  *discover,
 
   iface = HYSCAN_DISCOVER_GET_IFACE (discover);
   if (iface->connect != NULL)
-    (* iface->connect) (discover, uri, params);
+    return (* iface->connect) (discover, uri, params);
 
   return NULL;
 }

@@ -117,6 +117,31 @@ hyscan_sensor_schema_new (void)
 }
 
 /**
+ * hyscan_sensor_schema_get_schema:
+ * @schema: указатель на #HyScanSensorSchema
+ *
+ * Функция возвращает схему датчика.
+ *
+ * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
+ */
+HyScanDataSchema *
+hyscan_sensor_schema_get_schema (HyScanSensorSchema *schema)
+{
+  HyScanDataSchemaBuilder *builder;
+  HyScanDataSchema *sonar_schema;
+  gchar *data;
+
+  g_return_val_if_fail (HYSCAN_IS_SENSOR_SCHEMA (schema), NULL);
+
+  builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
+  data = hyscan_data_schema_builder_get_data (builder);
+  sonar_schema = hyscan_data_schema_new_from_string (data, "sonar");
+  g_free (data);
+
+  return sonar_schema;
+}
+
+/**
  * hyscan_sensor_schema_add_port:
  * @schema: указатель на #HyScanSensorSchema
  * @name: название порта

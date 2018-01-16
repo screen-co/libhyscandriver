@@ -84,6 +84,9 @@ HYSCAN_API
 HyScanSensorSchema    *hyscan_sensor_schema_new                (void);
 
 HYSCAN_API
+HyScanDataSchema *     hyscan_sensor_schema_get_schema         (HyScanSensorSchema    *schema);
+
+HYSCAN_API
 gboolean               hyscan_sensor_schema_add_port           (HyScanSensorSchema    *schema,
                                                                 const gchar           *name);
 

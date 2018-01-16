@@ -267,7 +267,7 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
 /**
  * hyscan_sonar_set_sound_velocity:
  * @sonar: указатель на #HyScanSonar
- * @svp: (element-type: HyScanSoundVelocity): таблица профиля скорости звука
+ * @svp: (element-type: HyScanSoundVelocity) (transfer none): таблица профиля скорости звука
  *
  * Функция задаёт таблицу профиля скорости звука.
  *
