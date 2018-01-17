@@ -41,8 +41,24 @@
 G_BEGIN_DECLS
 
 /**
+ * HyScanSonarReceiverModeType:
+ * @HYSCAN_SONAR_RECEIVER_MODE_NONE: Приёмник отсутствует.
+ * @HYSCAN_SONAR_RECEIVER_MODE_MANUAL: Ручной режим работы.
+ * @HYSCAN_SONAR_RECEIVER_MODE_AUTO: Автоматический режим работы.
+ *
+ * Режимы работы приёмника данных.
+ */
+typedef enum
+{
+  HYSCAN_SONAR_RECEIVER_MODE_NONE              = 0,
+
+  HYSCAN_SONAR_RECEIVER_MODE_MANUAL            = (1 << 0),
+  HYSCAN_SONAR_RECEIVER_MODE_AUTO              = (1 << 1),
+} HyScanSonarReceiverModeType;
+
+/**
  * HyScanSonarGeneratorModeType:
- * @HYSCAN_SONAR_GENERATOR_MODE_INVALID: Недопустимый тип, ошибка.
+ * @HYSCAN_SONAR_GENERATOR_MODE_NONE: Генератор отсутствует.
  * @HYSCAN_SONAR_GENERATOR_MODE_PRESET: Режим работы по преднастройкам.
  * @HYSCAN_SONAR_GENERATOR_MODE_AUTO: Автоматический режим работы.
  * @HYSCAN_SONAR_GENERATOR_MODE_SIMPLE: Упрощённый режим работы.
@@ -52,7 +68,7 @@ G_BEGIN_DECLS
  */
 typedef enum
 {
-  HYSCAN_SONAR_GENERATOR_MODE_INVALID          = 0,
+  HYSCAN_SONAR_GENERATOR_MODE_NONE             = 0,
 
   HYSCAN_SONAR_GENERATOR_MODE_PRESET           = (1 << 0),
   HYSCAN_SONAR_GENERATOR_MODE_AUTO             = (1 << 1),
@@ -62,7 +78,7 @@ typedef enum
 
 /**
  * HyScanSonarGeneratorSignalType:
- * @HYSCAN_SONAR_GENERATOR_SIGNAL_INVALID: Недопустимый тип, ошибка.
+ * @HYSCAN_SONAR_GENERATOR_SIGNAL_NONE: Генератор отсутствует.
  * @HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO: Автоматический выбор типа сигнала.
  * @HYSCAN_SONAR_GENERATOR_SIGNAL_TONE: Тональный сигнал.
  * @HYSCAN_SONAR_GENERATOR_SIGNAL_LFM: Линейно-частотно модулированный сигнал.
@@ -72,7 +88,7 @@ typedef enum
  */
 typedef enum
 {
-  HYSCAN_SONAR_GENERATOR_SIGNAL_INVALID        = 0,
+  HYSCAN_SONAR_GENERATOR_SIGNAL_NONE           = 0,
 
   HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO           = (1 << 0),
   HYSCAN_SONAR_GENERATOR_SIGNAL_TONE           = (1 << 1),
@@ -82,7 +98,7 @@ typedef enum
 
 /**
  * HyScanSonarTVGModeType:
- * @HYSCAN_SONAR_TVG_MODE_INVALID: Недопустимый тип, ошибка.
+ * @HYSCAN_SONAR_TVG_MODE_INVALID: Система ВАРУ отсутствует.
  * @HYSCAN_SONAR_TVG_MODE_AUTO: Автоматический режим работы.
  * @HYSCAN_SONAR_TVG_MODE_POINTS: Усиление заданное точками.
  * @HYSCAN_SONAR_TVG_MODE_LINEAR_DB: Линейное увеличение усиления в дБ / 100 метров.
@@ -92,7 +108,7 @@ typedef enum
  */
 typedef enum
 {
-  HYSCAN_SONAR_TVG_MODE_INVALID                = 0,
+  HYSCAN_SONAR_TVG_MODE_NONE                   = 0,
 
   HYSCAN_SONAR_TVG_MODE_AUTO                   = (1 << 0),
   HYSCAN_SONAR_TVG_MODE_POINTS                 = (1 << 1),
