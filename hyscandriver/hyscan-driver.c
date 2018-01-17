@@ -445,7 +445,7 @@ hyscan_driver_list (const gchar *path)
     }
 
   /* Список драйверов. */
-  names = g_array_sized_new (TRUE, TRUE, sizeof (gpointer), 16);
+  names = g_array_new (TRUE, TRUE, sizeof (gpointer));
 
   /* Шаблон имени драйвера. */
   pattern = g_strdup_printf ("^%s-[0-9A-Za-z]+-%s\\.%s$",
@@ -492,7 +492,13 @@ hyscan_driver_list (const gchar *path)
   g_dir_close (dir);
   g_free (pattern);
 
-  return (gchar**)g_array_free (names, (names->len == 0));
+  if (names->len == 0)
+    {
+      g_array_unref (names);
+      return NULL;
+    }
+
+  return (gchar**)g_array_free (names, FALSE);
 }
 
 static void

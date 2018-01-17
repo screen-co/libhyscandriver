@@ -36,6 +36,8 @@ main (int    argc,
       if (!g_str_has_prefix (names[i], "dummy"))
         continue;
 
+      g_message ("Loading driver %s", names[i]);
+
       /* Информация о драйвере. */
       info = hyscan_driver_get_info (path, names[i]);
       if (info == NULL)
