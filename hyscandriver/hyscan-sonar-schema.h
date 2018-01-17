@@ -96,10 +96,7 @@ gboolean               hyscan_sonar_schema_source_add                  (HyScanSo
                                                                         gdouble                        antenna_vpattern,
                                                                         gdouble                        antenna_hpattern,
                                                                         gdouble                        antenna_frequency,
-                                                                        gdouble                        antenna_bandwidth,
-                                                                        gdouble                        min_receive_time,
-                                                                        gdouble                        max_receive_time,
-                                                                        gboolean                       auto_receive_time);
+                                                                        gdouble                        antenna_bandwidth);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_source_set_master           (HyScanSonarSchema             *schema,
@@ -107,7 +104,18 @@ gboolean               hyscan_sonar_schema_source_set_master           (HyScanSo
                                                                         HyScanSourceType               slave);
 
 HYSCAN_API
-gboolean               hyscan_sonar_schema_source_add_channel          (HyScanSonarSchema             *schema,
+gboolean               hyscan_sonar_schema_receiver_add                (HyScanSonarSchema             *schema,
+                                                                        HyScanSourceType               source,
+                                                                        HyScanSonarReceiverModeType    capabilities);
+
+HYSCAN_API
+gboolean               hyscan_sonar_schema_receiver_set_params         (HyScanSonarSchema             *schema,
+                                                                        HyScanSourceType               source,
+                                                                        gdouble                        min_receive_time,
+                                                                        gdouble                        max_receive_time);
+
+HYSCAN_API
+gboolean               hyscan_sonar_schema_receiver_add_channel        (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
                                                                         guint                          channel,
                                                                         gdouble                        antenna_voffset,

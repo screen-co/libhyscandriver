@@ -48,6 +48,7 @@ struct _HyScanSonarSchemaPrivate
 {
   GHashTable                  *sources;                        /* Наличие источников данных. */
   GHashTable                  *slaves;                         /* Ведомые источники данных. */
+  GHashTable                  *receivers;                      /* Наличие приёмников. */
   GHashTable                  *generators;                     /* Наличие генераторов. */
   GHashTable                  *tvgs;                           /* Наличие ВАРУ. */
   GHashTable                  *channels;                       /* Наличие приёмного канала. */
@@ -84,6 +85,7 @@ hyscan_sonar_schema_object_constructed (GObject *object)
 
   priv->sources = g_hash_table_new (g_direct_hash, g_direct_equal);
   priv->slaves = g_hash_table_new (g_direct_hash, g_direct_equal);
+  priv->receivers = g_hash_table_new (g_direct_hash, g_direct_equal);
   priv->generators = g_hash_table_new (g_direct_hash, g_direct_equal);
   priv->tvgs = g_hash_table_new (g_direct_hash, g_direct_equal);
   priv->channels = g_hash_table_new (g_direct_hash, g_direct_equal);
@@ -106,6 +108,7 @@ hyscan_sonar_schema_object_finalize (GObject *object)
 
   g_hash_table_unref (priv->sources);
   g_hash_table_unref (priv->slaves);
+  g_hash_table_unref (priv->receivers);
   g_hash_table_unref (priv->generators);
   g_hash_table_unref (priv->tvgs);
   g_hash_table_unref (priv->channels);
@@ -169,7 +172,7 @@ hyscan_sonar_schema_set_software_ping (HyScanSonarSchema *schema,
 {
   HyScanDataSchemaBuilder *builder;
 
-  gboolean status;
+  gboolean status = FALSE;
   gchar *key_id;
 
   g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
@@ -177,8 +180,8 @@ hyscan_sonar_schema_set_software_ping (HyScanSonarSchema *schema,
   builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
 
   key_id = g_strdup ("/sources/software-ping");
-  hyscan_data_schema_builder_key_boolean_create (builder, key_id, "software-ping", NULL, software_ping);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  if (hyscan_data_schema_builder_key_boolean_create (builder, key_id, "software-ping", NULL, software_ping))
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
 
   g_free (key_id);
 
@@ -193,9 +196,6 @@ hyscan_sonar_schema_set_software_ping (HyScanSonarSchema *schema,
  * @antenna_hpattern: диаграмма направленности антенны в горизонтальной плоскости, рад
  * @antenna_frequency: центральная частота, Гц
  * @antenna_bandwidth: полоса пропускания, Гц
- * @min_receive_time: минимальное время приёма эхосигнала, с
- * @max_receive_time: максимальное время приёма эхосигнала, с
- * @auto_receive_time: возможность автоматического выбора времени приёма
  *
  * Функция добавляет в схему описание источника данных.
  *
@@ -207,10 +207,7 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema *schema,
                                 gdouble            antenna_vpattern,
                                 gdouble            antenna_hpattern,
                                 gdouble            antenna_frequency,
-                                gdouble            antenna_bandwidth,
-                                gdouble            min_receive_time,
-                                gdouble            max_receive_time,
-                                gboolean           auto_receive_time)
+                                gdouble            antenna_bandwidth)
 {
   HyScanDataSchemaBuilder *builder;
   const gchar *source_name;
@@ -273,32 +270,6 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema *schema,
   status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   g_free (key_id);
 
-  if (!status)
-    goto exit;
-
-  /* Время приёма эхосигнала источником данных. */
-  key_id = g_strdup_printf ("%s/control/min-receive-time", prefix);
-  hyscan_data_schema_builder_key_double_create (builder, key_id, "min-receive-time", NULL, min_receive_time);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  key_id = g_strdup_printf ("%s/control/max-receive-time", prefix);
-  hyscan_data_schema_builder_key_double_create (builder, key_id, "max-receive-time", NULL, max_receive_time);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  /* Возможность автоматического выбора времени приёма. */
-  key_id = g_strdup_printf ("%s/control/auto-receive-time", prefix);
-  hyscan_data_schema_builder_key_boolean_create (builder, key_id, "auto-receive-time", NULL, auto_receive_time);
-  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
   if (status)
     status = g_hash_table_insert (schema->priv->sources, GINT_TO_POINTER (source), NULL);
 
@@ -347,12 +318,6 @@ hyscan_sonar_schema_source_set_master (HyScanSonarSchema *schema,
   if (g_hash_table_contains (schema->priv->slaves, GINT_TO_POINTER (slave)))
     return FALSE;
 
-  if (g_hash_table_contains (schema->priv->generators, GINT_TO_POINTER (slave)))
-    return FALSE;
-
-  if (g_hash_table_contains (schema->priv->tvgs, GINT_TO_POINTER (slave)))
-    return FALSE;
-
   key_id = g_strdup_printf ("/sources/%s/master", slave_name);
   hyscan_data_schema_builder_key_string_create (builder, key_id, "master", NULL, master_name);
   status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
@@ -365,27 +330,67 @@ hyscan_sonar_schema_source_set_master (HyScanSonarSchema *schema,
 }
 
 /**
- * hyscan_sonar_schema_channel_add:
+ * hyscan_sonar_schema_receiver_add:
  * @schema: указатель на #HyScanSonarSchema
- * @source: тип источника данных
- * @channel: индекс канала данных
- * @antenna_voffset: вертикальное смещение антенны в блоке, м
- * @antenna_hoffset: горизнотальное смещение антенны в блоке, м
- * @adc_offset: смещение 0 АЦП
- * @adc_vref: опорное напряжение АЦП, В
+ * @source: тип источника данныx
+ * @capabilities: флаги возможных режимов работы приёмника
  *
- * Функция добавляет в схему описание приёмного канала.
+ * Функция добавляет описание приёмника данных.
  *
  * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_schema_source_add_channel (HyScanSonarSchema *schema,
-                                        HyScanSourceType   source,
-                                        guint              channel,
-                                        gdouble            antenna_voffset,
-                                        gdouble            antenna_hoffset,
-                                        gint               adc_offset,
-                                        gdouble            adc_vref)
+hyscan_sonar_schema_receiver_add (HyScanSonarSchema           *schema,
+                                  HyScanSourceType             source,
+                                  HyScanSonarReceiverModeType  capabilities)
+{
+  HyScanDataSchemaBuilder *builder;
+  const gchar *source_name;
+  gboolean status;
+  gchar *key_id;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
+
+  builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
+
+  source_name = hyscan_source_get_name_by_type (source);
+  if (source_name == NULL)
+    return FALSE;
+
+  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
+    return FALSE;
+
+  if (g_hash_table_contains (schema->priv->receivers, GINT_TO_POINTER (source)))
+    return FALSE;
+
+  /* Режимы работы приёмника. */
+  key_id = g_strdup_printf ("/sources/%s/receiver/capabilities", source_name);
+  hyscan_data_schema_builder_key_integer_create (builder, key_id, "capabilities", NULL, capabilities);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (status)
+    status = g_hash_table_insert (schema->priv->receivers, GINT_TO_POINTER (source), NULL);
+
+  return status;
+}
+
+/**
+ * hyscan_sonar_schema_receiver_set_params:
+ * @schema: указатель на #HyScanSonarSchema
+ * @source: тип источника данныx
+ * @min_receive_time: минимальное время приёма эхосигнала, с
+ * @max_receive_time: максимальное время приёма эхосигнала, с
+ *
+ * Функция устанавливает предельные параметры приёмника данных.
+ *
+ * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_schema_receiver_set_params (HyScanSonarSchema *schema,
+                                         HyScanSourceType   source,
+                                         gdouble            min_receive_time,
+                                         gdouble            max_receive_time)
 {
   HyScanDataSchemaBuilder *builder;
   const gchar *source_name;
@@ -402,6 +407,74 @@ hyscan_sonar_schema_source_add_channel (HyScanSonarSchema *schema,
     return FALSE;
 
   if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
+    return FALSE;
+
+  if (!g_hash_table_contains (schema->priv->receivers, GINT_TO_POINTER (source)))
+    return FALSE;
+
+  prefix = g_strdup_printf ("/sources/%s/receiver", source_name);
+
+  /* Время приёма эхосигнала источником данных. */
+  key_id = g_strdup_printf ("%s/min-receive-time", prefix);
+  hyscan_data_schema_builder_key_double_create (builder, key_id, "min-receive-time", NULL, min_receive_time);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (!status)
+    goto exit;
+
+  key_id = g_strdup_printf ("%s/max-receive-time", prefix);
+  hyscan_data_schema_builder_key_double_create (builder, key_id, "max-receive-time", NULL, max_receive_time);
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+exit:
+  g_free (prefix);
+
+  return status;
+}
+
+/**
+ * hyscan_sonar_schema_receiver_add_channel:
+ * @schema: указатель на #HyScanSonarSchema
+ * @source: тип источника данных
+ * @channel: индекс канала данных
+ * @antenna_voffset: вертикальное смещение антенны в блоке, м
+ * @antenna_hoffset: горизнотальное смещение антенны в блоке, м
+ * @adc_offset: смещение 0 АЦП
+ * @adc_vref: опорное напряжение АЦП, В
+ *
+ * Функция добавляет в схему описание приёмного канала.
+ *
+ * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_schema_receiver_add_channel (HyScanSonarSchema *schema,
+                                          HyScanSourceType   source,
+                                          guint              channel,
+                                          gdouble            antenna_voffset,
+                                          gdouble            antenna_hoffset,
+                                          gint               adc_offset,
+                                          gdouble            adc_vref)
+{
+  HyScanDataSchemaBuilder *builder;
+  const gchar *source_name;
+  gboolean status;
+  gchar *prefix;
+  gchar *key_id;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
+
+  builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
+
+  source_name = hyscan_source_get_name_by_type (source);
+  if (source_name == NULL)
+    return FALSE;
+
+  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
+    return FALSE;
+
+  if (!g_hash_table_contains (schema->priv->receivers, GINT_TO_POINTER (source)))
     return FALSE;
 
   prefix = g_strdup_printf ("/sources/%s/channels/%d", source_name, channel);
