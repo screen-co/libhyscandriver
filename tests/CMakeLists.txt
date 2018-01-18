@@ -3,6 +3,9 @@ set (TEST_LIBRARIES ${GLIB2_LIBRARIES}
                     ${LIBXML2_LIBRARIES}
                     ${HYSCAN_DRIVER_LIBRARY})
 
+add_definitions (-DDUMMY_DRIVER_PREFIX="dummy")
+add_definitions (-DDUMMY_DRIVER_NUMBER=4)
+
 add_executable (driver-test driver-test.c hyscan-dummy-discover.c)
 add_library (hyscan-dummy1-drv SHARED dummy-driver.c)
 add_library (hyscan-dummy2-drv SHARED dummy-driver.c)
