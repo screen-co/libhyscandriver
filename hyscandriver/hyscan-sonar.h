@@ -36,7 +36,6 @@
 #define __HYSCAN_SONAR_H__
 
 #include <hyscan-types.h>
-#include <hyscan-data-schema.h>
 
 G_BEGIN_DECLS
 
@@ -82,7 +81,6 @@ typedef enum
  * @HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO: Автоматический выбор типа сигнала.
  * @HYSCAN_SONAR_GENERATOR_SIGNAL_TONE: Тональный сигнал.
  * @HYSCAN_SONAR_GENERATOR_SIGNAL_LFM: Линейно-частотно модулированный сигнал.
- * @HYSCAN_SONAR_GENERATOR_SIGNAL_LFMD: Линейно-частотно модулированный сигнал с уменьшением частоты.
  *
  * Типы сигналов.
  */
@@ -92,8 +90,7 @@ typedef enum
 
   HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO           = (1 << 0),
   HYSCAN_SONAR_GENERATOR_SIGNAL_TONE           = (1 << 1),
-  HYSCAN_SONAR_GENERATOR_SIGNAL_LFM            = (1 << 2),
-  HYSCAN_SONAR_GENERATOR_SIGNAL_LFMD           = (1 << 3)
+  HYSCAN_SONAR_GENERATOR_SIGNAL_LFM            = (1 << 2)
 } HyScanSonarGeneratorSignalType;
 
 /**

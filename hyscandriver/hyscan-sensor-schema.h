@@ -35,24 +35,10 @@
 #ifndef __HYSCAN_SENSOR_SCHEMA_H__
 #define __HYSCAN_SENSOR_SCHEMA_H__
 
-#include <hyscan-sensor.h>
+#include <hyscan-sensor-info.h>
 #include <hyscan-data-schema-builder.h>
 
 G_BEGIN_DECLS
-
-/**
- * HYSCAN_SENSOR_SCHEMA_ID:
- *
- * Идентификатор схемы гидролокатора.
- */
-#define HYSCAN_SENSOR_SCHEMA_ID               3948567498563439485
-
-/**
- * HYSCAN_SENSOR_SCHEMA_VERSION:
- *
- * Версия схемы гидролокатора.
- */
-#define HYSCAN_SENSOR_SCHEMA_VERSION          20180100
 
 #define HYSCAN_TYPE_SENSOR_SCHEMA             (hyscan_sensor_schema_get_type ())
 #define HYSCAN_SENSOR_SCHEMA(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_SENSOR_SCHEMA, HyScanSensorSchema))
@@ -67,33 +53,34 @@ typedef struct _HyScanSensorSchemaClass HyScanSensorSchemaClass;
 
 struct _HyScanSensorSchema
 {
-  HyScanDataSchemaBuilder parent_instance;
+  GObject parent_instance;
 
   HyScanSensorSchemaPrivate *priv;
 };
 
 struct _HyScanSensorSchemaClass
 {
-  HyScanDataSchemaBuilderClass parent_class;
+  GObjectClass parent_class;
 };
 
 HYSCAN_API
 GType                  hyscan_sensor_schema_get_type           (void);
 
 HYSCAN_API
-HyScanSensorSchema    *hyscan_sensor_schema_new                (void);
+HyScanSensorSchema    *hyscan_sensor_schema_new                (HyScanDataSchemaBuilder       *builder);
 
 HYSCAN_API
-HyScanDataSchema *     hyscan_sensor_schema_get_schema         (HyScanSensorSchema    *schema);
+HyScanDataSchema *     hyscan_sensor_schema_get_schema         (HyScanSensorSchema            *schema);
 
 HYSCAN_API
-gboolean               hyscan_sensor_schema_add_port           (HyScanSensorSchema    *schema,
-                                                                const gchar           *name);
+gboolean               hyscan_sensor_schema_add_sensor         (HyScanSensorSchema            *schema,
+                                                                const gchar                   *name,
+                                                                const gchar                   *description);
 
 HYSCAN_API
-gboolean               hyscan_sensor_schema_set_position       (HyScanSensorSchema    *schema,
-                                                                const gchar           *name,
-                                                                HyScanAntennaPosition *position);
+gboolean               hyscan_sensor_schema_set_position       (HyScanSensorSchema            *schema,
+                                                                const gchar                   *name,
+                                                                HyScanAntennaPosition         *position);
 
 G_END_DECLS
 

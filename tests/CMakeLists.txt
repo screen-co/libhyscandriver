@@ -6,12 +6,14 @@ set (TEST_LIBRARIES ${GLIB2_LIBRARIES}
 add_definitions (-DDUMMY_DRIVER_PREFIX="dummy")
 add_definitions (-DDUMMY_DRIVER_NUMBER=4)
 
+add_executable (device-schema-test device-schema-test.c)
 add_executable (driver-test driver-test.c hyscan-dummy-discover.c)
 add_library (hyscan-dummy1-drv SHARED dummy-driver.c)
 add_library (hyscan-dummy2-drv SHARED dummy-driver.c)
 add_library (hyscan-dummy3-drv SHARED dummy-driver.c)
 add_library (hyscan-dummy4-drv SHARED dummy-driver.c)
 
+target_link_libraries (device-schema-test ${TEST_LIBRARIES})
 target_link_libraries (driver-test ${TEST_LIBRARIES})
 target_link_libraries (hyscan-dummy1-drv ${TEST_LIBRARIES})
 target_link_libraries (hyscan-dummy2-drv ${TEST_LIBRARIES})
