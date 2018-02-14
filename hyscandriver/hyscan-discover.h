@@ -102,6 +102,9 @@ struct _HyScanDiscoverInterface
   HyScanDataSchema *           (*config)                       (HyScanDiscover                *discover,
                                                                 const gchar                   *uri);
 
+  gboolean                     (*check)                        (HyScanDiscover                *discover,
+                                                                const gchar                   *uri);
+
   HyScanDevice *               (*connect)                      (HyScanDiscover                *discover,
                                                                 const gchar                   *uri,
                                                                 HyScanParamList               *params);
@@ -124,6 +127,10 @@ GList *                        hyscan_discover_list            (HyScanDiscover  
 
 HYSCAN_API
 HyScanDataSchema *             hyscan_discover_config          (HyScanDiscover                *discover,
+                                                                const gchar                   *uri);
+
+HYSCAN_API
+gboolean                       hyscan_discover_check           (HyScanDiscover                *discover,
                                                                 const gchar                   *uri);
 
 HYSCAN_API

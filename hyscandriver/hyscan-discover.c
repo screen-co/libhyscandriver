@@ -50,16 +50,24 @@
  * Список обнаруженных устройств можно получить функцией #hyscan_discover_list.
  * Память, используемая списоком, должена быть освобождена функцией #hyscan_discover_free_info.
  *
- * При подключении к устройству, можно дополнительно передать параметры драйвера.
+ * При подключении к устройству можно дополнительно передать параметры драйвера.
  * Список параметров драйвера можно узнать с помощью функции #hyscan_discover_config.
+ *
+ * Для проверки возможности подключения к устройству до завершения процесса
+ * обнаружения устройств, а также для устройств с нестандартными адресами, можно
+ * использовать функцию #hyscan_discover_check.
  *
  * Для подключения к устройству используется функция #hyscan_discover_connect.
  * После подключения возвращается указатель на объект реализующий интерфейсы
  * #HyScanParam, #HyScanSonar и #HyScanSensor.
  *
  * Если произведено подключение к гидролокатору, который не содержит встроенных
- * датчиков интерфейс #HyScanSensor может быть не реализован. Аналогично, при
- * подключении к датчику не реализуется интерфейс #HyScanSonar.
+ * датчиков, интерфейс #HyScanSensor может быть не реализован. Аналогично, при
+ * подключении только к датчику, не реализуется интерфейс #HyScanSonar.
+ *
+ * Функции #hyscan_discover_start, #hyscan_discover_stop и #hyscan_discover_list
+ * работают в неблокирующем режиме. Остальные функции могут заблокировать работу
+ * до завешения процесса.
  */
 
 #include "hyscan-discover.h"
@@ -75,7 +83,9 @@ hyscan_discover_default_init (HyScanDiscoverInterface *iface)
    * @progress: прогресс поиска в процентах (0 - 100)
    *
    * Данный сигнал периодически посылается во время процесса обнаружения и
-   * несёт информацию о его прогрессе.
+   * несёт информацию о его прогрессе. Сигнал посылается из рабочего потока
+   * драйвера, такми образом обработчики этого сигнала не могут использовать
+   * функции работающие через #GMainLoop, например все функции Gtk.
    */
   g_signal_new ("progress", HYSCAN_TYPE_DISCOVER, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
@@ -86,7 +96,10 @@ hyscan_discover_default_init (HyScanDiscoverInterface *iface)
    * HyScanDiscover::completed:
    * @discover: указатель на #HyScanDiscover
    *
-   * Данный сигнал посылается при завершении процесса поиска.
+   * Данный сигнал посылается при завершении процесса поиска. Сигнал посылается
+   * из рабочего потока драйвера, такми образом обработчики этого сигнала не
+   * могут использовать функции работающие через #GMainLoop, например все
+   * функции Gtk.
    */
   g_signal_new ("completed", HYSCAN_TYPE_DISCOVER, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
@@ -179,6 +192,30 @@ hyscan_discover_config (HyScanDiscover *discover,
     return (* iface->config) (discover, uri);
 
   return NULL;
+}
+
+/**
+ * hyscan_discover_check:
+ * @discover: указатель на #HyScanDiscover
+ * @uri: путь для подключения к устройству
+ *
+ * Функция проверяет присутствие устройства для указанного пути.
+ *
+ * Returns: %TRUE если устройство присутствует, иначе %FALSE.
+ */
+gboolean
+hyscan_discover_check (HyScanDiscover *discover,
+                       const gchar    *uri)
+{
+  HyScanDiscoverInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_DISCOVER (discover), FALSE);
+
+  iface = HYSCAN_DISCOVER_GET_IFACE (discover);
+  if (iface->check != NULL)
+    return (* iface->check) (discover, uri);
+
+  return FALSE;
 }
 
 /**

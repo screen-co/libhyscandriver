@@ -61,6 +61,7 @@ hyscan_dummy_discover_interface_init (HyScanDiscoverInterface *iface)
   iface->start = NULL;
   iface->stop = NULL;
   iface->list = NULL;
+  iface->check = NULL;
   iface->config = NULL;
   iface->connect = NULL;
 }
