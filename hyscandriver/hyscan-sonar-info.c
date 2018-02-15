@@ -814,6 +814,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
     }
 
   info = g_slice_new0 (HyScanSonarInfoSource);
+  info->source = source;
   info->description = g_strdup (description);
   info->master = master;
   info->position = position;
@@ -956,7 +957,7 @@ hyscan_sonar_info_get_source (HyScanSonarInfo  *info,
  * Для удаления #hyscan_sonar_info_source_free.
  */
 HyScanSonarInfoSource *
-hyscan_sonar_info_source_copy (HyScanSonarInfoSource *info)
+hyscan_sonar_info_source_copy (const HyScanSonarInfoSource *info)
 {
   HyScanSonarInfoSource *new_info;
   GList *channels, *new_channels;
@@ -965,6 +966,7 @@ hyscan_sonar_info_source_copy (HyScanSonarInfoSource *info)
     return NULL;
 
   new_info = g_slice_new (HyScanSonarInfoSource);
+  new_info->source = info->source;
   new_info->description = g_strdup (info->description);
   new_info->master = info->master;
   new_info->position = hyscan_antenna_position_copy (info->position);
@@ -1022,7 +1024,7 @@ hyscan_sonar_info_source_free (HyScanSonarInfoSource *info)
  * Для удаления #hyscan_sonar_info_capabilities_free.
  */
 HyScanSonarInfoCapabilities *
-hyscan_sonar_info_capabilities_copy (HyScanSonarInfoCapabilities *info)
+hyscan_sonar_info_capabilities_copy (const HyScanSonarInfoCapabilities *info)
 {
   if (info != NULL)
     return g_slice_dup (HyScanSonarInfoCapabilities, info);
@@ -1053,7 +1055,7 @@ hyscan_sonar_info_capabilities_free (HyScanSonarInfoCapabilities *info)
  * Для удаления #hyscan_sonar_info_antenna_free.
  */
 HyScanSonarInfoAntenna *
-hyscan_sonar_info_antenna_copy (HyScanSonarInfoAntenna *info)
+hyscan_sonar_info_antenna_copy (const HyScanSonarInfoAntenna *info)
 {
   if (info != NULL)
     return g_slice_dup (HyScanSonarInfoAntenna, info);
@@ -1084,7 +1086,7 @@ hyscan_sonar_info_antenna_free (HyScanSonarInfoAntenna *info)
  * Для удаления #hyscan_sonar_info_receiver_free.
  */
 HyScanSonarInfoReceiver *
-hyscan_sonar_info_receiver_copy (HyScanSonarInfoReceiver *info)
+hyscan_sonar_info_receiver_copy (const HyScanSonarInfoReceiver *info)
 {
   if (info != NULL)
     return g_slice_dup (HyScanSonarInfoReceiver, info);
@@ -1115,7 +1117,7 @@ hyscan_sonar_info_receiver_free (HyScanSonarInfoReceiver *info)
  * Для удаления #hyscan_sonar_info_generator_free.
  */
 HyScanSonarInfoGenerator *
-hyscan_sonar_info_generator_copy (HyScanSonarInfoGenerator *info)
+hyscan_sonar_info_generator_copy (const HyScanSonarInfoGenerator *info)
 {
   HyScanSonarInfoGenerator *new_info;
   GList *presets, *new_presets;
@@ -1176,7 +1178,7 @@ hyscan_sonar_info_generator_free (HyScanSonarInfoGenerator *info)
  * Для удаления #hyscan_sonar_info_tvg_free.
  */
 HyScanSonarInfoTVG *
-hyscan_sonar_info_tvg_copy (HyScanSonarInfoTVG *info)
+hyscan_sonar_info_tvg_copy (const HyScanSonarInfoTVG *info)
 {
   if (info != NULL)
     return g_slice_dup (HyScanSonarInfoTVG, info);
@@ -1207,7 +1209,7 @@ hyscan_sonar_info_tvg_free (HyScanSonarInfoTVG *info)
  * Для удаления #hyscan_sonar_info_channel_free.
  */
 HyScanSonarInfoChannel *
-hyscan_sonar_info_channel_copy (HyScanSonarInfoChannel *info)
+hyscan_sonar_info_channel_copy (const HyScanSonarInfoChannel *info)
 {
   if (info != NULL)
     return g_slice_dup (HyScanSonarInfoChannel, info);
@@ -1238,7 +1240,7 @@ hyscan_sonar_info_channel_free (HyScanSonarInfoChannel *info)
  * Для удаления #hyscan_sonar_info_signal_free.
  */
 HyScanSonarInfoSignal *
-hyscan_sonar_info_signal_copy (HyScanSonarInfoSignal *info)
+hyscan_sonar_info_signal_copy (const HyScanSonarInfoSignal *info)
 {
   if (info != NULL)
     return g_slice_dup (HyScanSonarInfoSignal, info);

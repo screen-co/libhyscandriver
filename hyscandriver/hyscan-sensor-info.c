@@ -44,11 +44,8 @@
  * Список датчиков можно получить с помощью функции
  * #hyscan_sensor_info_list_sensors.
  *
- * Описание датчика можно получить с помощью функции
- * #hyscan_sensor_info_get_description.
- *
- * Местоположение антенны датчика по умолчанию можно получить с помощью
- * функции #hyscan_sensor_info_get_position.
+ * Параметры датчика можно получить с помощью функции
+ * #hyscan_sensor_info_get_sensor.
  */
 
 #include "hyscan-sensor-info.h"
@@ -68,8 +65,7 @@ enum
 struct _HyScanSensorInfoPrivate
 {
   HyScanDataSchema            *schema;         /* Схема устройства. */
-  GHashTable                  *descriptions;   /* Описания датчиков. */
-  GHashTable                  *positions;      /* Местополоения приёмных антенн датчиков. */
+  GHashTable                  *sensors;        /* Параметры датчиков. */
   GArray                      *sensors_list;   /* Список датчиков. */
 };
 
@@ -86,9 +82,14 @@ static const gchar *   hyscan_sensor_info_sonar_param_name     (gchar           
                                                                 const gchar           *prefix,
                                                                 const gchar           *param);
 
-static GHashTable *    hyscan_sensor_info_parse_descriptions   (HyScanDataSchema      *schema);
+static HyScanAntennaPosition *
+                       hyscan_sensor_info_parse_position       (HyScanDataSchema      *schema,
+                                                                const gchar           *sensor);
 
-static GHashTable *    hyscan_sensor_info_parse_positions      (HyScanDataSchema      *schema);
+static GHashTable *    hyscan_sensor_info_parse_sensors        (HyScanDataSchema      *schema);
+
+G_DEFINE_BOXED_TYPE (HyScanSensorInfoSensor, hyscan_sensor_info_sensor,
+                     hyscan_sensor_info_sensor_copy, hyscan_sensor_info_sensor_free)
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanSensorInfo, hyscan_sensor_info, G_TYPE_OBJECT)
 
@@ -155,12 +156,13 @@ hyscan_sensor_info_object_constructed (GObject *object)
     }
 
   /* Информация о датчиках. */
-  priv->descriptions = hyscan_sensor_info_parse_descriptions (priv->schema);
-  priv->positions = hyscan_sensor_info_parse_positions (priv->schema);
+  priv->sensors = hyscan_sensor_info_parse_sensors (priv->schema);
+  if (priv->sensors == NULL)
+    return;
 
   /* Список датчиков. */
   priv->sensors_list = g_array_new (TRUE, TRUE, sizeof (gchar*));
-  g_hash_table_iter_init (&iter, priv->descriptions);
+  g_hash_table_iter_init (&iter, priv->sensors);
   while (g_hash_table_iter_next (&iter, &name, NULL))
     g_array_append_val (priv->sensors_list, name);
 }
@@ -172,8 +174,7 @@ hyscan_sensor_info_object_finalize (GObject *object)
   HyScanSensorInfoPrivate *priv = info->priv;
 
   g_clear_object (&priv->schema);
-  g_clear_pointer (&priv->descriptions, g_hash_table_unref);
-  g_clear_pointer (&priv->positions, g_hash_table_unref);
+  g_clear_pointer (&priv->sensors, g_hash_table_unref);
   g_clear_pointer (&priv->sensors_list, g_array_unref);
 
   G_OBJECT_CLASS (hyscan_sensor_info_parent_class)->finalize (object);
@@ -201,11 +202,52 @@ hyscan_sensor_info_sonar_param_name (gchar       *buffer,
   return buffer;
 }
 
-/* Функция считывает описания датчиков. */
-static GHashTable *
-hyscan_sensor_info_parse_descriptions (HyScanDataSchema *schema)
+/* Функция считывает информацию о местоположении антенн. */
+static HyScanAntennaPosition *
+hyscan_sensor_info_parse_position (HyScanDataSchema *schema,
+                                   const gchar      *sensor)
 {
-  GHashTable *descriptions;
+  HyScanAntennaPosition *info = g_slice_new0 (HyScanAntennaPosition);
+  gchar name_buffer[128];
+  const gchar *name;
+
+  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/x");
+  if (!hyscan_device_schema_get_double (schema, name, &info->x))
+    goto fail;
+
+  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/y");
+  if (!hyscan_device_schema_get_double (schema, name, &info->y))
+    goto fail;
+
+  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/z");
+  if (!hyscan_device_schema_get_double (schema, name, &info->z))
+    goto fail;
+
+  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/psi");
+  if (!hyscan_device_schema_get_double (schema, name, &info->psi))
+    goto fail;
+
+  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/gamma");
+  if (!hyscan_device_schema_get_double (schema, name, &info->gamma))
+    goto fail;
+
+  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/theta");
+  if (!hyscan_device_schema_get_double (schema, name, &info->theta))
+    goto fail;
+
+  return info;
+
+fail:
+  g_slice_free (HyScanAntennaPosition, info);
+
+  return NULL;
+}
+
+/* Функция считывает параметры датчиков. */
+static GHashTable *
+hyscan_sensor_info_parse_sensors (HyScanDataSchema *schema)
+{
+  GHashTable *sensors;
   gchar **keys;
   guint i;
 
@@ -213,7 +255,8 @@ hyscan_sensor_info_parse_descriptions (HyScanDataSchema *schema)
   if (keys == NULL)
     return NULL;
 
-  descriptions = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+  sensors = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                   g_free, (GDestroyNotify)hyscan_sensor_info_sensor_free);
 
   for (i = 0; keys[i] != NULL; i++)
     {
@@ -228,14 +271,20 @@ hyscan_sensor_info_parse_descriptions (HyScanDataSchema *schema)
 
       if ((g_strcmp0 (keyv[1], "sensors") == 0) && (g_strcmp0 (keyv[3], "id") == 0))
         {
+          HyScanSensorInfoSensor *info;
           const gchar *description;
           gchar name_buffer[128];
           const gchar *name;
 
           name = SENSOR_PARAM_NAME (keyv[2], NULL, "description");
           description = hyscan_device_schema_get_string (schema, name);
-          if (description != NULL)
-            g_hash_table_insert (descriptions, g_strdup (keyv[2]), g_strdup (description));
+
+          info = g_slice_new0 (HyScanSensorInfoSensor);
+          info->name = g_strdup (keyv[2]);
+          info->description = g_strdup (description);
+          info->position = hyscan_sensor_info_parse_position (schema, keyv[2]);
+
+          g_hash_table_insert (sensors, g_strdup (keyv[2]), info);
         }
 
       g_strfreev (keyv);
@@ -243,79 +292,10 @@ hyscan_sensor_info_parse_descriptions (HyScanDataSchema *schema)
 
   g_strfreev (keys);
 
-  return descriptions;
-}
+  if (g_hash_table_size (sensors) == 0)
+    g_clear_pointer (&sensors, g_hash_table_unref);
 
-/* Функция считывает информацию о местоположении антенн. */
-static GHashTable *
-hyscan_sensor_info_parse_positions (HyScanDataSchema *schema)
-{
-  GHashTable *positions;
-  gchar **keys;
-  guint i;
-
-  keys = hyscan_data_schema_list_keys (schema);
-  if (keys == NULL)
-    return NULL;
-
-  positions = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                     g_free, (GDestroyNotify)hyscan_antenna_position_free);
-
-  for (i = 0; keys[i] != NULL; i++)
-    {
-      gchar **keyv = g_strsplit (keys[i], "/", -1);
-
-      /* Ищем параметр /sensors/sensor-name/id */
-      if (g_strv_length (keyv) != 4)
-        {
-          g_strfreev (keyv);
-          continue;
-        }
-
-      if ((g_strcmp0 (keyv[1], "sensors") == 0) && (g_strcmp0 (keyv[3], "id") == 0))
-        {
-          HyScanAntennaPosition *position = g_slice_new0 (HyScanAntennaPosition);
-          gchar name_buffer[128];
-          const gchar *name;
-
-          name = SENSOR_PARAM_NAME (keyv[2], "antenna", "position/x");
-          if (!hyscan_device_schema_get_double (schema, name, &position->x))
-            goto fail;
-
-          name = SENSOR_PARAM_NAME (keyv[2], "antenna", "position/y");
-          if (!hyscan_device_schema_get_double (schema, name, &position->y))
-            goto fail;
-
-          name = SENSOR_PARAM_NAME (keyv[2], "antenna", "position/z");
-          if (!hyscan_device_schema_get_double (schema, name, &position->z))
-            goto fail;
-
-          name = SENSOR_PARAM_NAME (keyv[2], "antenna", "position/psi");
-          if (!hyscan_device_schema_get_double (schema, name, &position->psi))
-            goto fail;
-
-          name = SENSOR_PARAM_NAME (keyv[2], "antenna", "position/gamma");
-          if (!hyscan_device_schema_get_double (schema, name, &position->gamma))
-            goto fail;
-
-          name = SENSOR_PARAM_NAME (keyv[2], "antenna", "position/theta");
-          if (!hyscan_device_schema_get_double (schema, name, &position->theta))
-            goto fail;
-
-          g_hash_table_insert (positions, g_strdup (keyv[2]), position);
-          g_strfreev (keyv);
-          continue;
-
-        fail:
-          g_slice_free (HyScanAntennaPosition, position);
-        }
-
-      g_strfreev (keyv);
-    }
-
-  g_strfreev (keys);
-
-  return positions;
+  return sensors;
 }
 
 /**
@@ -347,50 +327,73 @@ hyscan_sensor_info_list_sensors (HyScanSensorInfo *info)
 {
   g_return_val_if_fail (HYSCAN_IS_SENSOR_INFO (info), NULL);
 
-  if (info->priv->sensors_list->len == 0)
+  if ((info->priv->sensors_list == NULL) || (info->priv->sensors_list->len == 0))
     return NULL;
 
   return (const gchar * const *)info->priv->sensors_list->data;
 }
 
 /**
- * hyscan_sensor_info_get_description:
+ * hyscan_sensor_info_get_sensor:
  * @info: указатель на #HyScanSensorInfo
  * @name: название датчика
  *
- * Функция возвращает описание датчика.
+ * функция возвращает параметры датчика.
  *
- * Returns: Описание датчика или NULL.
+ * Returns: (transfer none): Параметры датчика или NULL.
  */
-const gchar *
-hyscan_sensor_info_get_description (HyScanSensorInfo *info,
-                                    const gchar      *name)
+const HyScanSensorInfoSensor *
+hyscan_sensor_info_get_sensor (HyScanSensorInfo *info,
+                               const gchar      *name)
 {
   g_return_val_if_fail (HYSCAN_IS_SENSOR_INFO (info), NULL);
 
-  if (info->priv->descriptions == NULL)
+  if (info->priv->sensors == NULL)
     return NULL;
 
-  return g_hash_table_lookup (info->priv->descriptions, name);
+  return g_hash_table_lookup (info->priv->sensors, name);
 }
 
 /**
- * hyscan_sensor_info_get_position:
- * @info: указатель на #HyScanSensorInfo
- * @name: название датчика
+ * hyscan_sensor_info_sensor_copy:
+ * @info: структура #HyScanSensorInfoSensor для копирования
  *
- * функция возвращает местоположение антенны датчика по умолчанию.
+ * Функция создаёт копию структуры #HyScanSensorInfoSensor.
  *
- * Returns: (transfer none): Местоположение антенны датчика или NULL.
+ * Returns: (transfer full): Новая структура #HyScanSensorInfoSensor.
+ * Для удаления #hyscan_sensor_info_sensor_free.
  */
-const HyScanAntennaPosition *
-hyscan_sensor_info_get_position (HyScanSensorInfo *info,
-                                 const gchar      *name)
+HyScanSensorInfoSensor *
+hyscan_sensor_info_sensor_copy (const HyScanSensorInfoSensor *info)
 {
-  g_return_val_if_fail (HYSCAN_IS_SENSOR_INFO (info), NULL);
+  HyScanSensorInfoSensor *new_info;
 
-  if (info->priv->positions == NULL)
+  if (info == NULL)
     return NULL;
 
-  return g_hash_table_lookup (info->priv->positions, name);
+  new_info = g_slice_new (HyScanSensorInfoSensor);
+  new_info->name = g_strdup (info->name);
+  new_info->description = g_strdup (info->description);
+  new_info->position = hyscan_antenna_position_copy (info->position);
+
+  return new_info;
+}
+
+/**
+ * hyscan_sensor_info_sensor_free:
+ * @info: структура #HyScanSensorInfoSensor для удаления
+ *
+ * Функция удаляет структуру #HyScanSensorInfoSensor.
+ */
+void
+hyscan_sensor_info_sensor_free (HyScanSensorInfoSensor *info)
+{
+  if (info == NULL)
+    return;
+
+  g_free ((gchar*)info->name);
+  g_free ((gchar*)info->description);
+  hyscan_antenna_position_free (info->position);
+
+  g_slice_free (HyScanSensorInfoSensor, info);
 }

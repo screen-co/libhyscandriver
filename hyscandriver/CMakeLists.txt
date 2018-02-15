@@ -32,7 +32,7 @@ add_library (${HYSCAN_DRIVER_LIBRARY} SHARED
              hyscan-sensor-info.c
              "${CMAKE_BINARY_DIR}/marshallers/hyscan-driver-marshallers.c")
 
-target_link_libraries (${HYSCAN_DRIVER_LIBRARY} ${GLIB2_LIBRARIES} ${HYSCAN_LIBRARIES})
+target_link_libraries (${HYSCAN_DRIVER_LIBRARY} ${GLIB2_LIBRARIES} ${GMODULE2_LIBRARIES} ${HYSCAN_LIBRARIES})
 
 set_target_properties (${HYSCAN_DRIVER_LIBRARY} PROPERTIES DEFINE_SYMBOL "HYSCAN_API_EXPORTS")
 set_target_properties (${HYSCAN_DRIVER_LIBRARY} PROPERTIES SOVERSION ${HYSCAN_DRIVER_VERSION})

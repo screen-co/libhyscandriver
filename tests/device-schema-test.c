@@ -121,6 +121,7 @@ create_source (HyScanSourceType source,
   seed = seed * source;
 
   /* Описание источника данных. */
+  info.source = source;
   info.description = source_name;
 
   /* Ведущий источник данных. */
@@ -289,6 +290,13 @@ verify_source (const HyScanSonarInfoSource *orig_source,
 
   if ((orig_source == NULL) || (source == NULL))
     return FALSE;
+
+  /* Тип источника данных. */
+  if (orig_source->source != source->source)
+    {
+      g_message ("source failed");
+      return FALSE;
+    }
 
   /* Описание источника данных. */
   if (g_strcmp0 (orig_source->description, source->description) != 0)
@@ -500,10 +508,10 @@ main (int    argc,
   gchar *schema_data;
 
   const HyScanSourceType *sources;
-  const gchar * const * sensors;
+  const gchar * const *sensors;
   guint n_sources;
   gdouble seed;
-  guint i;
+  guint i, j;
 
   seed = g_random_double ();
 
@@ -542,7 +550,7 @@ main (int    argc,
     {
       HyScanSonarInfoSource *source = create_source (orig_sources[i], seed);
 
-      if (!hyscan_sonar_schema_source_add_full (sonar_schema, orig_sources[i], source))
+      if (!hyscan_sonar_schema_source_add_full (sonar_schema, source))
         g_error ("can't add source %s", hyscan_source_get_name_by_type (orig_sources[i]));
 
       hyscan_sonar_info_source_free (source);
@@ -568,30 +576,38 @@ main (int    argc,
   /* Проверяем параметры датчиков. */
   for (i = 0; i < N_SENSORS; i++)
     {
-      gchar *sensor = g_strdup_printf ("nmea-%d", i);
+      gchar *sensor_name = g_strdup_printf ("nmea-%d", i);
       gchar *orig_description = g_strdup_printf ("Nmea sensor %d", i);
-      const gchar *description;
+      const HyScanSensorInfoSensor *sensor;
 
-      g_message ("Check sensor %s", sensor);
+      g_message ("Check sensor %s", sensor_name);
 
-      description = hyscan_sensor_info_get_description (sensor_info, sensor);
-      if (g_strcmp0 (orig_description, description) != 0)
+      for (j = 0; j < N_SENSORS; j++)
+        if (g_strcmp0 (sensor_name, sensors[j]) == 0)
+          break;
+
+      if (j == N_SENSORS)
+        g_error ("list failed");
+
+      sensor = hyscan_sensor_info_get_sensor (sensor_info, sensor_name);
+
+      if (g_strcmp0 (sensor_name, sensor->name) != 0)
+        g_error ("name failed");
+      if (g_strcmp0 (orig_description, sensor->description) != 0)
         g_error ("decripton failed");
 
       if (i % 2)
         {
           HyScanAntennaPosition *orig_position;
-          const HyScanAntennaPosition *position;
 
-          orig_position = create_sensor_position (sensor, seed);
-          position = hyscan_sensor_info_get_position (sensor_info, sensor);
+          orig_position = create_sensor_position (sensor_name, seed);
 
-          if ((orig_position->x != position->x) ||
-              (orig_position->y != position->y) ||
-              (orig_position->z != position->z) ||
-              (orig_position->psi != position->psi) ||
-              (orig_position->gamma != position->gamma) ||
-              (orig_position->theta != position->theta))
+          if ((orig_position->x != sensor->position->x) ||
+              (orig_position->y != sensor->position->y) ||
+              (orig_position->z != sensor->position->z) ||
+              (orig_position->psi != sensor->position->psi) ||
+              (orig_position->gamma != sensor->position->gamma) ||
+              (orig_position->theta != sensor->position->theta))
             {
               g_error ("position failed");
             }
@@ -600,7 +616,7 @@ main (int    argc,
         }
 
       g_free (orig_description);
-      g_free (sensor);
+      g_free (sensor_name);
     }
 
   /* Проверяем список источников. */
@@ -620,6 +636,14 @@ main (int    argc,
       source = hyscan_sonar_info_get_source (sonar_info, sources[i]);
 
       g_message ("Check source %s", hyscan_source_get_name_by_type (sources[i]));
+
+      for (j = 0; j < n_sources; j++)
+        if (sources[i] == orig_sources[j])
+          break;
+
+      if (j == n_sources)
+        g_error ("list failed");
+
       if (!verify_source (orig_source, orig_master, source))
         g_error ("failed");
 

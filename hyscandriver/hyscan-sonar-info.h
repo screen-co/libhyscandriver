@@ -82,6 +82,7 @@ struct _HyScanSonarInfoClass
 
 /**
  * HyScanSonarInfoSource:
+ * @source: тип источника данных
  * @description: описание источника данных
  * @master: ведущий источник данных
  * @position: местоположение приёмной антенны по умолчанию
@@ -96,6 +97,7 @@ struct _HyScanSonarInfoClass
  */
 struct _HyScanSonarInfoSource
 {
+  HyScanSourceType                 source;
   const gchar                     *description;
   HyScanSourceType                 master;
   HyScanAntennaPosition           *position;
@@ -248,66 +250,66 @@ HYSCAN_API
 GType                          hyscan_sonar_info_get_type              (void);
 
 HYSCAN_API
-HyScanSonarInfo *              hyscan_sonar_info_new                   (HyScanDataSchema              *schema);
+HyScanSonarInfo *              hyscan_sonar_info_new                   (HyScanDataSchema                  *schema);
 
 HYSCAN_API
-gboolean                       hyscan_sonar_info_get_software_ping     (HyScanSonarInfo               *info);
+gboolean                       hyscan_sonar_info_get_software_ping     (HyScanSonarInfo                   *info);
 
 HYSCAN_API
-const HyScanSourceType *       hyscan_sonar_info_list_sources          (HyScanSonarInfo               *info,
-                                                                        guint32                       *n_sources);
+const HyScanSourceType *       hyscan_sonar_info_list_sources          (HyScanSonarInfo                   *info,
+                                                                        guint32                           *n_sources);
 
 HYSCAN_API
-const HyScanSonarInfoSource *  hyscan_sonar_info_get_source            (HyScanSonarInfo               *info,
-                                                                        HyScanSourceType               source);
+const HyScanSonarInfoSource *  hyscan_sonar_info_get_source            (HyScanSonarInfo                   *info,
+                                                                        HyScanSourceType                   source);
 
 HYSCAN_API
-HyScanSonarInfoSource *        hyscan_sonar_info_source_copy           (HyScanSonarInfoSource         *info);
+HyScanSonarInfoSource *        hyscan_sonar_info_source_copy           (const HyScanSonarInfoSource       *info);
 
 HYSCAN_API
-void                           hyscan_sonar_info_source_free           (HyScanSonarInfoSource         *info);
+void                           hyscan_sonar_info_source_free           (HyScanSonarInfoSource             *info);
 
 HYSCAN_API
-HyScanSonarInfoCapabilities *  hyscan_sonar_info_capabilities_copy     (HyScanSonarInfoCapabilities   *info);
+HyScanSonarInfoCapabilities *  hyscan_sonar_info_capabilities_copy     (const HyScanSonarInfoCapabilities *info);
 
 HYSCAN_API
-void                           hyscan_sonar_info_capabilities_free     (HyScanSonarInfoCapabilities   *info);
+void                           hyscan_sonar_info_capabilities_free     (HyScanSonarInfoCapabilities       *info);
 
 HYSCAN_API
-HyScanSonarInfoAntenna *       hyscan_sonar_info_antenna_copy          (HyScanSonarInfoAntenna        *info);
+HyScanSonarInfoAntenna *       hyscan_sonar_info_antenna_copy          (const HyScanSonarInfoAntenna      *info);
 
 HYSCAN_API
-void                           hyscan_sonar_info_antenna_free          (HyScanSonarInfoAntenna        *info);
+void                           hyscan_sonar_info_antenna_free          (HyScanSonarInfoAntenna            *info);
 
 HYSCAN_API
-HyScanSonarInfoReceiver *      hyscan_sonar_info_receiver_copy         (HyScanSonarInfoReceiver       *info);
+HyScanSonarInfoReceiver *      hyscan_sonar_info_receiver_copy         (const HyScanSonarInfoReceiver     *info);
 
 HYSCAN_API
-void                           hyscan_sonar_info_receiver_free         (HyScanSonarInfoReceiver       *info);
+void                           hyscan_sonar_info_receiver_free         (HyScanSonarInfoReceiver           *info);
 
 HYSCAN_API
-HyScanSonarInfoGenerator *     hyscan_sonar_info_generator_copy        (HyScanSonarInfoGenerator      *info);
+HyScanSonarInfoGenerator *     hyscan_sonar_info_generator_copy        (const HyScanSonarInfoGenerator    *info);
 
 HYSCAN_API
-void                           hyscan_sonar_info_generator_free        (HyScanSonarInfoGenerator      *info);
+void                           hyscan_sonar_info_generator_free        (HyScanSonarInfoGenerator          *info);
 
 HYSCAN_API
-HyScanSonarInfoTVG *           hyscan_sonar_info_tvg_copy              (HyScanSonarInfoTVG            *info);
+HyScanSonarInfoTVG *           hyscan_sonar_info_tvg_copy              (const HyScanSonarInfoTVG          *info);
 
 HYSCAN_API
-void                           hyscan_sonar_info_tvg_free              (HyScanSonarInfoTVG            *info);
+void                           hyscan_sonar_info_tvg_free              (HyScanSonarInfoTVG                *info);
 
 HYSCAN_API
-HyScanSonarInfoChannel *       hyscan_sonar_info_channel_copy          (HyScanSonarInfoChannel        *info);
+HyScanSonarInfoChannel *       hyscan_sonar_info_channel_copy          (const HyScanSonarInfoChannel      *info);
 
 HYSCAN_API
-void                           hyscan_sonar_info_channel_free          (HyScanSonarInfoChannel        *info);
+void                           hyscan_sonar_info_channel_free          (HyScanSonarInfoChannel            *info);
 
 HYSCAN_API
-HyScanSonarInfoSignal *        hyscan_sonar_info_signal_copy           (HyScanSonarInfoSignal         *info);
+HyScanSonarInfoSignal *        hyscan_sonar_info_signal_copy           (const HyScanSonarInfoSignal       *info);
 
 HYSCAN_API
-void                           hyscan_sonar_info_signal_free           (HyScanSonarInfoSignal         *info);
+void                           hyscan_sonar_info_signal_free           (HyScanSonarInfoSignal             *info);
 
 G_END_DECLS
 

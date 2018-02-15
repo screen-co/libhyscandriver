@@ -40,6 +40,8 @@
 
 G_BEGIN_DECLS
 
+#define HYSCAN_TYPE_SENSOR_INFO_SENSOR      (hyscan_sensor_info_sensor_get_type ())
+
 #define HYSCAN_TYPE_SENSOR_INFO             (hyscan_sensor_info_get_type ())
 #define HYSCAN_SENSOR_INFO(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_SENSOR_INFO, HyScanSensorInfo))
 #define HYSCAN_IS_SENSOR_INFO(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HYSCAN_TYPE_SENSOR_INFO))
@@ -50,6 +52,7 @@ G_BEGIN_DECLS
 typedef struct _HyScanSensorInfo HyScanSensorInfo;
 typedef struct _HyScanSensorInfoPrivate HyScanSensorInfoPrivate;
 typedef struct _HyScanSensorInfoClass HyScanSensorInfoClass;
+typedef struct _HyScanSensorInfoSensor HyScanSensorInfoSensor;
 
 struct _HyScanSensorInfo
 {
@@ -63,22 +66,42 @@ struct _HyScanSensorInfoClass
   GObjectClass parent_class;
 };
 
+/**
+ * HyScanSensorInfoSensor:
+ * @name: название датчика
+ * @description: описание датчика
+ * @position: местоположение приёмной антенны по умолчанию
+ *
+ * Параметры датчика.
+ */
+struct _HyScanSensorInfoSensor
+{
+  const gchar                     *name;
+  const gchar                     *description;
+  HyScanAntennaPosition           *position;
+};
+
+HYSCAN_API
+GType                          hyscan_sensor_info_sensor_get_type      (void);
+
 HYSCAN_API
 GType                          hyscan_sensor_info_get_type             (void);
 
 HYSCAN_API
-HyScanSensorInfo *             hyscan_sensor_info_new                  (HyScanDataSchema          *schema);
+HyScanSensorInfo *             hyscan_sensor_info_new                  (HyScanDataSchema              *schema);
 
 HYSCAN_API
-const gchar * const *          hyscan_sensor_info_list_sensors         (HyScanSensorInfo          *info);
+const gchar * const *          hyscan_sensor_info_list_sensors         (HyScanSensorInfo              *info);
 
 HYSCAN_API
-const gchar *                  hyscan_sensor_info_get_description      (HyScanSensorInfo          *info,
-                                                                        const gchar               *name);
+const HyScanSensorInfoSensor  *hyscan_sensor_info_get_sensor           (HyScanSensorInfo              *info,
+                                                                        const gchar                   *name);
 
 HYSCAN_API
-const HyScanAntennaPosition   *hyscan_sensor_info_get_position         (HyScanSensorInfo          *info,
-                                                                        const gchar               *name);
+HyScanSensorInfoSensor *       hyscan_sensor_info_sensor_copy          (const HyScanSensorInfoSensor  *info);
+
+HYSCAN_API
+void                           hyscan_sensor_info_sensor_free          (HyScanSensorInfoSensor        *info);
 
 G_END_DECLS
 

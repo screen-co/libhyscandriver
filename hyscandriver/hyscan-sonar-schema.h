@@ -74,7 +74,6 @@ gboolean               hyscan_sonar_schema_set_software_ping           (HyScanSo
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_source_add_full             (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source,
                                                                         HyScanSonarInfoSource         *info);
 
 HYSCAN_API

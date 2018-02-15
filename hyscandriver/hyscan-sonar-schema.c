@@ -342,7 +342,6 @@ hyscan_sonar_schema_set_software_ping (HyScanSonarSchema *schema)
 /**
  * hyscan_sonar_schema_source_add_full:
  * @schema: указатель на #HyScanSonarSchema
- * @source: тип источника данных
  * @info: (transfer none): параметры сточника данныx
  *
  * Функция добавляет в схему описание источника данных.
@@ -351,9 +350,9 @@ hyscan_sonar_schema_set_software_ping (HyScanSonarSchema *schema)
  */
 gboolean
 hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
-                                     HyScanSourceType       source,
                                      HyScanSonarInfoSource *info)
 {
+  HyScanSourceType source = info->source;
   gboolean status;
 
   /* Источник гидролокационных данных. */

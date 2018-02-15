@@ -62,8 +62,10 @@ struct _HyScanDummyDiscoverClass
   GObjectClass parent_class;
 };
 
+HYSCAN_API
 GType                          hyscan_dummy_discover_get_type  (void);
 
+HYSCAN_API
 HyScanDummyDiscover *          hyscan_dummy_discover_new       (void);
 
 G_END_DECLS
