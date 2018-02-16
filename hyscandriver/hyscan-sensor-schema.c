@@ -224,7 +224,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   if (g_hash_table_contains (schema->priv->sensors, name))
     return FALSE;
 
-  /* Признак наличия порта. */
+  /* Признак наличия датчика. */
   key_id = g_strdup_printf ("/sensors/%s/id", name);
   if (hyscan_data_schema_builder_key_string_create (builder, key_id, "id", NULL, name))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
@@ -233,7 +233,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   if (!status)
     return FALSE;
 
-  /* Описание порта датчика. */
+  /* Описание датчика. */
   if (description != NULL)
     {
       key_id = g_strdup_printf ("/sensors/%s/description", name);
@@ -251,7 +251,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
 /**
  * hyscan_sensor_schema_source_set_position:
  * @schema: указатель на #HyScanSensorSchema
- * @name: название порта
+ * @name: название датчика
  * @position: местоположение антенны по умолчанию
  *
  * Функция устанавливает местоположение антенны по умолчанию.
