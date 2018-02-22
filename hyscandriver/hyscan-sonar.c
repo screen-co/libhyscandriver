@@ -160,6 +160,19 @@ static void
 hyscan_sonar_default_init (HyScanSonarInterface *iface)
 {
   /**
+   * HyScanSonar::sonar-source-state:
+   * @sonar: указатель на #HyScanSonar
+   * @source: идентификатор источника данных #HyScanSourceType
+   * @state: состояние источника данных
+   *
+   * Данный сигнал посылается при изменении состояния источника данных.
+   */
+  g_signal_new ("sonar-source-state", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
+                NULL, NULL,
+                hyscan_driver_marshal_VOID__INT_BOOLEAN,
+                G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_BOOLEAN);
+
+  /**
    * HyScanSonar::sonar-signal:
    * @sonar: указатель на #HyScanSonar
    * @source: идентификатор источника данных #HyScanSourceType
