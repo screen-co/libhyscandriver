@@ -99,27 +99,10 @@ gboolean               hyscan_sonar_schema_source_set_position         (HyScanSo
                                                                         HyScanAntennaPosition         *position);
 
 HYSCAN_API
-gboolean               hyscan_sonar_schema_antenna_set_params          (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source,
-                                                                        gdouble                        antenna_vpattern,
-                                                                        gdouble                        antenna_hpattern,
-                                                                        gdouble                        antenna_frequency,
-                                                                        gdouble                        antenna_bandwidth);
-
-HYSCAN_API
 gboolean               hyscan_sonar_schema_receiver_set_params         (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
                                                                         gdouble                        min_time,
                                                                         gdouble                        max_time);
-
-HYSCAN_API
-gboolean               hyscan_sonar_schema_receiver_add_channel        (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source,
-                                                                        guint                          channel,
-                                                                        gdouble                        antenna_voffset,
-                                                                        gdouble                        antenna_hoffset,
-                                                                        gint                           adc_offset,
-                                                                        gdouble                        adc_vref);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_generator_add_preset        (HyScanSonarSchema             *schema,

@@ -59,26 +59,16 @@
  * - description - поле с описанием источника, тип STRING, необязательное;
  * - master - название ведущего источника данных, тип STRING, необязательное.
  *
- * Для источника данных может быть задано местоположение антенн по умолчанию.
- * Если местоположение антенны залано, должны быть определены все параметры.
- * Местоположение антенны задают следующие параметры:
+ * Для источника данных может быть задано местоположение по умолчанию.
+ * Если местоположение задано, должны быть определены все параметры.
+ * Местоположение задают следующие параметры:
  *
- * - antenna/position/x - смещение антенны по оси X, тип DOUBLE;
- * - antenna/position/y - смещение антенны по оси Y, тип DOUBLE;
- * - antenna/position/z - смещение антенны по оси Z, тип DOUBLE;
- * - antenna/position/psi - поворот антенны по курсу, тип DOUBLE;
- * - antenna/position/gamma - поворот антенны по крену, тип DOUBLE;
- * - antenna/position/theta - поворот антенны по дифференту, тип DOUBLE.
- *
- * Характеристики приёмной антенны определяются следующие параметры:
- *
- * - antenna/pattern/vertical - диаграмма направленности в вертикальной плоскости, тип DOUBLE;
- * - antenna/pattern/horizontal - диаграмма направленности в горизонтальной плоскости, тип DOUBLE;
- * - antenna/frequency - центральная частота, тип DOUBLE;
- * - antenna/bandwidth - полоса, тип DOUBLE.
- *
- * Если источник данных является ведомым, допускается не задавать характеристики
- * приёмной антенны. В этом случае используются параметры ведущего источника.
+ * - position/x - смещение антенны по оси X, тип DOUBLE;
+ * - position/y - смещение антенны по оси Y, тип DOUBLE;
+ * - position/z - смещение антенны по оси Z, тип DOUBLE;
+ * - position/psi - поворот антенны по курсу, тип DOUBLE;
+ * - position/gamma - поворот антенны по крену, тип DOUBLE;
+ * - position/theta - поворот антенны по дифференту, тип DOUBLE.
  *
  * Наличие приёмника и его характеристики определяются параметром -
  * "receiver/capabilities". Ведущий источник данных всегда должен иметь
@@ -87,16 +77,6 @@
  *
  * - receiver/min-time - минимальной время приёма данных, тип DOUBLE;
  * - receiver/max-time - максимальное время приёма данных, тип DOUBLE.
- *
- * Приёмник может иметь несколько приёмных каналов, их наличие и характеристики
- * определяются следующими параметрами:
- *
- * - channels/index/antenna/offset/vertical - вертикальное смещение антенны в блоке, тип DOUBLE;
- * - channels/index/antenna/offset/horizontal - горизонтальное смещение антенны в блоке, тип DOUBLE;
- * - channels/index/adc/offset - смещение 0 АЦП, тип INTEGER;
- * - channels/index/adc/vref - опорное напряжение АЦП, тип DOUBLE.
- *
- * Где index - номер приёмного канала 1, 2, 3 и т.д.
  *
  * Наличие генератора и его характеристики определяются параметром -
  * "generator/capabilities". Возможности генератора, определённые этим параметром,
@@ -146,23 +126,15 @@
  * /sources/ss-port/id
  * /sources/ss-port/description
  * /sources/ss-port/master
- * /sources/ss-port/antenna/position/x
- * /sources/ss-port/antenna/position/y
- * /sources/ss-port/antenna/position/z
- * /sources/ss-port/antenna/position/psi
- * /sources/ss-port/antenna/position/gamma
- * /sources/ss-port/antenna/position/theta
- * /sources/ss-port/antenna/pattern/vertical
- * /sources/ss-port/antenna/pattern/horizontal
- * /sources/ss-port/antenna/frequency
- * /sources/ss-port/antenna/bandwidth
+ * /sources/ss-port/position/x
+ * /sources/ss-port/position/y
+ * /sources/ss-port/position/z
+ * /sources/ss-port/position/psi
+ * /sources/ss-port/position/gamma
+ * /sources/ss-port/position/theta
  * /sources/ss-port/receiver/capabilities
  * /sources/ss-port/receiver/min-time
  * /sources/ss-port/receiver/max-time
- * /sources/ss-port/channels/1/antenna/offset/vertical
- * /sources/ss-port/channels/1/antenna/offset/horizontal
- * /sources/ss-port/channels/1/adc/offset
- * /sources/ss-port/channels/1/adc/vref
  * /sources/ss-port/generator/capabilities
  * /sources/ss-port/generator/automatic
  * /sources/ss-port/generator/presets/1
@@ -378,18 +350,6 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
     if (!hyscan_sonar_schema_source_set_position (schema, source, info->position))
       return FALSE;
 
-  /* Параметры антенны. */
-  if (info->antenna != NULL)
-    {
-      status = hyscan_sonar_schema_antenna_set_params (schema, source,
-                                                       info->antenna->vpattern,
-                                                       info->antenna->hpattern,
-                                                       info->antenna->frequency,
-                                                       info->antenna->bandwidth);
-      if (!status)
-        return FALSE;
-    }
-
   /* Приёмник данных. */
   if (info->capabilities->receiver & HYSCAN_SONAR_RECEIVER_MODE_MANUAL)
     {
@@ -398,28 +358,6 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                                         info->receiver->max_time);
       if (!status)
         return FALSE;
-    }
-
-  /* Приёмные каналы. */
-  if (info->channels != NULL)
-    {
-      GList *cur_channel = info->channels;
-
-      while (cur_channel != NULL)
-        {
-          HyScanSonarInfoChannel *channel = cur_channel->data;
-
-          status = hyscan_sonar_schema_receiver_add_channel (schema, source,
-                                                             channel->channel,
-                                                             channel->antenna_voffset,
-                                                             channel->antenna_hoffset,
-                                                             channel->adc_offset,
-                                                             channel->adc_vref);
-          if (!status)
-            return FALSE;
-
-          cur_channel = g_list_next (cur_channel);
-        }
     }
 
   /* Генератор сигналов. */
@@ -758,7 +696,7 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   if (g_hash_table_contains (schema->priv->slaves, GINT_TO_POINTER (source)))
     return FALSE;
 
-  prefix = g_strdup_printf ("/sources/%s/antenna/position", source_name);
+  prefix = g_strdup_printf ("/sources/%s/position", source_name);
 
   /* Местоположение антенны. */
   status = FALSE;
@@ -809,91 +747,6 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/theta", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, position->theta))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-exit:
-  g_free (prefix);
-
-  return status;
-}
-
-/**
- * hyscan_sonar_schema_antenna_set_params:
- * @schema: указатель на #HyScanSonarSchema
- * @source: тип источника данных
- * @antenna_vpattern: диаграмма направленности антенны в вертикальной плоскости, рад
- * @antenna_hpattern: диаграмма направленности антенны в горизонтальной плоскости, рад
- * @antenna_frequency: центральная частота, Гц
- * @antenna_bandwidth: полоса пропускания, Гц
- *
- * Функция устанавливает параметры антенны источника данных.
- *
- * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_schema_antenna_set_params (HyScanSonarSchema *schema,
-                                        HyScanSourceType   source,
-                                        gdouble            antenna_vpattern,
-                                        gdouble            antenna_hpattern,
-                                        gdouble            antenna_frequency,
-                                        gdouble            antenna_bandwidth)
-{
-  HyScanDataSchemaBuilder *builder;
-  const gchar *source_name;
-  gboolean status;
-  gchar *prefix;
-  gchar *key_id;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
-
-  builder = schema->priv->builder;
-  if (builder == NULL)
-    return FALSE;
-
-  source_name = hyscan_source_get_name_by_type (source);
-  if (source_name == NULL)
-    return FALSE;
-
-  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
-    return FALSE;
-
-  prefix = g_strdup_printf ("/sources/%s", source_name);
-
-  /* Диаграмма направленности антенны в вертикальной плоскости. */
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/antenna/pattern/vertical", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "vertical-pattern", NULL, antenna_vpattern))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  /* Диаграмма направленности антенны в горизонтальной плоскости. */
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/antenna/pattern/horizontal", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "horizontal-pattern", NULL, antenna_hpattern))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  /* Центральная частота. */
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/antenna/frequency", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "antenna-frequency", NULL, antenna_frequency))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  /* Полоса пропускания. */
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/antenna/bandwidth", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "antenna-bandwidth", NULL, antenna_bandwidth))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   g_free (key_id);
 
@@ -956,95 +809,6 @@ hyscan_sonar_schema_receiver_set_params (HyScanSonarSchema *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/max-time", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "max-time", NULL, max_time))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-exit:
-  g_free (prefix);
-
-  return status;
-}
-
-/**
- * hyscan_sonar_schema_receiver_add_channel:
- * @schema: указатель на #HyScanSonarSchema
- * @source: тип источника данных
- * @channel: индекс канала данных
- * @antenna_voffset: вертикальное смещение антенны в блоке, м
- * @antenna_hoffset: горизнотальное смещение антенны в блоке, м
- * @adc_offset: смещение 0 АЦП
- * @adc_vref: опорное напряжение АЦП, В
- *
- * Функция добавляет в схему описание приёмного канала.
- *
- * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_schema_receiver_add_channel (HyScanSonarSchema *schema,
-                                          HyScanSourceType   source,
-                                          guint              channel,
-                                          gdouble            antenna_voffset,
-                                          gdouble            antenna_hoffset,
-                                          gint               adc_offset,
-                                          gdouble            adc_vref)
-{
-  HyScanDataSchemaBuilder *builder;
-  HyScanSonarInfoCapabilities *capabilities;
-  const gchar *source_name;
-  gboolean status;
-  gchar *prefix;
-  gchar *key_id;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
-
-  builder = schema->priv->builder;
-  if (builder == NULL)
-    return FALSE;
-
-  source_name = hyscan_source_get_name_by_type (source);
-  if (source_name == NULL)
-    return FALSE;
-
-  capabilities = g_hash_table_lookup (schema->priv->sources, GINT_TO_POINTER (source));
-  if ((capabilities == NULL) || !capabilities->receiver)
-    return FALSE;
-
-  prefix = g_strdup_printf ("/sources/%s/receiver/channels/%d", source_name, channel);
-
-  /* Вертикальное смещение антенны в блоке. */
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/antenna/offset/vertical", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "vertical-offset", NULL,  antenna_voffset))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  /* Горизонтальное смещение антенны в блоке. */
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/antenna/offset/horizontal", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "horizontal-offset", NULL, antenna_hoffset))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  /* Смещение 0 АЦП. */
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/adc/offset", prefix);
-  if (hyscan_data_schema_builder_key_integer_create (builder, key_id, "offset", NULL, adc_offset))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  /* Опорное напряжение АЦП. */
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/adc/vref", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "vref", NULL, adc_vref))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   g_free (key_id);
 

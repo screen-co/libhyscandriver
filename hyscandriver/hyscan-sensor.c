@@ -66,6 +66,8 @@
 #include "hyscan-sensor.h"
 #include "hyscan-driver-marshallers.h"
 
+#include <hyscan-buffer.h>
+
 G_DEFINE_INTERFACE (HyScanSensor, hyscan_sensor, G_TYPE_OBJECT)
 
 static void
@@ -89,30 +91,27 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
    * @sensor: указатель на #HyScanSensor
    * @name: название датчика
    * @time: время приёма данных, мкс
-   * @type: тип данных #HyScanDataType
-   * @size: размер данных в байтах
-   * @data: данные
+   * @data: данные #HyScanBuffer
    *
    * Данный сигнал посылается при получении данных от датчика.
    */
   g_signal_new ("sensor-data", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
-                hyscan_driver_marshal_VOID__STRING_INT64_INT_UINT_STRING,
-                G_TYPE_NONE, 5, G_TYPE_STRING, G_TYPE_INT64, G_TYPE_INT, G_TYPE_UINT, G_TYPE_STRING);
+                hyscan_driver_marshal_VOID__STRING_INT64_OBJECT,
+                G_TYPE_NONE, 3, G_TYPE_STRING, G_TYPE_INT64, HYSCAN_TYPE_BUFFER);
 
   /**
    * HyScanSensor::sensor-log:
    * @sensor: указатель на #HyScanSensor
-   * @name: название датчика
+   * @source: источник сообщения (NULL терминированная строка)
    * @time: время приёма сообщения, мкс
    * @level: тип сообщения #HyScanLogLevel
    * @message: сообщение (NULL терминированная строка)
    *
    * В процессе работы драйвер может отправлять различные информационные и
    * диагностические сообщения. При получении такого сообщения интерфейс
-   * посылает данный сигнал, в котором передаёт их пользователю. Принятое
-   * сообщение имеет отнощение к тому датчику, название которого указано в
-   * name. Если name = NULL, сообщение относится к драйверу в целом.
+   * посылает данный сигнал, в котором передаёт их пользователю. Название
+   * источника сообщения определяется драйвером.
    */
   g_signal_new ("sensor-log", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,

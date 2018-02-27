@@ -95,14 +95,12 @@ create_source (HyScanSourceType source,
   HyScanSourceType master;
   HyScanAntennaPosition position;
   HyScanSonarInfoCapabilities capabilities;
-  HyScanSonarInfoAntenna antenna;
   HyScanSonarInfoReceiver receiver;
   HyScanSonarInfoGenerator generator;
   HyScanSonarInfoTVG tvg;
 
   HyScanSonarInfoSignal tone;
   HyScanSonarInfoSignal lfm;
-  GList *channels = NULL;
   GList *presets = NULL;
 
   const gchar *source_name;
@@ -110,7 +108,6 @@ create_source (HyScanSourceType source,
   memset (&info, 0, sizeof (info));
   memset (&position, 0, sizeof (position));
   memset (&capabilities, 0, sizeof (capabilities));
-  memset (&antenna, 0, sizeof (antenna));
   memset (&receiver, 0, sizeof (receiver));
   memset (&generator, 0, sizeof (generator));
   memset (&tvg, 0, sizeof (tvg));
@@ -146,16 +143,6 @@ create_source (HyScanSourceType source,
   capabilities.tvg = HYSCAN_SONAR_TVG_MODE_NONE;
   info.capabilities = &capabilities;
 
-  /* Параметры антенны. */
-  if ((master == HYSCAN_SOURCE_INVALID) || (master == HYSCAN_SOURCE_PROFILER))
-    {
-      antenna.vpattern = -seed;
-      antenna.vpattern = seed;
-      antenna.frequency = seed / 2.0;
-      antenna.bandwidth = seed * 2.0;
-      info.antenna = &antenna;
-    }
-
   /* Параметры приёмника. */
   if ((master == HYSCAN_SOURCE_INVALID) || (master == HYSCAN_SOURCE_PROFILER))
     {
@@ -165,29 +152,6 @@ create_source (HyScanSourceType source,
       receiver.min_time = -seed;
       receiver.max_time = seed;
       info.receiver = &receiver;
-    }
-
-  /* Параметры приёмных каналов. */
-  if ((master == HYSCAN_SOURCE_INVALID) || (master == HYSCAN_SOURCE_PROFILER))
-    {
-      guint n_channels = 1;
-      guint i;
-
-      if ((source == HYSCAN_SOURCE_SIDE_SCAN_STARBOARD) || (source == HYSCAN_SOURCE_SIDE_SCAN_PORT))
-        n_channels = 3;
-
-      for (i = 1; i <= n_channels; i++)
-        {
-          HyScanSonarInfoChannel channel;
-
-          channel.channel = i;
-          channel.antenna_voffset = -seed * i;
-          channel.antenna_hoffset = seed * i;
-          channel.adc_offset = seed * i / 2.0;
-          channel.adc_vref = seed * i * 2.0;
-
-          channels = g_list_append (channels, hyscan_sonar_info_channel_copy (&channel));
-        }
     }
 
   /* Параметры генератора. */
@@ -275,7 +239,6 @@ create_source (HyScanSourceType source,
 
   pinfo = hyscan_sonar_info_source_copy (&info);
 
-  g_list_free_full (channels, (GDestroyNotify)hyscan_sonar_info_channel_free);
   g_list_free_full (presets, (GDestroyNotify)hyscan_data_schema_enum_value_free);
 
   return pinfo;
@@ -286,8 +249,6 @@ verify_source (const HyScanSonarInfoSource *orig_source,
                const HyScanSonarInfoSource *orig_master,
                const HyScanSonarInfoSource *source)
 {
-  HyScanSonarInfoAntenna *antenna;
-
   if ((orig_source == NULL) || (source == NULL))
     return FALSE;
 
@@ -336,21 +297,6 @@ verify_source (const HyScanSonarInfoSource *orig_source,
       return FALSE;
     }
 
-  /* Параметры антенны. */
-  if (orig_source->antenna != NULL)
-    antenna = orig_source->antenna;
-  else
-    antenna = orig_master->antenna;
-
-  if ((antenna->vpattern != source->antenna->vpattern) ||
-      (antenna->hpattern != source->antenna->hpattern) ||
-      (antenna->frequency != source->antenna->frequency) ||
-      (antenna->bandwidth != source->antenna->bandwidth))
-    {
-      g_message ("antenna failed");
-      return FALSE;
-    }
-
   /* Параметры приёмника. */
   if (orig_source->receiver != NULL)
     {
@@ -359,48 +305,6 @@ verify_source (const HyScanSonarInfoSource *orig_source,
         {
           g_message ("receiver failed");
           return FALSE;
-        }
-    }
-
-  /* Параметры приёмных каналов. */
-  if (orig_source->channels != NULL)
-    {
-      GList *orig_channels = orig_source->channels;
-
-      while (orig_channels != NULL)
-        {
-          HyScanSonarInfoChannel *orig_channel = orig_channels->data;
-          GList *channels = source->channels;
-          gboolean status = FALSE;
-
-          while (channels != NULL)
-            {
-              HyScanSonarInfoChannel *channel = channels->data;
-
-              if ((orig_channel->channel == channel->channel) &&
-                  (orig_channel->antenna_voffset == channel->antenna_voffset) &&
-                  (orig_channel->antenna_hoffset == channel->antenna_hoffset) &&
-                  (orig_channel->adc_offset == channel->adc_offset) &&
-                  (orig_channel->adc_vref == channel->adc_vref))
-                {
-                  if (status)
-                    {
-                      g_message ("channel %d dup", orig_channel->channel);
-                      return FALSE;
-                    }
-
-                  status = TRUE;
-                }
-
-              channels = g_list_next (channels);
-            }
-          if (!status)
-            {
-              g_message ("channel %d failed", orig_channel->channel);
-              return FALSE;
-            }
-
-          orig_channels = g_list_next (orig_channels);
         }
     }
 

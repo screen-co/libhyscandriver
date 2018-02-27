@@ -102,14 +102,6 @@ static HyScanSonarInfoCapabilities *
                        hyscan_sonar_info_parse_capabilities    (HyScanDataSchema      *schema,
                                                                 HyScanSourceType       source);
 
-static HyScanSonarInfoAntenna *
-                       hyscan_sonar_info_parse_antenna         (HyScanDataSchema      *schema,
-                                                                HyScanSourceType       source);
-
-static GList *
-                       hyscan_sonar_info_parse_channels        (HyScanDataSchema      *schema,
-                                                                HyScanSourceType       source);
-
 static GList *
                        hyscan_sonar_info_parse_presets         (HyScanDataSchema      *schema,
                                                                 HyScanSourceType       source);
@@ -143,9 +135,6 @@ G_DEFINE_BOXED_TYPE (HyScanSonarInfoSource, hyscan_sonar_info_source,
 G_DEFINE_BOXED_TYPE (HyScanSonarInfoCapabilities, hyscan_sonar_info_capabilities,
                      hyscan_sonar_info_capabilities_copy, hyscan_sonar_info_capabilities_free)
 
-G_DEFINE_BOXED_TYPE (HyScanSonarInfoAntenna, hyscan_sonar_info_antenna,
-                     hyscan_sonar_info_antenna_copy, hyscan_sonar_info_antenna_free)
-
 G_DEFINE_BOXED_TYPE (HyScanSonarInfoReceiver, hyscan_sonar_info_receiver,
                      hyscan_sonar_info_receiver_copy, hyscan_sonar_info_receiver_free)
 
@@ -154,9 +143,6 @@ G_DEFINE_BOXED_TYPE (HyScanSonarInfoGenerator, hyscan_sonar_generator_tvg,
 
 G_DEFINE_BOXED_TYPE (HyScanSonarInfoTVG, hyscan_sonar_info_tvg,
                      hyscan_sonar_info_tvg_copy, hyscan_sonar_info_tvg_free)
-
-G_DEFINE_BOXED_TYPE (HyScanSonarInfoChannel, hyscan_sonar_info_channel,
-                     hyscan_sonar_info_channel_copy, hyscan_sonar_info_channel_free)
 
 G_DEFINE_BOXED_TYPE (HyScanSonarInfoSignal, hyscan_sonar_info_signal,
                      hyscan_sonar_info_signal_copy, hyscan_sonar_info_signal_free)
@@ -337,27 +323,27 @@ hyscan_sonar_info_parse_position (HyScanDataSchema *schema,
   gchar name_buffer[128];
   const gchar *name;
 
-  name = SONAR_PARAM_NAME (source, "antenna", "position/x");
+  name = SONAR_PARAM_NAME (source, "position", "x");
   if (!hyscan_device_schema_get_double (schema, name, &info->x))
     goto fail;
 
-  name = SONAR_PARAM_NAME (source, "antenna", "position/y");
+  name = SONAR_PARAM_NAME (source, "position", "y");
   if (!hyscan_device_schema_get_double (schema, name, &info->y))
     goto fail;
 
-  name = SONAR_PARAM_NAME (source, "antenna", "position/z");
+  name = SONAR_PARAM_NAME (source, "position", "z");
   if (!hyscan_device_schema_get_double (schema, name, &info->z))
     goto fail;
 
-  name = SONAR_PARAM_NAME (source, "antenna", "position/psi");
+  name = SONAR_PARAM_NAME (source, "position", "psi");
   if (!hyscan_device_schema_get_double (schema, name, &info->psi))
     goto fail;
 
-  name = SONAR_PARAM_NAME (source, "antenna", "position/gamma");
+  name = SONAR_PARAM_NAME (source, "position", "gamma");
   if (!hyscan_device_schema_get_double (schema, name, &info->gamma))
     goto fail;
 
-  name = SONAR_PARAM_NAME (source, "antenna", "position/theta");
+  name = SONAR_PARAM_NAME (source, "position", "theta");
   if (!hyscan_device_schema_get_double (schema, name, &info->theta))
     goto fail;
 
@@ -471,39 +457,6 @@ hyscan_sonar_info_parse_capabilities (HyScanDataSchema *schema,
   return info;
 }
 
-/* Функция считывает информацию о приёмной антенне. */
-static HyScanSonarInfoAntenna *
-hyscan_sonar_info_parse_antenna (HyScanDataSchema *schema,
-                                 HyScanSourceType  source)
-{
-  HyScanSonarInfoAntenna *info = g_slice_new0 (HyScanSonarInfoAntenna);
-  gchar name_buffer[128];
-  const gchar *name;
-
-  name = SONAR_PARAM_NAME (source, "antenna", "pattern/vertical");
-  if (!hyscan_device_schema_get_double (schema, name, &info->vpattern))
-    goto fail;
-
-  name = SONAR_PARAM_NAME (source, "antenna", "pattern/horizontal");
-  if (!hyscan_device_schema_get_double (schema, name, &info->hpattern))
-    goto fail;
-
-  name = SONAR_PARAM_NAME (source, "antenna", "frequency");
-  if (!hyscan_device_schema_get_double (schema, name, &info->frequency))
-    goto fail;
-
-  name = SONAR_PARAM_NAME (source, "antenna", "bandwidth");
-  if (!hyscan_device_schema_get_double (schema, name, &info->bandwidth))
-    goto fail;
-
-  return info;
-
-fail:
-  g_slice_free (HyScanSonarInfoAntenna, info);
-
-  return NULL;
-}
-
 /* Функция считывает информацию о приёмнике. */
 static HyScanSonarInfoReceiver *
 hyscan_sonar_info_parse_receiver (HyScanDataSchema *schema,
@@ -528,57 +481,6 @@ fail:
   g_slice_free (HyScanSonarInfoReceiver, info);
 
   return NULL;
-}
-
-/* Функция считывает информацию о приёмных каналах. */
-static GList *
-hyscan_sonar_info_parse_channels (HyScanDataSchema *schema,
-                                  HyScanSourceType  source)
-{
-  gchar name_buffer[128];
-  const gchar *name;
-
-  GList *channels = NULL;
-  guint n_channel = 1;
-
-  while (TRUE)
-    {
-      HyScanSonarInfoChannel channel;
-      gchar *channel_id;
-
-      channel_id = g_strdup_printf ("receiver/channels/%d", n_channel);
-
-      name = SONAR_PARAM_NAME (source, channel_id, "antenna/offset/vertical");
-      if (!hyscan_device_schema_get_double (schema, name, &channel.antenna_voffset))
-        goto no_channel;
-
-      name = SONAR_PARAM_NAME (source, channel_id, "antenna/offset/horizontal");
-      if (!hyscan_device_schema_get_double (schema, name, &channel.antenna_hoffset))
-        goto no_channel;
-
-      name = SONAR_PARAM_NAME (source, channel_id, "adc/offset");
-      if (!hyscan_device_schema_get_integer (schema, name, &channel.adc_offset))
-        goto no_channel;
-
-      name = SONAR_PARAM_NAME (source, channel_id, "adc/vref");
-      if (!hyscan_device_schema_get_double (schema, name, &channel.adc_vref))
-        goto no_channel;
-
-      channels = g_list_prepend (channels, hyscan_sonar_info_channel_copy (&channel));
-
-      g_free (channel_id);
-      n_channel += 1;
-      continue;
-
-    no_channel:
-      g_free (channel_id);
-      break;
-    }
-
-  if (channels != NULL)
-    channels = g_list_reverse (channels);
-
-  return channels;
 }
 
 /* Функция считывает информацию о преднастрйках генератора. */
@@ -741,9 +643,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   gint64 master = HYSCAN_SOURCE_INVALID;
   HyScanAntennaPosition *position = NULL;
   HyScanSonarInfoCapabilities *capabilities = NULL;
-  HyScanSonarInfoAntenna *antenna = NULL;
   HyScanSonarInfoReceiver *receiver = NULL;
-  GList *channels = NULL;
   HyScanSonarInfoGenerator *generator = NULL;
   HyScanSonarInfoTVG *tvg = NULL;
 
@@ -763,13 +663,6 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   if (capabilities == NULL)
     goto fail;
 
-  /* Параметры приёмной антенны. */
-  antenna = hyscan_sonar_info_parse_antenna (schema, source);
-  if (antenna == NULL)
-    antenna = hyscan_sonar_info_parse_antenna (schema, master);
-  if (antenna == NULL)
-    goto fail;
-
   /* Параметры приёмника. */
   if (capabilities->receiver & HYSCAN_SONAR_RECEIVER_MODE_MANUAL)
     {
@@ -777,9 +670,6 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
       if (receiver == NULL)
         goto fail;
     }
-
-  /* Параметры приёмных каналов. */
-  channels = hyscan_sonar_info_parse_channels (schema, source);
 
   /* Параметры генератора. */
   if (capabilities->generator)
@@ -819,9 +709,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   info->master = master;
   info->position = position;
   info->capabilities = capabilities;
-  info->antenna = antenna;
   info->receiver = receiver;
-  info->channels = channels;
   info->generator = generator;
   info->tvg = tvg;
 
@@ -829,9 +717,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
 
 fail:
   hyscan_sonar_info_capabilities_free (capabilities);
-  hyscan_sonar_info_antenna_free (antenna);
   hyscan_sonar_info_receiver_free (receiver);
-  g_list_free_full (channels, (GDestroyNotify)hyscan_sonar_info_channel_free);
   hyscan_sonar_info_generator_free (generator);
   hyscan_sonar_info_tvg_free (tvg);
 
@@ -960,7 +846,6 @@ HyScanSonarInfoSource *
 hyscan_sonar_info_source_copy (const HyScanSonarInfoSource *info)
 {
   HyScanSonarInfoSource *new_info;
-  GList *channels, *new_channels;
 
   if (info == NULL)
     return NULL;
@@ -971,21 +856,9 @@ hyscan_sonar_info_source_copy (const HyScanSonarInfoSource *info)
   new_info->master = info->master;
   new_info->position = hyscan_antenna_position_copy (info->position);
   new_info->capabilities = hyscan_sonar_info_capabilities_copy (info->capabilities);
-  new_info->antenna = hyscan_sonar_info_antenna_copy (info->antenna);
   new_info->receiver = hyscan_sonar_info_receiver_copy (info->receiver);
   new_info->generator = hyscan_sonar_info_generator_copy (info->generator);
   new_info->tvg = hyscan_sonar_info_tvg_copy (info->tvg);
-
-  new_channels = NULL;
-  channels = info->channels;
-  while (channels != NULL)
-    {
-      new_channels = g_list_prepend (new_channels,
-                                     hyscan_sonar_info_channel_copy (channels->data));
-
-      channels = g_list_next (channels);
-    }
-  new_info->channels = g_list_reverse (new_channels);
 
   return new_info;
 }
@@ -1005,9 +878,7 @@ hyscan_sonar_info_source_free (HyScanSonarInfoSource *info)
   g_free ((gchar*)info->description);
   hyscan_antenna_position_free (info->position);
   hyscan_sonar_info_capabilities_free (info->capabilities);
-  hyscan_sonar_info_antenna_free (info->antenna);
   hyscan_sonar_info_receiver_free (info->receiver);
-  g_list_free_full (info->channels, (GDestroyNotify)hyscan_sonar_info_channel_free);
   hyscan_sonar_info_generator_free (info->generator);
   hyscan_sonar_info_tvg_free (info->tvg);
 
@@ -1043,37 +914,6 @@ hyscan_sonar_info_capabilities_free (HyScanSonarInfoCapabilities *info)
 {
   if (info != NULL)
     g_slice_free (HyScanSonarInfoCapabilities, info);
-}
-
-/**
- * hyscan_sonar_info_antenna_copy:
- * @info: структура #HyScanSonarInfoAntenna для копирования
- *
- * Функция создаёт копию структуры #HyScanSonarInfoAntenna.
- *
- * Returns: (transfer full): Новая структура #HyScanSonarInfoAntenna.
- * Для удаления #hyscan_sonar_info_antenna_free.
- */
-HyScanSonarInfoAntenna *
-hyscan_sonar_info_antenna_copy (const HyScanSonarInfoAntenna *info)
-{
-  if (info != NULL)
-    return g_slice_dup (HyScanSonarInfoAntenna, info);
-
-  return NULL;
-}
-
-/**
- * hyscan_sonar_info_antenna_free:
- * @info: структура #HyScanSonarInfoAntenna для удаления
- *
- * Функция удаляет структуру #HyScanSonarInfoAntenna.
- */
-void
-hyscan_sonar_info_antenna_free (HyScanSonarInfoAntenna *info)
-{
-  if (info != NULL)
-    g_slice_free (HyScanSonarInfoAntenna, info);
 }
 
 /**
@@ -1197,37 +1037,6 @@ hyscan_sonar_info_tvg_free (HyScanSonarInfoTVG *info)
 {
   if (info != NULL)
     g_slice_free (HyScanSonarInfoTVG, info);
-}
-
-/**
- * hyscan_sonar_info_channel_copy:
- * @info: структура #HyScanSonarInfoChannel для копирования
- *
- * Функция создаёт копию структуры #HyScanSonarInfoChannel.
- *
- * Returns: (transfer full): Новая структура #HyScanSonarInfoChannel.
- * Для удаления #hyscan_sonar_info_channel_free.
- */
-HyScanSonarInfoChannel *
-hyscan_sonar_info_channel_copy (const HyScanSonarInfoChannel *info)
-{
-  if (info != NULL)
-    return g_slice_dup (HyScanSonarInfoChannel, info);
-
-  return NULL;
-}
-
-/**
- * hyscan_sonar_info_channel_free:
- * @info: структура #HyScanSonarInfoChannel для удаления
- *
- * Функция удаляет структуру #HyScanSonarInfoChannel.
- */
-void
-hyscan_sonar_info_channel_free (HyScanSonarInfoChannel *info)
-{
-  if (info != NULL)
-    g_slice_free (HyScanSonarInfoChannel, info);
 }
 
 /**

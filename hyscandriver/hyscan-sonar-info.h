@@ -42,11 +42,9 @@ G_BEGIN_DECLS
 
 #define HYSCAN_TYPE_SONAR_INFO_SOURCE        (hyscan_sonar_info_source_get_type ())
 #define HYSCAN_TYPE_SONAR_INFO_CAPABILITIES  (hyscan_sonar_info_capabilities_get_type ())
-#define HYSCAN_TYPE_SONAR_INFO_ANTENNA       (hyscan_sonar_info_antenna_get_type ())
 #define HYSCAN_TYPE_SONAR_INFO_RECEIVER      (hyscan_sonar_info_receiver_get_type ())
 #define HYSCAN_TYPE_SONAR_INFO_GENERATOR     (hyscan_sonar_info_generator_get_type ())
 #define HYSCAN_TYPE_SONAR_INFO_TVG           (hyscan_sonar_info_tvg_get_type ())
-#define HYSCAN_TYPE_SONAR_INFO_CHANNEL       (hyscan_sonar_info_channel_get_type ())
 #define HYSCAN_TYPE_SONAR_INFO_SIGNAL        (hyscan_sonar_info_signal_get_type ())
 
 #define HYSCAN_TYPE_SONAR_INFO               (hyscan_sonar_info_get_type ())
@@ -61,11 +59,9 @@ typedef struct _HyScanSonarInfoPrivate HyScanSonarInfoPrivate;
 typedef struct _HyScanSonarInfoClass HyScanSonarInfoClass;
 typedef struct _HyScanSonarInfoSource HyScanSonarInfoSource;
 typedef struct _HyScanSonarInfoCapabilities HyScanSonarInfoCapabilities;
-typedef struct _HyScanSonarInfoAntenna HyScanSonarInfoAntenna;
 typedef struct _HyScanSonarInfoReceiver HyScanSonarInfoReceiver;
 typedef struct _HyScanSonarInfoGenerator HyScanSonarInfoGenerator;
 typedef struct _HyScanSonarInfoTVG HyScanSonarInfoTVG;
-typedef struct _HyScanSonarInfoChannel HyScanSonarInfoChannel;
 typedef struct _HyScanSonarInfoSignal HyScanSonarInfoSignal;
 
 struct _HyScanSonarInfo
@@ -87,9 +83,7 @@ struct _HyScanSonarInfoClass
  * @master: ведущий источник данных
  * @position: местоположение приёмной антенны по умолчанию
  * @capabilities: режимы работы источника данных
- * @antenna: параметры приёмной антенны
  * @receiver: параметры приёмника
- * @channels: (element-type HyScanSonarInfoChannel): параметры приёмных каналов
  * @generator: параметры генератора
  * @tvg: параметры ВАРУ
  *
@@ -102,9 +96,7 @@ struct _HyScanSonarInfoSource
   HyScanSourceType                 master;
   HyScanAntennaPosition           *position;
   HyScanSonarInfoCapabilities     *capabilities;
-  HyScanSonarInfoAntenna          *antenna;
   HyScanSonarInfoReceiver         *receiver;
-  GList                           *channels;
   HyScanSonarInfoGenerator        *generator;
   HyScanSonarInfoTVG              *tvg;
 };
@@ -122,23 +114,6 @@ struct _HyScanSonarInfoCapabilities
   HyScanSonarReceiverModeType      receiver;
   HyScanSonarGeneratorModeType     generator;
   HyScanSonarTVGModeType           tvg;
-};
-
-/**
- * HyScanSonarInfoAntenna:
- * @vpattern: диаграмма направленности антенны в вертикальной плоскости, рад
- * @hpattern: диаграмма направленности антенны в горизонтальной плоскости, рад
- * @frequency: центральная частота, Гц
- * @bandwidth: полоса пропускания, Гц
- *
- * Параметры приёмной антенны.
- */
-struct _HyScanSonarInfoAntenna
-{
-  gdouble                          vpattern;
-  gdouble                          hpattern;
-  gdouble                          frequency;
-  gdouble                          bandwidth;
 };
 
 /**
@@ -189,25 +164,6 @@ struct _HyScanSonarInfoTVG
 };
 
 /**
- * HyScanSonarInfoChannel:
- * @channel: индекс канала данных
- * @antenna_voffset: вертикальное смещение антенны в блоке, м
- * @antenna_hoffset: горизнотальное смещение антенны в блоке, м
- * @adc_offset: смещение 0 АЦП
- * @adc_vref: опорное напряжение АЦП, В
- *
- * Параметры приёмного канала.
- */
-struct _HyScanSonarInfoChannel
-{
-  guint                            channel;
-  gdouble                          antenna_voffset;
-  gdouble                          antenna_hoffset;
-  gint64                           adc_offset;
-  gdouble                          adc_vref;
-};
-
-/**
  * HyScanSonarInfoSignal:
  * @min_duration: минимальная длительность сигнала, с
  * @max_duration: максимальная длительность сигнала, с
@@ -229,9 +185,6 @@ HYSCAN_API
 GType                          hyscan_sonar_info_capabilities_get_type (void);
 
 HYSCAN_API
-GType                          hyscan_sonar_info_antenna_get_type      (void);
-
-HYSCAN_API
 GType                          hyscan_sonar_info_receiver_get_type     (void);
 
 HYSCAN_API
@@ -239,9 +192,6 @@ GType                          hyscan_sonar_info_generator_get_type    (void);
 
 HYSCAN_API
 GType                          hyscan_sonar_info_tvg_get_type          (void);
-
-HYSCAN_API
-GType                          hyscan_sonar_info_channel_get_type      (void);
 
 HYSCAN_API
 GType                          hyscan_sonar_info_signal_get_type       (void);
@@ -276,12 +226,6 @@ HYSCAN_API
 void                           hyscan_sonar_info_capabilities_free     (HyScanSonarInfoCapabilities       *info);
 
 HYSCAN_API
-HyScanSonarInfoAntenna *       hyscan_sonar_info_antenna_copy          (const HyScanSonarInfoAntenna      *info);
-
-HYSCAN_API
-void                           hyscan_sonar_info_antenna_free          (HyScanSonarInfoAntenna            *info);
-
-HYSCAN_API
 HyScanSonarInfoReceiver *      hyscan_sonar_info_receiver_copy         (const HyScanSonarInfoReceiver     *info);
 
 HYSCAN_API
@@ -298,12 +242,6 @@ HyScanSonarInfoTVG *           hyscan_sonar_info_tvg_copy              (const Hy
 
 HYSCAN_API
 void                           hyscan_sonar_info_tvg_free              (HyScanSonarInfoTVG                *info);
-
-HYSCAN_API
-HyScanSonarInfoChannel *       hyscan_sonar_info_channel_copy          (const HyScanSonarInfoChannel      *info);
-
-HYSCAN_API
-void                           hyscan_sonar_info_channel_free          (HyScanSonarInfoChannel            *info);
 
 HYSCAN_API
 HyScanSonarInfoSignal *        hyscan_sonar_info_signal_copy           (const HyScanSonarInfoSignal       *info);
