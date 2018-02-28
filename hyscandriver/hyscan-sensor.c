@@ -90,6 +90,7 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
    * HyScanSensor::sensor-data:
    * @sensor: указатель на #HyScanSensor
    * @name: название датчика
+   * @source: идентификатор источника данных #HyScanSourceType
    * @time: время приёма данных, мкс
    * @data: данные #HyScanBuffer
    *
@@ -97,8 +98,8 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
    */
   g_signal_new ("sensor-data", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
-                hyscan_driver_marshal_VOID__STRING_INT64_OBJECT,
-                G_TYPE_NONE, 3, G_TYPE_STRING, G_TYPE_INT64, HYSCAN_TYPE_BUFFER);
+                hyscan_driver_marshal_VOID__STRING_INT_INT64_OBJECT,
+                G_TYPE_NONE, 4, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INT64, HYSCAN_TYPE_BUFFER);
 
   /**
    * HyScanSensor::sensor-log:
