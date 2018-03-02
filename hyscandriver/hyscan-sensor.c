@@ -48,17 +48,6 @@
  * используется функция #hyscan_sensor_set_sound_velocity. По умолчанию используется
  * фиксированное значение скорости звука, равное 1500 м/с.
  *
- * В системе могут использоваться несколько однотипных датчиков, например
- * два и более датчиков систем позиционирования ГЛОНАСС или GPS. Для того,
- * чтобы различать информацию от этих датчиков, имеется возможность добавить
- * метку к данным каждого из датчиков. Такой меткой является номер канала.
- * Для задания номера канала предназначена функция #hyscan_sensor_set_channel.
- *
- * Часто, данные от датчиков имеют определённую задержку во времени. Это
- * связанно с необходимостью обработки данных датчиком или использованием
- * низкоскоростных каналов связи. Для компенсации этой задержки, время приёма
- * данных датчиком уменьшается на величину заданную функцией #hyscan_sensor_set_latency.
- *
  * Приём данных каждым из датчиков можно включить или выключить с помощью
  * функции #hyscan_sensor_set_enable.
  */
@@ -140,58 +129,6 @@ hyscan_sensor_set_sound_velocity (HyScanSensor *sensor,
   iface = HYSCAN_SENSOR_GET_IFACE (sensor);
   if (iface->set_sound_velocity != NULL)
     return (* iface->set_sound_velocity) (sensor, svp);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sensor_set_channel:
- * @sensor: указатель на #HyScanSensor
- * @name: название датчика
- * @channel: номер канала
- *
- * Функция устанавливает номер приёмного канала для указанного датчика.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sensor_set_channel (HyScanSensor *sensor,
-                           const gchar  *name,
-                           guint         channel)
-{
-  HyScanSensorInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SENSOR (sensor), FALSE);
-
-  iface = HYSCAN_SENSOR_GET_IFACE (sensor);
-  if (iface->set_channel != NULL)
-    return (* iface->set_channel) (sensor, name, channel);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sensor_set_latency:
- * @sensor: указатель на #HyScanSensor
- * @name: название датчика
- * @latency: задержка приёма данных, мкс
- *
- * Функция устанавливает величину компенсации задержки при приёме данных датчиком.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sensor_set_latency (HyScanSensor *sensor,
-                           const gchar  *name,
-                           gint64        latency)
-{
-  HyScanSensorInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SENSOR (sensor), FALSE);
-
-  iface = HYSCAN_SENSOR_GET_IFACE (sensor);
-  if (iface->set_latency != NULL)
-    return (* iface->set_latency) (sensor, name, latency);
 
   return FALSE;
 }

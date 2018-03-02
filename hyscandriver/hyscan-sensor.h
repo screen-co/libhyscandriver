@@ -52,8 +52,6 @@ typedef struct _HyScanSensorInterface HyScanSensorInterface;
  * HyScanSensorInterface:
  * @g_iface: Базовый интерфейс.
  * @set_sound_velocity: Функция задаёт таблицу профиля скорости звука.
- * @set_channel: Функция устанавливает номер приёмного канала для указанного датчика.
- * @set_latency: Функция устанавливает величину компенсации задержки при приёме данных датчиком.
  * @set_enable: Функция включает или выключает приём данных.
  */
 struct _HyScanSensorInterface
@@ -62,14 +60,6 @@ struct _HyScanSensorInterface
 
   gboolean             (*set_sound_velocity)                   (HyScanSensor                  *sensor,
                                                                 GList                         *svp);
-
-  gboolean             (*set_channel)                          (HyScanSensor                  *sensor,
-                                                                const gchar                   *name,
-                                                                guint                          channel);
-
-  gboolean             (*set_latency)                          (HyScanSensor                  *sensor,
-                                                                const gchar                   *name,
-                                                                gint64                         latency);
 
   gboolean             (*set_enable)                           (HyScanSensor                  *sensor,
                                                                 const gchar                   *name,
@@ -82,16 +72,6 @@ GType                  hyscan_sensor_get_type                  (void);
 HYSCAN_API
 gboolean               hyscan_sensor_set_sound_velocity        (HyScanSensor                  *sensor,
                                                                 GList                         *svp);
-
-HYSCAN_API
-gboolean               hyscan_sensor_set_channel               (HyScanSensor                  *sensor,
-                                                                const gchar                   *name,
-                                                                guint                          channel);
-
-HYSCAN_API
-gboolean               hyscan_sensor_set_latency               (HyScanSensor                  *sensor,
-                                                                const gchar                   *name,
-                                                                gint64                         latency);
 
 HYSCAN_API
 gboolean               hyscan_sensor_set_enable                (HyScanSensor                  *sensor,
