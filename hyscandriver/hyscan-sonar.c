@@ -64,8 +64,6 @@
  * Использовать функцию #hyscan_sonar_receiver_set_auto можно только если такая
  * возможность предусмотрена гидролокатором.
  *
- * Включить или выключить приём эхосигнала можно с помощью функции #hyscan_sonar_receiver_set_enable.
- *
  * С каждым источником гидролокационных данных связан свой генератор излучаемого
  * сигнала. Управление генератором может осуществляться в одном из доступных режимов.
  * Режим работы генератора может задаваться независимо для каждого источника данных.
@@ -141,12 +139,18 @@
  * параметрами, можно при помощи функции #hyscan_sonar_start, остановить
  * #hyscan_sonar_stop.
  *
- * Любые параметры гидролокатора, определяющие его работу можно менять как в
- * рабочем состоянии, так и в режиме ожидания. Однако, если параметры изменяются
- * в рабочем режиме, необходимо сигнализировать об этом гидролокатору с помощью
- * функции #hyscan_sonar_sync. Это необходимо для атомарного применения нескольких
- * изменившихся параметров, например для одновременного изменения времени приёма для
- * левого и правого борта и т.п.
+ * Настройку режимов работы гидролокатора необходимо выполнять каждый раз перед
+ * его переводом в рабочий режим из режиме останова. Если для какого-либо источника
+ * данных не задан режим работы приёмника, этот источник данных будет отключен.
+ * Аналогично, если не заданы параметры генератора или системы ВАРУ, будут
+ * отключены эти подсистемы. Для их включения необходимо перевести гидролокатора
+ * в режим останова, задать их параметры и включить рабочий режим.
+ *
+ * Параметры включенных подсистем гидролокатора можно менять в рабочем
+ * состоянии. Однако после их изменения необходимо сигнализировать об этом
+ * гидролокатору с помощью функции #hyscan_sonar_sync. Это необходимо для атомарного
+ * применения нескольких изменившихся параметров, например для одновременного
+ * изменения времени приёма для левого и правого борта и т.п.
  *
  * Функция #hyscan_sonar_ping используется для программного управления излучением.
  */
@@ -347,32 +351,6 @@ hyscan_sonar_receiver_set_auto (HyScanSonar      *sonar,
 }
 
 /**
- * hyscan_sonar_receiver_set_enable:
- * @sonar: указатель на #HyScanSonar
- * @source: идентификатор источника данных #HyScanSourceType
- * @enable: включён или выключен
- *
- * Функция включает или выключает приём эхосигнала.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_receiver_set_enable (HyScanSonar      *sonar,
-                                  HyScanSourceType  source,
-                                  gboolean          enable)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->receiver_set_enable != NULL)
-    return (* iface->receiver_set_enable) (sonar, source, enable);
-
-  return FALSE;
-}
-
-/**
  * hyscan_sonar_generator_set_preset:
  * @sonar: указатель на #HyScanSonar
  * @source: идентификатор источника данных #HyScanSourceType
@@ -478,32 +456,6 @@ hyscan_sonar_generator_set_extended (HyScanSonar                    *sonar,
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->generator_set_extended != NULL)
     return (* iface->generator_set_extended) (sonar, source, signal, duration, power);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sonar_generator_set_enable:
- * @sonar: указатель на #HyScanSonar
- * @source: идентификатор источника данных #HyScanSourceType
- * @enable: включён или выключен
- *
- * Функция включает или выключает формирование сигнала генератором.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_generator_set_enable (HyScanSonar      *sonar,
-                                   HyScanSourceType  source,
-                                   gboolean          enable)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->generator_set_enable != NULL)
-    return (* iface->generator_set_enable) (sonar, source, enable);
 
   return FALSE;
 }
@@ -638,35 +590,8 @@ hyscan_sonar_tvg_set_logarithmic (HyScanSonar      *sonar,
 }
 
 /**
- * hyscan_sonar_tvg_set_enable:
- * @sonar: указатель на #HyScanSonar
- * @source: идентификатор источника данных #HyScanSourceType
- * @enable: включёна или выключена
- *
- * Функция включает или выключает систему ВАРУ.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_tvg_set_enable (HyScanSonar      *sonar,
-                             HyScanSourceType  source,
-                             gboolean          enable)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->tvg_set_enable != NULL)
-    return (* iface->tvg_set_enable) (sonar, source, enable);
-
-  return FALSE;
-}
-
-/**
  * hyscan_sonar_set_software_ping:
  * @sonar: указатель на #HyScanSonar
- * @enable: признак программного управления излучением
  *
  * Функция устанавливает программное управление излучением. Данная функция должна
  * быть вызвана перед запуском гидролокатора с помощью функции #hyscan_sonar_start,
@@ -675,8 +600,7 @@ hyscan_sonar_tvg_set_enable (HyScanSonar      *sonar,
  * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_set_software_ping (HyScanSonar *sonar,
-                                gboolean     enable)
+hyscan_sonar_set_software_ping (HyScanSonar *sonar)
 {
   HyScanSonarInterface *iface;
 
@@ -684,7 +608,7 @@ hyscan_sonar_set_software_ping (HyScanSonar *sonar,
 
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->set_software_ping != NULL)
-    return (* iface->set_software_ping) (sonar, enable);
+    return (* iface->set_software_ping) (sonar);
 
   return FALSE;
 }

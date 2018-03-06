@@ -121,6 +121,7 @@ gboolean               hyscan_sonar_schema_generator_set_params        (HyScanSo
                                                                         HyScanSonarGeneratorSignalType signal,
                                                                         gdouble                        min_duration,
                                                                         gdouble                        max_duration,
+                                                                        gdouble                        duration_step,
                                                                         gdouble                        dirty_cycle);
 
 HYSCAN_API

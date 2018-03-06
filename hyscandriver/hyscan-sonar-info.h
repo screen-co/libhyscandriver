@@ -167,6 +167,7 @@ struct _HyScanSonarInfoTVG
  * HyScanSonarInfoSignal:
  * @min_duration: минимальная длительность сигнала, с
  * @max_duration: максимальная длительность сигнала, с
+ * @duration_step: рекомендуемый шаг изменения длительности сигнала, с
  * @dirty_cycle: скважность
  *
  * Параметры сигнала.
@@ -175,6 +176,7 @@ struct _HyScanSonarInfoSignal
 {
   gdouble                          min_duration;
   gdouble                          max_duration;
+  gdouble                          duration_step;
   gdouble                          dirty_cycle;
 };
 

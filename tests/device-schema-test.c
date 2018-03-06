@@ -52,9 +52,9 @@ HyScanSourceType orig_sources[] =
   HYSCAN_SOURCE_BATHYMETRY_STARBOARD,
   HYSCAN_SOURCE_BATHYMETRY_PORT,
   HYSCAN_SOURCE_LOOK_AROUND_STARBOARD,
-  HYSCAN_SOURCE_LOOK_AROUND_PORT,
-  HYSCAN_SOURCE_INVALID
+  HYSCAN_SOURCE_LOOK_AROUND_PORT
 };
+guint32 orig_n_sources = sizeof (orig_sources) / sizeof (HyScanSourceType);
 
 HyScanSourceType
 get_master (HyScanSourceType source)
@@ -183,6 +183,7 @@ create_source (HyScanSourceType source,
             {
               tone.min_duration = -seed;
               tone.max_duration = seed;
+              tone.duration_step = -seed / 2.0;
               tone.dirty_cycle = seed / 2.0;
 
               generator.tone = &tone;
@@ -193,6 +194,7 @@ create_source (HyScanSourceType source,
             {
               lfm.min_duration = seed;
               lfm.max_duration = -seed;
+              lfm.duration_step = -seed * 2.0;
               lfm.dirty_cycle = seed * 2.0;
 
               generator.lfm = &lfm;
@@ -247,7 +249,6 @@ create_source (HyScanSourceType source,
 
 gboolean
 verify_source (const HyScanSonarInfoSource *orig_source,
-               const HyScanSonarInfoSource *orig_master,
                const HyScanSonarInfoSource *source)
 {
   if ((orig_source == NULL) || (source == NULL))
@@ -366,6 +367,7 @@ verify_source (const HyScanSonarInfoSource *orig_source,
         {
           if ((orig_source->generator->tone->min_duration != source->generator->tone->min_duration) ||
               (orig_source->generator->tone->max_duration != source->generator->tone->max_duration) ||
+              (orig_source->generator->tone->duration_step != source->generator->tone->duration_step) ||
               (orig_source->generator->tone->dirty_cycle != source->generator->tone->dirty_cycle))
             {
               g_message ("generator tone signal failed");
@@ -377,6 +379,7 @@ verify_source (const HyScanSonarInfoSource *orig_source,
         {
           if ((orig_source->generator->lfm->min_duration != source->generator->lfm->min_duration) ||
               (orig_source->generator->lfm->max_duration != source->generator->lfm->max_duration) ||
+              (orig_source->generator->lfm->duration_step != source->generator->lfm->duration_step) ||
               (orig_source->generator->lfm->dirty_cycle != source->generator->lfm->dirty_cycle))
             {
               g_message ("generator lfm signal failed");
@@ -451,7 +454,7 @@ main (int    argc,
     }
 
   /* Создаём источники данных. */
-  for (i = 0; orig_sources[i] != HYSCAN_SOURCE_INVALID; i++)
+  for (i = 0; i < orig_n_sources; i++)
     {
       HyScanSonarInfoSource *source = create_source (orig_sources[i], seed);
 
@@ -526,18 +529,16 @@ main (int    argc,
 
   /* Проверяем список источников. */
   sources = hyscan_sonar_info_list_sources (sonar_info, &n_sources);
-  if (n_sources != ((sizeof (orig_sources) / sizeof (HyScanSourceType)) - 1))
+  if ((sources == NULL) || (n_sources != orig_n_sources))
     g_error ("n_sources mismatch");
 
   /* Проверяем параметры источников данных. */
   for (i = 0; i < n_sources; i++)
     {
       HyScanSonarInfoSource *orig_source;
-      HyScanSonarInfoSource *orig_master;
       const HyScanSonarInfoSource *source;
 
       orig_source = create_source (sources[i], seed);
-      orig_master = create_source (get_master (sources[i]), seed);
       source = hyscan_sonar_info_get_source (sonar_info, sources[i]);
 
       g_message ("Check source %s", hyscan_source_get_name_by_type (sources[i]));
@@ -549,10 +550,9 @@ main (int    argc,
       if (j == n_sources)
         g_error ("list failed");
 
-      if (!verify_source (orig_source, orig_master, source))
+      if (!verify_source (orig_source, source))
         g_error ("failed");
 
-      hyscan_sonar_info_source_free (orig_master);
       hyscan_sonar_info_source_free (orig_source);
     }
 

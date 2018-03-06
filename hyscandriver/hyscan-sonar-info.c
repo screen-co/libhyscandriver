@@ -540,6 +540,9 @@ hyscan_sonar_info_parse_signal (HyScanDataSchema *schema,
   name = SONAR_PARAM_NAME (source, prefix, "max-duration");
   if (!hyscan_device_schema_get_double (schema, name, &info->max_duration))
     goto fail;
+  name = SONAR_PARAM_NAME (source, prefix, "duration-step");
+  if (!hyscan_device_schema_get_double (schema, name, &info->duration_step))
+    goto fail;
   name = SONAR_PARAM_NAME (source, prefix, "dirty-cycle");
   if (!hyscan_device_schema_get_double (schema, name, &info->dirty_cycle))
     goto fail;

@@ -375,6 +375,7 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                                              HYSCAN_SONAR_GENERATOR_SIGNAL_TONE,
                                                              info->generator->tone->min_duration,
                                                              info->generator->tone->max_duration,
+                                                             info->generator->tone->duration_step,
                                                              info->generator->tone->dirty_cycle);
           if (!status)
             return FALSE;
@@ -387,6 +388,7 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                                              HYSCAN_SONAR_GENERATOR_SIGNAL_LFM,
                                                              info->generator->lfm->min_duration,
                                                              info->generator->lfm->max_duration,
+                                                             info->generator->lfm->duration_step,
                                                              info->generator->lfm->dirty_cycle);
           if (!status)
             return FALSE;
@@ -923,8 +925,9 @@ hyscan_sonar_schema_generator_add_auto (HyScanSonarSchema *schema,
  * @schema: указатель на #HyScanSonarSchema
  * @source: тип источника данных
  * @signal: тип сигнала
- * @min_duration: минимальная длительность, с
- * @max_duration: максимальная длительность, с
+ * @min_duration: минимальная длительность сигнала, с
+ * @max_duration: максимальная длительность сигнала, с
+ * @duration_step: рекомендуемый шаг изменения длительности сигнала, с
  * @dirty_cycle: допустимая скважность
  *
  * Функция устанавливает предельные параметры сигнала.
@@ -937,6 +940,7 @@ hyscan_sonar_schema_generator_set_params (HyScanSonarSchema             *schema,
                                           HyScanSonarGeneratorSignalType signal,
                                           gdouble                        min_duration,
                                           gdouble                        max_duration,
+                                          gdouble                        duration_step,
                                           gdouble                        dirty_cycle)
 {
   HyScanDataSchemaBuilder *builder;
@@ -987,6 +991,15 @@ hyscan_sonar_schema_generator_set_params (HyScanSonarSchema             *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/max-duration", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "max-duration", NULL, max_duration))
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  g_free (key_id);
+
+  if (!status)
+    goto exit;
+
+  status = FALSE;
+  key_id = g_strdup_printf ("%s/duration-step", prefix);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "duration-step", NULL, duration_step))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   g_free (key_id);
 
