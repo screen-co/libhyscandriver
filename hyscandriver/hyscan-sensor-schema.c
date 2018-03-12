@@ -85,6 +85,9 @@
  *
  * Местоположение антенны по умолчанию задаётся с помощью функции
  * #hyscan_sensor_schema_set_position.
+ *
+ * Функция hyscan_sensor_schema_add_full добавляет датчик описанный
+ * стуруктурой #HyScanSensorInfoSensor.
  */
 
 #include "hyscan-sensor-schema.h"
@@ -197,6 +200,31 @@ hyscan_sensor_schema_new (HyScanDataSchemaBuilder *builder)
   return g_object_new (HYSCAN_TYPE_SENSOR_SCHEMA,
                        "builder", builder,
                        NULL);
+}
+
+/**
+ * hyscan_sensor_schema_add_full:
+ * @schema: указатель на #HyScanSensorSchema
+ * @info: (transfer none): параметры датчика
+ *
+ * Функция добавляет в схему описание датчика.
+ *
+ * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sensor_schema_add_full (HyScanSensorSchema     *schema,
+                               HyScanSensorInfoSensor *info)
+{
+  if (!hyscan_sensor_schema_add_sensor (schema, info->name, info->description))
+    return FALSE;
+
+  if (info->position !=NULL)
+    {
+      if (!hyscan_sensor_schema_set_position (schema, info->name, info->position))
+        return FALSE;
+    }
+
+  return TRUE;
 }
 
 /**

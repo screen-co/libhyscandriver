@@ -70,7 +70,8 @@ HYSCAN_API
 HyScanSensorSchema    *hyscan_sensor_schema_new                (HyScanDataSchemaBuilder       *builder);
 
 HYSCAN_API
-HyScanDataSchema *     hyscan_sensor_schema_get_schema         (HyScanSensorSchema            *schema);
+gboolean               hyscan_sensor_schema_add_full           (HyScanSensorSchema            *schema,
+                                                                HyScanSensorInfoSensor        *info);
 
 HYSCAN_API
 gboolean               hyscan_sensor_schema_add_sensor         (HyScanSensorSchema            *schema,

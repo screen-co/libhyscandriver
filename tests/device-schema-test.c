@@ -86,6 +86,38 @@ create_sensor_position (const gchar *name,
   return hyscan_antenna_position_copy (&position);
 }
 
+HyScanSensorInfoSensor *
+create_sensor (guint   index,
+               gdouble seed)
+{
+  HyScanSensorInfoSensor *pinfo;
+  HyScanSensorInfoSensor info;
+
+  HyScanAntennaPosition position;
+
+  position.x = 1.0 * index * seed;
+  position.y = 2.0 * index * seed;
+  position.z = 3.0 * index * seed;
+  position.psi = 4.0 * index * seed;
+  position.gamma = 5.0 * index * seed;
+  position.theta = 6.0 * index * seed;
+
+  info.name = g_strdup_printf ("nmea-%d", index);
+  info.description = g_strdup_printf ("Nmea sensor %d", index);
+
+  if (index % 2)
+    info.position = &position;
+  else
+    info.position = NULL;
+
+  pinfo = hyscan_sensor_info_sensor_copy (&info);
+
+  g_free ((gchar*)info.description);
+  g_free ((gchar*)info.name);
+
+  return pinfo;
+}
+
 HyScanSonarInfoSource *
 create_source (HyScanSourceType source,
                gdouble          seed)
@@ -247,36 +279,49 @@ create_source (HyScanSourceType source,
   return pinfo;
 }
 
-gboolean
+void
+verify_sensor (const HyScanSensorInfoSensor *orig_sensor,
+               const HyScanSensorInfoSensor *sensor)
+{
+  if (g_strcmp0 (orig_sensor->name, sensor->name) != 0)
+    g_error ("name failed");
+  if (g_strcmp0 (orig_sensor->description, sensor->description) != 0)
+    g_error ("decripton failed");
+
+  if ((orig_sensor->position != NULL) ||
+      (sensor->position != NULL))
+    {
+      if ((orig_sensor->position->x != sensor->position->x) ||
+          (orig_sensor->position->y != sensor->position->y) ||
+          (orig_sensor->position->z != sensor->position->z) ||
+          (orig_sensor->position->psi != sensor->position->psi) ||
+          (orig_sensor->position->gamma != sensor->position->gamma) ||
+          (orig_sensor->position->theta != sensor->position->theta))
+        {
+          g_error ("position failed");
+        }
+    }
+}
+
+void
 verify_source (const HyScanSonarInfoSource *orig_source,
                const HyScanSonarInfoSource *source)
 {
-  if ((orig_source == NULL) || (source == NULL))
-    return FALSE;
-
   /* Тип источника данных. */
   if (orig_source->source != source->source)
-    {
-      g_message ("source failed");
-      return FALSE;
-    }
+    g_error ("source failed");
 
   /* Описание источника данных. */
   if (g_strcmp0 (orig_source->description, source->description) != 0)
-    {
-      g_message ("description failed");
-      return FALSE;
-    }
+    g_error ("description failed");
 
   /* Ведущий источник данных. */
   if (orig_source->master != source->master)
-    {
-      g_message ("master failed");
-      return FALSE;
-    }
+    g_error ("master failed");
 
   /* Местоположение антенн по умолчанию. */
-  if (orig_source->position != NULL)
+  if ((orig_source->position != NULL) ||
+      (source->position != NULL))
     {
       if ((orig_source->position->x != source->position->x) ||
           (orig_source->position->y != source->position->y) ||
@@ -285,8 +330,7 @@ verify_source (const HyScanSonarInfoSource *orig_source,
           (orig_source->position->gamma != source->position->gamma) ||
           (orig_source->position->theta != source->position->theta))
         {
-          g_message ("position failed");
-          return FALSE;
+          g_error ("position failed");
         }
     }
 
@@ -295,23 +339,23 @@ verify_source (const HyScanSonarInfoSource *orig_source,
       (orig_source->capabilities->generator != source->capabilities->generator) ||
       (orig_source->capabilities->tvg != source->capabilities->tvg))
     {
-      g_message ("capabilities failed");
-      return FALSE;
+      g_error ("capabilities failed");
     }
 
   /* Параметры приёмника. */
-  if (orig_source->receiver != NULL)
+  if ((orig_source->receiver != NULL) ||
+      (source->receiver != NULL))
     {
       if ((orig_source->receiver->min_time != source->receiver->min_time) ||
           (orig_source->receiver->max_time != source->receiver->max_time))
         {
-          g_message ("receiver failed");
-          return FALSE;
+          g_error ("receiver failed");
         }
     }
 
   /* Параметры генератора. */
-  if (orig_source->generator != NULL)
+  if ((orig_source->generator != NULL) ||
+      (source->generator != NULL))
     {
       GList *orig_presets = orig_source->generator->presets;
 
@@ -331,10 +375,7 @@ verify_source (const HyScanSonarInfoSource *orig_source,
                   (g_strcmp0 (orig_preset->description, preset->description) == 0))
                 {
                   if (status)
-                    {
-                      g_message ("%s dup", orig_preset->name);
-                      return FALSE;
-                    }
+                    g_error ("%s dup", orig_preset->name);
 
                   status = TRUE;
                 }
@@ -342,65 +383,54 @@ verify_source (const HyScanSonarInfoSource *orig_source,
               presets = g_list_next (presets);
             }
           if (!status)
-            {
-              g_message ("%s failed", orig_preset->name);
-              return FALSE;
-            }
+            g_error ("%s failed", orig_preset->name);
 
           orig_presets = g_list_next (orig_presets);
         }
 
       /* Параметры сигналов. */
       if (orig_source->generator->signals != source->generator->signals)
-        {
-          g_message ("generator signals failed %d %d", orig_source->generator->signals, source->generator->signals);
-          return FALSE;
-        }
+        g_error ("generator signals failed %d %d", orig_source->generator->signals, source->generator->signals);
 
       if (orig_source->generator->automatic != source->generator->automatic)
-        {
-          g_message ("generator auto signal failed");
-          return FALSE;
-        }
+        g_error ("generator auto signal failed");
 
-      if (orig_source->generator->tone != NULL)
+      if ((orig_source->generator->tone != NULL) ||
+          (source->generator->tone != NULL))
         {
           if ((orig_source->generator->tone->min_duration != source->generator->tone->min_duration) ||
               (orig_source->generator->tone->max_duration != source->generator->tone->max_duration) ||
               (orig_source->generator->tone->duration_step != source->generator->tone->duration_step) ||
               (orig_source->generator->tone->dirty_cycle != source->generator->tone->dirty_cycle))
             {
-              g_message ("generator tone signal failed");
-              return FALSE;
+              g_error ("generator tone signal failed");
             }
         }
 
-      if (orig_source->generator->lfm != NULL)
+      if ((orig_source->generator->lfm != NULL) ||
+          (source->generator->lfm != NULL))
         {
           if ((orig_source->generator->lfm->min_duration != source->generator->lfm->min_duration) ||
               (orig_source->generator->lfm->max_duration != source->generator->lfm->max_duration) ||
               (orig_source->generator->lfm->duration_step != source->generator->lfm->duration_step) ||
               (orig_source->generator->lfm->dirty_cycle != source->generator->lfm->dirty_cycle))
             {
-              g_message ("generator lfm signal failed");
-              return FALSE;
+              g_error ("generator lfm signal failed");
             }
         }
     }
 
   /* Параметры ВАРУ. */
-  if (orig_source->tvg != NULL)
+  if ((orig_source->tvg != NULL) ||
+      (source->tvg != NULL))
     {
       if ((orig_source->tvg->min_gain != source->tvg->min_gain) ||
           (orig_source->tvg->max_gain != source->tvg->max_gain) ||
           (orig_source->tvg->can_decrease != source->tvg->can_decrease))
         {
-          g_message ("tvg failed");
-          return FALSE;
+          g_error ("tvg failed");
         }
     }
-
-  return TRUE;
 }
 
 int
@@ -432,25 +462,12 @@ main (int    argc,
   /* Создаём датчики. */
   for (i = 0; i < N_SENSORS; i++)
     {
-      gchar *sensor = g_strdup_printf ("nmea-%d", i);
-      gchar *description = g_strdup_printf ("Nmea sensor %d", i);
+      HyScanSensorInfoSensor *sensor = create_sensor (i, seed);
 
-      if (!hyscan_sensor_schema_add_sensor (sensor_schema, sensor, description))
-        g_error ("can't add sensor %s", sensor);
+      if (!hyscan_sensor_schema_add_full (sensor_schema, sensor))
+        g_error ("can't add sensor %s", sensor->name);
 
-      if (i % 2)
-        {
-          HyScanAntennaPosition *position;
-          position = create_sensor_position (sensor, seed);
-
-          if (!hyscan_sensor_schema_set_position (sensor_schema, sensor, position))
-            g_error ("can't set sensor %s position", sensor);
-
-          hyscan_antenna_position_free (position);
-        }
-
-      g_free (description);
-      g_free (sensor);
+      hyscan_sensor_info_sensor_free (sensor);
     }
 
   /* Создаём источники данных. */
@@ -484,47 +501,24 @@ main (int    argc,
   /* Проверяем параметры датчиков. */
   for (i = 0; i < N_SENSORS; i++)
     {
-      gchar *sensor_name = g_strdup_printf ("nmea-%d", i);
-      gchar *orig_description = g_strdup_printf ("Nmea sensor %d", i);
+      HyScanSensorInfoSensor *orig_sensor;
       const HyScanSensorInfoSensor *sensor;
 
-      g_message ("Check sensor %s", sensor_name);
+      orig_sensor = create_sensor (i, seed);
+      sensor = hyscan_sensor_info_get_sensor (sensor_info, orig_sensor->name);
+
+      g_message ("Check sensor %s", orig_sensor->name);
 
       for (j = 0; j < N_SENSORS; j++)
-        if (g_strcmp0 (sensor_name, sensors[j]) == 0)
+        if (g_strcmp0 (orig_sensor->name, sensors[j]) == 0)
           break;
 
       if (j == N_SENSORS)
         g_error ("list failed");
 
-      sensor = hyscan_sensor_info_get_sensor (sensor_info, sensor_name);
+      verify_sensor (orig_sensor, sensor);
 
-      if (g_strcmp0 (sensor_name, sensor->name) != 0)
-        g_error ("name failed");
-      if (g_strcmp0 (orig_description, sensor->description) != 0)
-        g_error ("decripton failed");
-
-      if (i % 2)
-        {
-          HyScanAntennaPosition *orig_position;
-
-          orig_position = create_sensor_position (sensor_name, seed);
-
-          if ((orig_position->x != sensor->position->x) ||
-              (orig_position->y != sensor->position->y) ||
-              (orig_position->z != sensor->position->z) ||
-              (orig_position->psi != sensor->position->psi) ||
-              (orig_position->gamma != sensor->position->gamma) ||
-              (orig_position->theta != sensor->position->theta))
-            {
-              g_error ("position failed");
-            }
-
-          hyscan_antenna_position_free (orig_position);
-        }
-
-      g_free (orig_description);
-      g_free (sensor_name);
+      hyscan_sensor_info_sensor_free (orig_sensor);
     }
 
   /* Проверяем список источников. */
@@ -550,8 +544,7 @@ main (int    argc,
       if (j == n_sources)
         g_error ("list failed");
 
-      if (!verify_source (orig_source, source))
-        g_error ("failed");
+      verify_source (orig_source, source);
 
       hyscan_sonar_info_source_free (orig_source);
     }
