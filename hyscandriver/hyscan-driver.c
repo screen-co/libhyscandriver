@@ -37,15 +37,32 @@
  * @Short_description: класс загрузки драйверов устройств
  * @Title: HyScanDriver
  *
- * Класс предназначен для загрузки драйверов гидролокаторов и датчиков и реализует
- * интерфейс #HyScanDiscover.
+ * Класс предназначен для загрузки драйверов гидролокаторов и датчиков и
+ * реализует интерфейс #HyScanDiscover.
  *
- * Загрузка драйвера производится при создании объекта функцией #hyscan_driver_new.
- * Если загрузка драйвера выполнена успешно, возврашается указатель на новый объект,
- * иначе возвращается NULL.
+ * Драйвер должен размещаться в динамически загружаемой библиотеке, с именем
+ * вида: hyscan-DRIVER_NAME.drv, где DRIVER_NAME - название драйвера
+ * гидролокатора. В названии драйвера допускаются строчные и прописные буквы
+ * латинского алфавита и цифры.
  *
- * Драйвер, загруженный с помощью функции #hyscan_driver_new, не выгружается из памяти
- * до окончания работы программы, даже если удалить объект #HyScanDriver.
+ * Драйвер должен содержать экспортируемые функции с именами
+ * "hyscan_driver_discover" и "hyscan_driver_info". При вызове функции
+ * "hyscan_driver_discover" должен возвращаться указатель на объект,
+ * реализующий интерфейс #HyScanDiscover. При вызове функции
+ * "hyscan_driver_info" должен возвращаться указатель на объект
+ * #HyScanDataSchema. Этот объект должен содержать схему параметров с
+ * информацией о драйвере.
+ *
+ * После загрузки драйвера и подключения к гидролокатору или датчику можно
+ * использовать интерфейсы #HyScanSonar и #HyScanSensor для работы с этими
+ * устройствами.
+ *
+ * Загрузка драйвера производится при создании объекта функцией
+ * #hyscan_driver_new. Если загрузка драйвера выполнена успешно, возврашается
+ * указатель на новый объект, иначе возвращается NULL.
+ *
+ * Драйвер, загруженный с помощью функции #hyscan_driver_new, не выгружается
+ * из памяти до окончания работы программы, даже если удалить объект.
  *
  * Информацию о драйвере можно узнать с помощью функции #hyscan_driver_get_info.
  * Информация возвращается в виде схемы данных со значениями по умолчанию.
@@ -61,8 +78,8 @@
  *
  * Схема данных может содержать дополнительные поля.
  *
- * Функция #hyscan_driver_list возвращает список драйверов, доступных для загрузки из
- * указанного каталога.
+ * Функция #hyscan_driver_list возвращает список драйверов, доступных для
+ * загрузки из указанного каталога.
  */
 
 #include "hyscan-driver.h"
@@ -71,7 +88,7 @@
 #include <string.h>
 
 #define HYSCAN_DRIVER_NAME_PREFIX      "hyscan"
-#define HYSCAN_DRIVER_NAME_SUFFIX      "drv"
+#define HYSCAN_DRIVER_NAME_EXTENSION   "drv"
 #define HYSCAN_DRIVER_DISCOVER_SYMBOL  "hyscan_driver_discover"
 #define HYSCAN_DRIVER_INFO_SYMBOL      "hyscan_driver_info"
 
@@ -287,11 +304,10 @@ hyscan_driver_load_driver (const gchar *path,
   gpointer info = NULL;
 
   /* Путь к файлу драйвера. */
-  module_name = g_strdup_printf ("%s-%s-%s.%s",
+  module_name = g_strdup_printf ("%s-%s.%s",
                                  HYSCAN_DRIVER_NAME_PREFIX,
                                  name,
-                                 HYSCAN_DRIVER_NAME_SUFFIX,
-                                 G_MODULE_SUFFIX);
+                                 HYSCAN_DRIVER_NAME_EXTENSION);
   module_path = g_build_filename (path, module_name, NULL);
 
   /* Загрузка драйвера. */
@@ -448,16 +464,15 @@ hyscan_driver_list (const gchar *path)
   names = g_array_new (TRUE, TRUE, sizeof (gpointer));
 
   /* Шаблон имени драйвера. */
-  pattern = g_strdup_printf ("^%s-[0-9A-Za-z]+-%s\\.%s$",
+  pattern = g_strdup_printf ("^%s-[0-9A-Za-z]+\\.%s$",
                              HYSCAN_DRIVER_NAME_PREFIX,
-                             HYSCAN_DRIVER_NAME_SUFFIX,
-                             G_MODULE_SUFFIX);
+                             HYSCAN_DRIVER_NAME_EXTENSION);
 
   /* Длина префикса имени драйвера, до названия драйвера. */
   prefix_len = strlen (HYSCAN_DRIVER_NAME_PREFIX) + 1;
 
   /* Длина окончания имени драйвера, после названия драйвера. */
-  suffix_len = strlen (HYSCAN_DRIVER_NAME_SUFFIX) + 1 + strlen (G_MODULE_SUFFIX) + 1;
+  suffix_len = strlen (HYSCAN_DRIVER_NAME_EXTENSION) + 1;
 
   /* Поиск драйверов в каталоге. */
   while ((name = g_dir_read_name (dir)) != NULL)
