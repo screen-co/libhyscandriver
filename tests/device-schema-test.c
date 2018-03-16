@@ -532,13 +532,13 @@ main (int    argc,
       HyScanSonarInfoSource *orig_source;
       const HyScanSonarInfoSource *source;
 
-      orig_source = create_source (sources[i], seed);
-      source = hyscan_sonar_info_get_source (sonar_info, sources[i]);
+      orig_source = create_source (orig_sources[i], seed);
+      source = hyscan_sonar_info_get_source (sonar_info, orig_sources[i]);
 
-      g_message ("Check source %s", hyscan_source_get_name_by_type (sources[i]));
+      g_message ("Check source %s", hyscan_source_get_name_by_type (orig_sources[i]));
 
       for (j = 0; j < n_sources; j++)
-        if (sources[i] == orig_sources[j])
+        if (orig_sources[i] == sources[j])
           break;
 
       if (j == n_sources)
