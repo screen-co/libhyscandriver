@@ -79,14 +79,11 @@ gboolean               hyscan_sonar_schema_source_add_full             (HyScanSo
 HYSCAN_API
 gboolean               hyscan_sonar_schema_source_add                  (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
+                                                                        const gchar                   *dev_id,
+                                                                        const gchar                   *description,
                                                                         HyScanSonarReceiverModeType    receiver_capabilities,
                                                                         HyScanSonarGeneratorModeType   generator_capabilities,
                                                                         HyScanSonarTVGModeType         tvg_capabilities);
-
-HYSCAN_API
-gboolean               hyscan_sonar_schema_source_set_description      (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source,
-                                                                        const gchar                   *description);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_source_set_master           (HyScanSonarSchema             *schema,
@@ -122,6 +119,7 @@ gboolean               hyscan_sonar_schema_generator_set_params        (HyScanSo
                                                                         gdouble                        min_duration,
                                                                         gdouble                        max_duration,
                                                                         gdouble                        duration_step,
+                                                                        const gchar                   *duration_name,
                                                                         gdouble                        dirty_cycle);
 
 HYSCAN_API

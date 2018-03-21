@@ -63,11 +63,17 @@ gboolean       hyscan_device_schema_get_boolean        (HyScanDataSchema        
 
 gboolean       hyscan_device_schema_get_integer        (HyScanDataSchema              *schema,
                                                         const gchar                   *name,
-                                                        gint64                        *value);
+                                                        gint64                        *min_value,
+                                                        gint64                        *max_value,
+                                                        gint64                        *default_value,
+                                                        gint64                        *value_step);
 
 gboolean       hyscan_device_schema_get_double         (HyScanDataSchema              *schema,
                                                         const gchar                   *name,
-                                                        gdouble                       *value);
+                                                        gdouble                       *min_value,
+                                                        gdouble                       *max_value,
+                                                        gdouble                       *default_value,
+                                                        gdouble                       *value_step);
 
 const gchar *  hyscan_device_schema_get_string         (HyScanDataSchema              *schema,
                                                         const gchar                   *name);

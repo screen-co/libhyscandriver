@@ -75,8 +75,10 @@
  * - /sensors/nmea/antenna/position/gamma
  * - /sensors/nmea/antenna/position/theta
  *
- * Все настройки датчиков, если они необходимы, должны находится в ветке
- * "/params". Описание этой ветки приведено в #HyscanDeviceSchema.
+ * Дополнительные параметры, если они необходимы, должны находится в ветках
+ * "/params" и "/system". Состояние устройства приводится в ветке "/state",
+ * а общая информация об устройстве и драйвере в ветке "/info". Описание этих
+ * веток приведено в #HyscanDeviceSchema.
  *
  * Для создания схемы используется класс #HyScanDataSchemaBuilder, указатель
  * на который передаётся в функцию #hyscan_sensor_schema_new.
@@ -215,7 +217,7 @@ gboolean
 hyscan_sensor_schema_add_full (HyScanSensorSchema     *schema,
                                HyScanSensorInfoSensor *info)
 {
-  if (!hyscan_sensor_schema_add_sensor (schema, info->name, info->description))
+  if (!hyscan_sensor_schema_add_sensor (schema, info->name, info->dev_id, info->description))
     return FALSE;
 
   if (info->position !=NULL)
@@ -231,6 +233,8 @@ hyscan_sensor_schema_add_full (HyScanSensorSchema     *schema,
  * hyscan_sensor_schema_add_sensor:
  * @schema: указатель на #HyScanSensorSchema
  * @name: название датчика
+ * @dev_id: уникальный идентификатор устройства
+ * @description: описание датчика
  *
  * Функция добавляет в схему описание датчика.
  *
@@ -238,11 +242,12 @@ hyscan_sensor_schema_add_full (HyScanSensorSchema     *schema,
  */
 gboolean
 hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
-                               const gchar        *name,
-                               const gchar        *description)
+                                 const gchar        *name,
+                                 const gchar        *dev_id,
+                                 const gchar        *description)
 {
   HyScanDataSchemaBuilder *builder;
-  gboolean status = FALSE;
+  gboolean status;
   gchar *key_id;
 
   g_return_val_if_fail (HYSCAN_IS_SENSOR_SCHEMA (schema), FALSE);
@@ -252,9 +257,10 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   if (g_hash_table_contains (schema->priv->sensors, name))
     return FALSE;
 
-  /* Признак наличия датчика. */
-  key_id = g_strdup_printf ("/sensors/%s/id", name);
-  if (hyscan_data_schema_builder_key_string_create (builder, key_id, "id", NULL, name))
+  /* Уникальный идентификатор устройства. */
+  status = FALSE;
+  key_id = g_strdup_printf ("/sensors/%s/dev-id", name);
+  if (hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   g_free (key_id);
 
@@ -264,10 +270,14 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   /* Описание датчика. */
   if (description != NULL)
     {
+      status = FALSE;
       key_id = g_strdup_printf ("/sensors/%s/description", name);
       if (hyscan_data_schema_builder_key_string_create (builder, key_id, "id", NULL, description))
         status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
       g_free (key_id);
+
+      if (!status)
+        return FALSE;
     }
 
   if (status)

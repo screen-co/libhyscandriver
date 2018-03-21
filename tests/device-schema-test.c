@@ -103,6 +103,7 @@ create_sensor (guint   index,
   position.theta = 6.0 * index * seed;
 
   info.name = g_strdup_printf ("nmea-%d", index);
+  info.dev_id = g_strdup_printf ("nmea-%d", index);
   info.description = g_strdup_printf ("Nmea sensor %d", index);
 
   if (index % 2)
@@ -113,6 +114,7 @@ create_sensor (guint   index,
   pinfo = hyscan_sensor_info_sensor_copy (&info);
 
   g_free ((gchar*)info.description);
+  g_free ((gchar*)info.dev_id);
   g_free ((gchar*)info.name);
 
   return pinfo;
@@ -152,6 +154,7 @@ create_source (HyScanSourceType source,
 
   /* Описание источника данных. */
   info.source = source;
+  info.dev_id = source_name;
   info.description = source_name;
 
   /* Ведущий источник данных. */
@@ -213,10 +216,11 @@ create_source (HyScanSourceType source,
           /* Параметры тонального сигнала. */
           if (signals & HYSCAN_SONAR_GENERATOR_SIGNAL_TONE)
             {
-              tone.min_duration = -seed;
-              tone.max_duration = seed;
-              tone.duration_step = -seed / 2.0;
-              tone.dirty_cycle = seed / 2.0;
+              tone.duration_name = "tone";
+              tone.min_duration = seed / 10;
+              tone.max_duration = seed * 10;
+              tone.duration_step = seed;
+              tone.dirty_cycle = seed;
 
               generator.tone = &tone;
             }
@@ -224,10 +228,11 @@ create_source (HyScanSourceType source,
           /* Параметры ЛЧМ сигнала. */
           if (signals & HYSCAN_SONAR_GENERATOR_SIGNAL_LFM)
             {
-              lfm.min_duration = seed;
-              lfm.max_duration = -seed;
-              lfm.duration_step = -seed * 2.0;
-              lfm.dirty_cycle = seed * 2.0;
+              lfm.duration_name = "lfm";
+              lfm.min_duration = seed / 2;
+              lfm.max_duration = seed * 2;
+              lfm.duration_step = seed;
+              lfm.dirty_cycle = seed;
 
               generator.lfm = &lfm;
             }
@@ -254,19 +259,19 @@ create_source (HyScanSourceType source,
   /* Параметры ВАРУ. */
   if ((master == HYSCAN_SOURCE_INVALID) || (master == HYSCAN_SOURCE_PROFILER))
     {
-      gboolean can_decrease;
+      gboolean decrease;
 
       capabilities.tvg = HYSCAN_SONAR_TVG_MODE_AUTO;
       capabilities.tvg |= (source % 2) ? HYSCAN_SONAR_TVG_MODE_POINTS : 0;
       capabilities.tvg |= (source % 3) ? HYSCAN_SONAR_TVG_MODE_LINEAR_DB : 0;
       capabilities.tvg |= (source % 4) ? HYSCAN_SONAR_TVG_MODE_LOGARITHMIC : 0;
-      can_decrease = (source % 2);
+      decrease = (source % 2);
 
       if (capabilities.tvg != HYSCAN_SONAR_TVG_MODE_AUTO)
         {
           tvg.min_gain = -seed;
           tvg.max_gain = seed;
-          tvg.can_decrease = can_decrease;
+          tvg.decrease = decrease;
 
           info.tvg = &tvg;
         }
@@ -280,23 +285,25 @@ create_source (HyScanSourceType source,
 }
 
 void
-verify_sensor (const HyScanSensorInfoSensor *orig_sensor,
-               const HyScanSensorInfoSensor *sensor)
+verify_sensor (const HyScanSensorInfoSensor *sensor1,
+               const HyScanSensorInfoSensor *sensor2)
 {
-  if (g_strcmp0 (orig_sensor->name, sensor->name) != 0)
+  if (g_strcmp0 (sensor1->name, sensor2->name) != 0)
     g_error ("name failed");
-  if (g_strcmp0 (orig_sensor->description, sensor->description) != 0)
+  if (g_strcmp0 (sensor1->dev_id, sensor2->dev_id) != 0)
+    g_error ("dev-id failed");
+  if (g_strcmp0 (sensor1->description, sensor2->description) != 0)
     g_error ("decripton failed");
 
-  if ((orig_sensor->position != NULL) ||
-      (sensor->position != NULL))
+  if ((sensor1->position != NULL) ||
+      (sensor2->position != NULL))
     {
-      if ((orig_sensor->position->x != sensor->position->x) ||
-          (orig_sensor->position->y != sensor->position->y) ||
-          (orig_sensor->position->z != sensor->position->z) ||
-          (orig_sensor->position->psi != sensor->position->psi) ||
-          (orig_sensor->position->gamma != sensor->position->gamma) ||
-          (orig_sensor->position->theta != sensor->position->theta))
+      if ((sensor1->position->x != sensor2->position->x) ||
+          (sensor1->position->y != sensor2->position->y) ||
+          (sensor1->position->z != sensor2->position->z) ||
+          (sensor1->position->psi != sensor2->position->psi) ||
+          (sensor1->position->gamma != sensor2->position->gamma) ||
+          (sensor1->position->theta != sensor2->position->theta))
         {
           g_error ("position failed");
         }
@@ -304,66 +311,70 @@ verify_sensor (const HyScanSensorInfoSensor *orig_sensor,
 }
 
 void
-verify_source (const HyScanSonarInfoSource *orig_source,
-               const HyScanSonarInfoSource *source)
+verify_source (const HyScanSonarInfoSource *source1,
+               const HyScanSonarInfoSource *source2)
 {
   /* Тип источника данных. */
-  if (orig_source->source != source->source)
+  if (source1->source != source2->source)
     g_error ("source failed");
 
+  /* Уникальный идентификатор устройства. */
+  if (g_strcmp0 (source1->dev_id, source2->dev_id) != 0)
+    g_error ("dev-id failed");
+
   /* Описание источника данных. */
-  if (g_strcmp0 (orig_source->description, source->description) != 0)
+  if (g_strcmp0 (source1->description, source2->description) != 0)
     g_error ("description failed");
 
   /* Ведущий источник данных. */
-  if (orig_source->master != source->master)
+  if (source1->master != source2->master)
     g_error ("master failed");
 
   /* Местоположение антенн по умолчанию. */
-  if ((orig_source->position != NULL) ||
-      (source->position != NULL))
+  if ((source1->position != NULL) ||
+      (source2->position != NULL))
     {
-      if ((orig_source->position->x != source->position->x) ||
-          (orig_source->position->y != source->position->y) ||
-          (orig_source->position->z != source->position->z) ||
-          (orig_source->position->psi != source->position->psi) ||
-          (orig_source->position->gamma != source->position->gamma) ||
-          (orig_source->position->theta != source->position->theta))
+      if ((source1->position->x != source2->position->x) ||
+          (source1->position->y != source2->position->y) ||
+          (source1->position->z != source2->position->z) ||
+          (source1->position->psi != source2->position->psi) ||
+          (source1->position->gamma != source2->position->gamma) ||
+          (source1->position->theta != source2->position->theta))
         {
           g_error ("position failed");
         }
     }
 
   /* Режимы работы источника данных. */
-  if ((orig_source->capabilities->receiver != source->capabilities->receiver) ||
-      (orig_source->capabilities->generator != source->capabilities->generator) ||
-      (orig_source->capabilities->tvg != source->capabilities->tvg))
+  if ((source1->capabilities->receiver != source2->capabilities->receiver) ||
+      (source1->capabilities->generator != source2->capabilities->generator) ||
+      (source1->capabilities->tvg != source2->capabilities->tvg))
     {
       g_error ("capabilities failed");
     }
 
   /* Параметры приёмника. */
-  if ((orig_source->receiver != NULL) ||
-      (source->receiver != NULL))
+  if ((source1->receiver != NULL) ||
+      (source2->receiver != NULL))
     {
-      if ((orig_source->receiver->min_time != source->receiver->min_time) ||
-          (orig_source->receiver->max_time != source->receiver->max_time))
+      if ((source1->receiver->min_time != source2->receiver->min_time) ||
+          (source1->receiver->max_time != source2->receiver->max_time))
         {
           g_error ("receiver failed");
         }
     }
 
   /* Параметры генератора. */
-  if ((orig_source->generator != NULL) ||
-      (source->generator != NULL))
+  if ((source1->generator != NULL) ||
+      (source2->generator != NULL))
     {
-      GList *orig_presets = orig_source->generator->presets;
+      GList *orig_presets = source1->generator->presets;
 
       /* Преднастройки генератора. */
       while (orig_presets != NULL)
         {
           HyScanDataSchemaEnumValue *orig_preset = orig_presets->data;
-          GList *presets = source->generator->presets;
+          GList *presets = source2->generator->presets;
           gboolean status = FALSE;
 
           while (presets != NULL)
@@ -389,31 +400,33 @@ verify_source (const HyScanSonarInfoSource *orig_source,
         }
 
       /* Параметры сигналов. */
-      if (orig_source->generator->signals != source->generator->signals)
-        g_error ("generator signals failed %d %d", orig_source->generator->signals, source->generator->signals);
+      if (source1->generator->signals != source2->generator->signals)
+        g_error ("generator signals failed %d %d", source1->generator->signals, source2->generator->signals);
 
-      if (orig_source->generator->automatic != source->generator->automatic)
+      if (source1->generator->automatic != source2->generator->automatic)
         g_error ("generator auto signal failed");
 
-      if ((orig_source->generator->tone != NULL) ||
-          (source->generator->tone != NULL))
+      if ((source1->generator->tone != NULL) ||
+          (source2->generator->tone != NULL))
         {
-          if ((orig_source->generator->tone->min_duration != source->generator->tone->min_duration) ||
-              (orig_source->generator->tone->max_duration != source->generator->tone->max_duration) ||
-              (orig_source->generator->tone->duration_step != source->generator->tone->duration_step) ||
-              (orig_source->generator->tone->dirty_cycle != source->generator->tone->dirty_cycle))
+          if ((g_strcmp0 (source1->generator->tone->duration_name, source2->generator->tone->duration_name) != 0) ||
+              (source1->generator->tone->min_duration != source2->generator->tone->min_duration) ||
+              (source1->generator->tone->max_duration != source2->generator->tone->max_duration) ||
+              (source1->generator->tone->duration_step != source2->generator->tone->duration_step) ||
+              (source1->generator->tone->dirty_cycle != source2->generator->tone->dirty_cycle))
             {
               g_error ("generator tone signal failed");
             }
         }
 
-      if ((orig_source->generator->lfm != NULL) ||
-          (source->generator->lfm != NULL))
+      if ((source1->generator->lfm != NULL) ||
+          (source2->generator->lfm != NULL))
         {
-          if ((orig_source->generator->lfm->min_duration != source->generator->lfm->min_duration) ||
-              (orig_source->generator->lfm->max_duration != source->generator->lfm->max_duration) ||
-              (orig_source->generator->lfm->duration_step != source->generator->lfm->duration_step) ||
-              (orig_source->generator->lfm->dirty_cycle != source->generator->lfm->dirty_cycle))
+          if ((g_strcmp0 (source1->generator->lfm->duration_name, source2->generator->lfm->duration_name) != 0) ||
+              (source1->generator->lfm->min_duration != source2->generator->lfm->min_duration) ||
+              (source1->generator->lfm->max_duration != source2->generator->lfm->max_duration) ||
+              (source1->generator->lfm->duration_step != source2->generator->lfm->duration_step) ||
+              (source1->generator->lfm->dirty_cycle != source2->generator->lfm->dirty_cycle))
             {
               g_error ("generator lfm signal failed");
             }
@@ -421,12 +434,12 @@ verify_source (const HyScanSonarInfoSource *orig_source,
     }
 
   /* Параметры ВАРУ. */
-  if ((orig_source->tvg != NULL) ||
-      (source->tvg != NULL))
+  if ((source1->tvg != NULL) ||
+      (source2->tvg != NULL))
     {
-      if ((orig_source->tvg->min_gain != source->tvg->min_gain) ||
-          (orig_source->tvg->max_gain != source->tvg->max_gain) ||
-          (orig_source->tvg->can_decrease != source->tvg->can_decrease))
+      if ((source1->tvg->min_gain != source2->tvg->min_gain) ||
+          (source1->tvg->max_gain != source2->tvg->max_gain) ||
+          (source1->tvg->decrease != source2->tvg->decrease))
         {
           g_error ("tvg failed");
         }
@@ -451,7 +464,7 @@ main (int    argc,
   gdouble seed;
   guint i, j;
 
-  seed = g_random_double ();
+  seed = 1000.0 * g_random_double ();
 
   builder = hyscan_data_schema_builder_new ("device");
   sensor_schema = hyscan_sensor_schema_new (builder);

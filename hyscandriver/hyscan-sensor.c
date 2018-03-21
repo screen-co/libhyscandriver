@@ -63,17 +63,17 @@ static void
 hyscan_sensor_default_init (HyScanSensorInterface *iface)
 {
   /**
-   * HyScanSonar::sensor-state:
+   * HyScanSonar::device-state:
    * @sensor: указатель на #HyScanSensor
-   * @name: название датчика
-   * @state: состояние датчика
+   * @dev_id: идентификатор устройства
    *
-   * Данный сигнал посылается при изменении состояния датчика.
+   * Данный сигнал посылается при изменении состояния устройства. Сами
+   * изменения необходимо считывать через параметры в ветке "/state".
    */
-  g_signal_new ("sensor-state", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
+  g_signal_new ("device-state", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
-                hyscan_driver_marshal_VOID__STRING_BOOLEAN,
-                G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_BOOLEAN);
+                g_cclosure_marshal_VOID__STRING,
+                G_TYPE_NONE, 1, G_TYPE_STRING);
 
   /**
    * HyScanSensor::sensor-data:

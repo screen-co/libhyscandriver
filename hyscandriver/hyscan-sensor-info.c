@@ -207,40 +207,35 @@ static HyScanAntennaPosition *
 hyscan_sensor_info_parse_position (HyScanDataSchema *schema,
                                    const gchar      *sensor)
 {
-  HyScanAntennaPosition *info = g_slice_new0 (HyScanAntennaPosition);
+  HyScanAntennaPosition info;
   gchar name_buffer[128];
   const gchar *name;
 
   name = SENSOR_PARAM_NAME (sensor, "antenna", "position/x");
-  if (!hyscan_device_schema_get_double (schema, name, &info->x))
-    goto fail;
+  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.x, NULL))
+    return NULL;
 
   name = SENSOR_PARAM_NAME (sensor, "antenna", "position/y");
-  if (!hyscan_device_schema_get_double (schema, name, &info->y))
-    goto fail;
+  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.y, NULL))
+    return NULL;
 
   name = SENSOR_PARAM_NAME (sensor, "antenna", "position/z");
-  if (!hyscan_device_schema_get_double (schema, name, &info->z))
-    goto fail;
+  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.z, NULL))
+    return NULL;
 
   name = SENSOR_PARAM_NAME (sensor, "antenna", "position/psi");
-  if (!hyscan_device_schema_get_double (schema, name, &info->psi))
-    goto fail;
+  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.psi, NULL))
+    return NULL;
 
   name = SENSOR_PARAM_NAME (sensor, "antenna", "position/gamma");
-  if (!hyscan_device_schema_get_double (schema, name, &info->gamma))
-    goto fail;
+  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.gamma, NULL))
+    return NULL;
 
   name = SENSOR_PARAM_NAME (sensor, "antenna", "position/theta");
-  if (!hyscan_device_schema_get_double (schema, name, &info->theta))
-    goto fail;
+  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.theta, NULL))
+    return NULL;
 
-  return info;
-
-fail:
-  g_slice_free (HyScanAntennaPosition, info);
-
-  return NULL;
+  return hyscan_antenna_position_copy (&info);
 }
 
 /* Функция считывает параметры датчиков. */
@@ -262,25 +257,32 @@ hyscan_sensor_info_parse_sensors (HyScanDataSchema *schema)
     {
       gchar **keyv = g_strsplit (keys[i], "/", -1);
 
-      /* Ищем параметр /sensors/sensor-name/id */
+      /* Ищем параметр /sensors/sensor-name/dev-id */
       if (g_strv_length (keyv) != 4)
         {
           g_strfreev (keyv);
           continue;
         }
 
-      if ((g_strcmp0 (keyv[1], "sensors") == 0) && (g_strcmp0 (keyv[3], "id") == 0))
+      if ((g_strcmp0 (keyv[1], "sensors") == 0) && (g_strcmp0 (keyv[3], "dev-id") == 0))
         {
           HyScanSensorInfoSensor *info;
           const gchar *description;
+          const gchar *dev_id;
           gchar name_buffer[128];
           const gchar *name;
+
+          name = SENSOR_PARAM_NAME (keyv[2], NULL, "dev-id");
+          dev_id = hyscan_device_schema_get_string (schema, name);
+          if (dev_id == NULL)
+            continue;
 
           name = SENSOR_PARAM_NAME (keyv[2], NULL, "description");
           description = hyscan_device_schema_get_string (schema, name);
 
           info = g_slice_new0 (HyScanSensorInfoSensor);
           info->name = g_strdup (keyv[2]);
+          info->dev_id = g_strdup (dev_id);
           info->description = g_strdup (description);
           info->position = hyscan_sensor_info_parse_position (schema, keyv[2]);
 
@@ -373,6 +375,7 @@ hyscan_sensor_info_sensor_copy (const HyScanSensorInfoSensor *info)
 
   new_info = g_slice_new (HyScanSensorInfoSensor);
   new_info->name = g_strdup (info->name);
+  new_info->dev_id = g_strdup (info->dev_id);
   new_info->description = g_strdup (info->description);
   new_info->position = hyscan_antenna_position_copy (info->position);
 
@@ -392,6 +395,7 @@ hyscan_sensor_info_sensor_free (HyScanSensorInfoSensor *info)
     return;
 
   g_free ((gchar*)info->name);
+  g_free ((gchar*)info->dev_id);
   g_free ((gchar*)info->description);
   hyscan_antenna_position_free (info->position);
 

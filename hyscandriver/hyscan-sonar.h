@@ -182,7 +182,7 @@ struct _HyScanSonarInterface
   gboolean             (*tvg_set_points)                       (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
                                                                 gdouble                         time_step,
-                                                                gdouble                        *gains,
+                                                                const gdouble                  *gains,
                                                                 guint32                         n_gains);
 
   gboolean             (*tvg_set_linear_db)                    (HyScanSonar                    *sonar,
@@ -249,6 +249,7 @@ gboolean               hyscan_sonar_generator_set_extended     (HyScanSonar     
                                                                 gdouble                         duration,
                                                                 gdouble                         power);
 
+
 HYSCAN_API
 gboolean               hyscan_sonar_tvg_set_auto               (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
@@ -259,7 +260,7 @@ HYSCAN_API
 gboolean               hyscan_sonar_tvg_set_points             (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
                                                                 gdouble                         time_step,
-                                                                gdouble                        *gains,
+                                                                const gdouble                  *gains,
                                                                 guint32                         n_gains);
 
 HYSCAN_API

@@ -76,6 +76,7 @@ gboolean               hyscan_sensor_schema_add_full           (HyScanSensorSche
 HYSCAN_API
 gboolean               hyscan_sensor_schema_add_sensor         (HyScanSensorSchema            *schema,
                                                                 const gchar                   *name,
+                                                                const gchar                   *dev_id,
                                                                 const gchar                   *description);
 
 HYSCAN_API

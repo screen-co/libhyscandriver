@@ -42,27 +42,55 @@
  * "/sensors", а гидролокатора в ветке "/sources". Подробное описание этих
  * веток приведено в #HyScanSensorSchema и #HyScanSonarSchema.
  *
- * Драйвер устройства может содержать параметры, определяющие его возможности.
+ * Драйвер устройства может содержать параметры, управляющие его поведением.
  * Параметры, расчитанные на пользователей устройства, должны находится в ветке
  * "/params/dev-id". Системные параметры, предназначенные для разработчиков,
- * должны находится в ветке "/system/dev-id". Где "dev-id" - уникальный
- * идентификатор устройства. Уровень вложенности, для обоих веток, не должен
- * превышать трёх, например:
+ * должны находится в ветке "/system/dev-id". Уровень вложенности, для обоих
+ * веток, не должен превышать трёх, например:
  *
  * - /params/h5se7/mode/type
  * - /system/h5se7/state
  *
+ * Параметры, находящиеся в ветках "/params" и "/system" допускают изменения.
+ *
+ * Для информирования пользователя о текущем состоянии устройства предназначена
+ * ветка "/state/dev-id". В ней должны находится следующие обязательные параметры:
+ *
+ * - enable - признак готовности устройства к работе, тип BOOLEAN;
+ * - status - общий статус устройства, тип STRING.
+ *
+ * Дополнительные параметры должны размещаться в отдельных ветка. Одна ветка
+ * предназначена для одного параметра. В ветке должны быть следующие параметры:
+ *
+ * - value - значение, тип зависит от значения;
+ * - status - статус, тип STRING.
+ *
+ * Например для отображения статуса системы питания, параметры должны иметь
+ * следующий вид:
+ *
+ * - /state/h5se7/psu/value - значение напряжения питания, тип DOUBLE;
+ * - /state/h5se7/psu/status - статус системы питания, тип STRING.
+ *
+ * Название величины значения должно находиться в поле описания параметра
+ * (/state/h5se7/psu/value). Название и описание контролируемого параметра
+ * должно находиться в описании ветки (/state/h5se7/psu).
+ *
+ * Поле status может принимать одно из следующих значений:
+ *
+ * - ok - устройство функционирует в штатном режиме;
+ * - warning - в работе устройства присутствуют кратковременные сбои;
+ * - critical - в работе устройства присутствуют постоянные сбои;
+ * - error - ошибка в работе, устройство не может продолжать работу.
+ *
+ * Параметры в ветке "/state" могут изменяться во время работы устройства, но
+ * доступны только для чтения. При изменении этих параметров, драйвер
+ * устройства посылает сигнал "device-state".
+ *
  * Общая информация об устройстве должна находится в ветке "/info/dev-id".
- * В ней должны находится следующие обязательные параметры:
+ * Параметры в ветке "/info" не изменяются в процессе работы устройства и
+ * доступны только для чтения.
  *
- * - model - модель гидролокатора, тип STRING;
- * - name - название гидролокатора, тип STRING;
- * - serial - серийный номер, тип STRING;
- * - production-date - дата производства, тип INTEGER (UTC unix time).
- *
- * Разработчик может добавить дополнительные параметры, которые должны
- * размещаться в ветке "/info/dev-id/vendor". Все дополнительные параметры
- * должны должны находится на одном уровне вложенности.
+ * Во все ветках "dev-id" - уникальный идентификатор устройства.
  */
 
 #include "hyscan-device-schema.h"
@@ -151,9 +179,9 @@ hyscan_device_schema_check_id (HyScanDataSchema *schema)
  * hyscan_device_schema_get_boolean:
  * @schema: указатель на #HyScanDataSchema
  * @name: название параметра
- * @value: (out): значение параметра
+ * @value: (out) (allow-none): значение параметра
  *
- * Функция получает значение по умолчанию для указанного параметра типа BOOLEAN.
+ * Функция получает значение параметра типа BOOLEAN.
  *
  * Return: %TRUE если значение параметра получено, иначе %FALSE.
  */
@@ -170,7 +198,7 @@ hyscan_device_schema_get_boolean (HyScanDataSchema *schema,
     return FALSE;
 
   vvalue = hyscan_data_schema_key_get_default (schema, name);
-  *value = g_variant_get_boolean (vvalue);
+  (value != NULL) ? *value = g_variant_get_boolean (vvalue) : 0;
   g_variant_unref (vvalue);
 
   return TRUE;
@@ -180,16 +208,22 @@ hyscan_device_schema_get_boolean (HyScanDataSchema *schema,
  * hyscan_device_schema_get_integer:
  * @schema: указатель на #HyScanDataSchema
  * @name: название параметра
- * @value: (out): значение параметра
+ * @min_value: (out) (allow-none): минимальное значение параметра
+ * @max_value: (out) (allow-none): максимальное значение параметра
+ * @default_value: (out) (allow-none): значение параметра по умолчанию
+ * @value_step: (out) (allow-none): рекомендуемый шаг изменения значения параметра
  *
- * Функция получает значение по умолчанию для указанного параметра типа INTEGER.
+ * Функция получает значение параметра типа INTEGER.
  *
  * Return: %TRUE если значение параметра получено, иначе %FALSE.
  */
 gboolean
 hyscan_device_schema_get_integer (HyScanDataSchema *schema,
                                   const gchar      *name,
-                                  gint64           *value)
+                                  gint64           *min_value,
+                                  gint64           *max_value,
+                                  gint64           *default_value,
+                                  gint64           *value_step)
 {
   HyScanDataSchemaKeyType ktype;
   GVariant *vvalue;
@@ -198,8 +232,20 @@ hyscan_device_schema_get_integer (HyScanDataSchema *schema,
   if (ktype != HYSCAN_DATA_SCHEMA_KEY_INTEGER)
     return FALSE;
 
+  vvalue = hyscan_data_schema_key_get_minimum (schema, name);
+  (min_value != NULL) ? *min_value = g_variant_get_int64 (vvalue) : 0;
+  g_variant_unref (vvalue);
+
+  vvalue = hyscan_data_schema_key_get_maximum (schema, name);
+  (max_value != NULL) ? *max_value = g_variant_get_int64 (vvalue) : 0;
+  g_variant_unref (vvalue);
+
   vvalue = hyscan_data_schema_key_get_default (schema, name);
-  *value = g_variant_get_int64 (vvalue);
+  (default_value != NULL) ? *default_value = g_variant_get_int64 (vvalue) : 0;
+  g_variant_unref (vvalue);
+
+  vvalue = hyscan_data_schema_key_get_step (schema, name);
+  (value_step != NULL) ? *value_step = g_variant_get_int64 (vvalue) : 0;
   g_variant_unref (vvalue);
 
   return TRUE;
@@ -209,16 +255,22 @@ hyscan_device_schema_get_integer (HyScanDataSchema *schema,
  * hyscan_device_schema_get_double:
  * @schema: указатель на #HyScanDataSchema
  * @name: название параметра
- * @value: (out): значение параметра
+ * @min_value: (out) (allow-none): минимальное значение параметра
+ * @max_value: (out) (allow-none): максимальное значение параметра
+ * @default_value: (out) (allow-none): значение параметра по умолчанию
+ * @value_step: (out) (allow-none): рекомендуемый шаг изменения значения параметра
  *
- * Функция получает значение по умолчанию для указанного параметра типа DOUBLE.
+ * Функция получает значение параметра типа DOUBLE.
  *
  * Return: %TRUE если значение параметра получено, иначе %FALSE.
  */
 gboolean
 hyscan_device_schema_get_double (HyScanDataSchema *schema,
                                  const gchar      *name,
-                                 gdouble          *value)
+                                 gdouble          *min_value,
+                                 gdouble          *max_value,
+                                 gdouble          *default_value,
+                                 gdouble          *value_step)
 {
   HyScanDataSchemaKeyType ktype;
   GVariant *vvalue;
@@ -227,8 +279,20 @@ hyscan_device_schema_get_double (HyScanDataSchema *schema,
   if (ktype != HYSCAN_DATA_SCHEMA_KEY_DOUBLE)
     return FALSE;
 
+  vvalue = hyscan_data_schema_key_get_minimum (schema, name);
+  (min_value != NULL) ? *min_value = g_variant_get_double (vvalue) : 0;
+  g_variant_unref (vvalue);
+
+  vvalue = hyscan_data_schema_key_get_maximum (schema, name);
+  (max_value != NULL) ? *max_value = g_variant_get_double (vvalue) : 0;
+  g_variant_unref (vvalue);
+
   vvalue = hyscan_data_schema_key_get_default (schema, name);
-  *value = g_variant_get_double (vvalue);
+  (default_value != NULL) ? *default_value = g_variant_get_double (vvalue) : 0;
+  g_variant_unref (vvalue);
+
+  vvalue = hyscan_data_schema_key_get_step (schema, name);
+  (value_step != NULL) ? *value_step = g_variant_get_double (vvalue) : 0;
   g_variant_unref (vvalue);
 
   return TRUE;
@@ -239,7 +303,7 @@ hyscan_device_schema_get_double (HyScanDataSchema *schema,
  * @schema: указатель на #HyScanDataSchema
  * @name: название параметра
  *
- * Функция получает значение по умолчанию для указанного параметра типа STRING.
+ * Функция получает значение параметра типа STRING.
  *
  * Return: Значение параметры или NULL.
  */

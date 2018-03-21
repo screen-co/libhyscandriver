@@ -55,8 +55,8 @@
  *
  * Для описания источника данных используются следующие параметры:
  *
- * - id - поле определяющее налчичие источника, тип STRING, обязательное;
- * - description - поле с описанием источника, тип STRING, необязательное;
+ * - dev-id - уникальный идентификатор устройства, тип STRING, обязательное;
+ * - description - описание источника данных, тип STRING, необязательное;
  * - master - название ведущего источника данных, тип STRING, необязательное.
  *
  * Для источника данных может быть задано местоположение по умолчанию.
@@ -73,10 +73,8 @@
  * Наличие приёмника и его характеристики определяются параметром -
  * "receiver/capabilities". Ведущий источник данных всегда должен иметь
  * приёмник, у ведомого он может отсутствовать. Если приёмник имеет ручной
- * режим работы, задаются следующие параметры:
- *
- * - receiver/min-time - минимальной время приёма данных, тип DOUBLE;
- * - receiver/max-time - максимальное время приёма данных, тип DOUBLE.
+ * режим работы, задаются параметр receiver/time - диапазон времени
+ * приёма данных, тип DOUBLE.
  *
  * Наличие генератора и его характеристики определяются параметром -
  * "generator/capabilities". Возможности генератора, определённые этим параметром,
@@ -100,15 +98,15 @@
  * Если генератор может излучать тональный сигнал, должны быть заданы следующие
  * параметры:
  *
- * - tone/min-duration - минимальная длительность сигнала, тип DOUBLE;
- * - tone/max-duration - максимальная длительность сигнала, тип DOUBLE;
+ * - tone/duration-name - название величины длительности сигнала, тип STRING;
+ * - tone/duration - диапазон длительностей сигнала, тип DOUBLE;
  * - tone/dirty-cycle - допустимая скважность, тип DOUBLE.
  *
  * Если генератор может излучать ЛЧМ сигнал, должны быть заданы следующие
  * параметры:
  *
- * - lfm/min-duration - минимальная длительность сигнала, тип DOUBLE;
- * - lfm/max-duration - максимальная длительность сигнала, тип DOUBLE;
+ * - lfm/duration-name - название величины длительности сигнала, тип STRING;
+ * - lfm/duration - диапазон длительностей сигнала, тип DOUBLE;
  * - lfm/dirty-cycle - допустимая скважность, тип DOUBLE.
  *
  * Наличие системы ВАРУ и её характеристики определяются параметром -
@@ -117,13 +115,12 @@
  *
  * Если система ВАРУ имеет ручной режим работы, задаются следующие параметры:
  *
- * - tvg/min-gain - минимальное значение коэффициента усиления, тип DOUBLE;
- * - tvg/max-gain - максимальное значение коэффициента усиления, тип DOUBLE;
- * - tvg/can-decrease - возможность уменьшения коэффициента усиления, тип BOOLEAN.
+ * - tvg/gain - диапазон значений коэффициента усиления, тип DOUBLE;
+ * - tvg/decrease - возможность уменьшения коэффициента усиления, тип BOOLEAN.
  *
  * Пример всех параметров для левого борта ГБО:
  *
- * /sources/ss-port/id
+ * /sources/ss-port/dev-id
  * /sources/ss-port/description
  * /sources/ss-port/master
  * /sources/ss-port/position/x
@@ -133,26 +130,26 @@
  * /sources/ss-port/position/gamma
  * /sources/ss-port/position/theta
  * /sources/ss-port/receiver/capabilities
- * /sources/ss-port/receiver/min-time
- * /sources/ss-port/receiver/max-time
+ * /sources/ss-port/receiver/time
  * /sources/ss-port/generator/capabilities
  * /sources/ss-port/generator/automatic
  * /sources/ss-port/generator/presets/1
  * /sources/ss-port/generator/presets/2
  * /sources/ss-port/generator/presets/3
- * /sources/ss-port/tone/min-duration
- * /sources/ss-port/tone/max-duration
+ * /sources/ss-port/tone/duration-name
+ * /sources/ss-port/tone/duration
  * /sources/ss-port/tone/dirty-cycle
- * /sources/ss-port/lfm/min-duration
- * /sources/ss-port/lfm/max-duration
+ * /sources/ss-port/lfm/duration-name
+ * /sources/ss-port/lfm/duration
  * /sources/ss-port/lfm/dirty-cycle
  * /sources/ss-port/tvg/capabilities
- * /sources/ss-port/tvg/min-gain
- * /sources/ss-port/tvg/max-gain
- * /sources/ss-port/tvg/can-decrease
+ * /sources/ss-port/tvg/gain
+ * /sources/ss-port/tvg/decrease
  *
- * Дополнительные настройки, если они необходимы, должны находится в ветке
- * "/params". Описание этой ветки приведено в #HyscanDeviceSchema.
+ * Дополнительные параметры, если они необходимы, должны находится в ветках
+ * "/params" и "/system". Состояние устройства приводится в ветке "/state",
+ * а общая информация об устройстве и драйвере в ветке "/info". Описание этих
+ * веток приведено в #HyscanDeviceSchema.
  *
  * Для создания схемы используется класс #HyScanDataSchemaBuilder, указатель
  * на который передаётся в функцию #hyscan_sonar_schema_new.
@@ -329,16 +326,13 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
 
   /* Источник гидролокационных данных. */
   status = hyscan_sonar_schema_source_add (schema, source,
+                                           info->dev_id,
+                                           info->description,
                                            info->capabilities->receiver,
                                            info->capabilities->generator,
                                            info->capabilities->tvg);
   if (!status)
     return FALSE;
-
-  /* Описание источника данных. */
-  if (info->description != NULL)
-    if (!hyscan_sonar_schema_source_set_description (schema, source, info->description))
-      return FALSE;
 
   /* Ведущий источник данных. */
   if (info->master != HYSCAN_SOURCE_INVALID)
@@ -376,6 +370,7 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                                              info->generator->tone->min_duration,
                                                              info->generator->tone->max_duration,
                                                              info->generator->tone->duration_step,
+                                                             info->generator->tone->duration_name,
                                                              info->generator->tone->dirty_cycle);
           if (!status)
             return FALSE;
@@ -389,6 +384,7 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                                              info->generator->lfm->min_duration,
                                                              info->generator->lfm->max_duration,
                                                              info->generator->lfm->duration_step,
+                                                             info->generator->lfm->duration_name,
                                                              info->generator->lfm->dirty_cycle);
           if (!status)
             return FALSE;
@@ -422,7 +418,7 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
       status = hyscan_sonar_schema_tvg_set_params (schema, source,
                                                    info->tvg->min_gain,
                                                    info->tvg->max_gain,
-                                                   info->tvg->can_decrease);
+                                                   info->tvg->decrease);
       if (!status)
         return FALSE;
     }
@@ -434,6 +430,8 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
  * hyscan_sonar_schema_source_add:
  * @schema: указатель на #HyScanSonarSchema
  * @source: тип источника данных
+ * @dev_id: уникальный идентификатор устройства
+ * @description: описание источника данных
  * @master: ведущий источник данных или #HYSCAN_SOURCE_INVALID
  * @receiver_capabilities: флаги возможных режимов работы приёмника
  * @generator_capabilities: флаги возможных режимов работы генератора
@@ -446,6 +444,8 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
 gboolean
 hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
                                 HyScanSourceType              source,
+                                const gchar                  *dev_id,
+                                const gchar                  *description,
                                 HyScanSonarReceiverModeType   receiver_capabilities,
                                 HyScanSonarGeneratorModeType  generator_capabilities,
                                 HyScanSonarTVGModeType        tvg_capabilities)
@@ -470,20 +470,36 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
   if (source_name == NULL)
     return FALSE;
 
+  if (dev_id == NULL)
+    return FALSE;
+
   if (g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
     return FALSE;
 
   prefix = g_strdup_printf ("/sources/%s", source_name);
 
-  /* Признак наличия источника данных. */
+  /* Уникальный идентификатор устройства. */
   status = FALSE;
-  key_id = g_strdup_printf ("%s/id", prefix);
-  if (hyscan_data_schema_builder_key_string_create (builder, key_id, "id", NULL, source_name))
+  key_id = g_strdup_printf ("%s/dev-id", prefix);
+  if (hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   g_free (key_id);
 
   if (!status)
     goto exit;
+
+  /* Описание источника данных. */
+  if (description != NULL)
+    {
+      status = FALSE;
+      key_id = g_strdup_printf ("/sources/%s/description", source_name);
+      if (hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description))
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+      g_free (key_id);
+
+      if (!status)
+        goto exit;
+    }
 
   /* Режимы работы приёмника. */
   if (receiver_capabilities)
@@ -558,50 +574,6 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
 
 exit:
   g_free (prefix);
-
-  return status;
-}
-
-/**
- * hyscan_sonar_schema_source_set_description:
- * @schema: указатель на #HyScanSonarSchema
- * @source: тип источника данных
- * @description: описание источника данныx
- *
- * Функция добавляет текстовое описание источника данных.
- *
- * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_schema_source_set_description (HyScanSonarSchema *schema,
-                                            HyScanSourceType   source,
-                                            const gchar       *description)
-{
-  HyScanDataSchemaBuilder *builder;
-  const gchar *source_name;
-  gboolean status = FALSE;
-  gchar *key_id;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
-
-  builder = schema->priv->builder;
-  if (builder == NULL)
-    return FALSE;
-
-  if (!hyscan_source_is_sonar (source))
-    return FALSE;
-
-  source_name = hyscan_source_get_name_by_type (source);
-  if (source_name == NULL)
-    return FALSE;
-
-  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
-    return FALSE;
-
-  key_id = g_strdup_printf ("/sources/%s/description", source_name);
-  if (hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
 
   return status;
 }
@@ -800,21 +772,14 @@ hyscan_sonar_schema_receiver_set_params (HyScanSonarSchema *schema,
 
   /* Время приёма эхосигнала источником данных. */
   status = FALSE;
-  key_id = g_strdup_printf ("%s/min-time", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "min-time", NULL, min_time))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  key_id = g_strdup_printf ("%s/time", prefix);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "time", NULL, min_time))
+    {
+      if (hyscan_data_schema_builder_key_double_range (builder, key_id, min_time, max_time, 1.0))
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    }
   g_free (key_id);
 
-  if (!status)
-    goto exit;
-
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/max-time", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "max-time", NULL, max_time))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-exit:
   g_free (prefix);
 
   return status;
@@ -925,9 +890,10 @@ hyscan_sonar_schema_generator_add_auto (HyScanSonarSchema *schema,
  * @schema: указатель на #HyScanSonarSchema
  * @source: тип источника данных
  * @signal: тип сигнала
- * @min_duration: минимальная длительность сигнала, с
- * @max_duration: максимальная длительность сигнала, с
- * @duration_step: рекомендуемый шаг изменения длительности сигнала, с
+ * @min_duration: минимальная длительность сигнала
+ * @max_duration: максимальная длительность сигнала
+ * @duration_step: рекомендуемый шаг изменения длительности сигнала
+ * @duration_name: название единицы длительности сигнала
  * @dirty_cycle: допустимая скважность
  *
  * Функция устанавливает предельные параметры сигнала.
@@ -941,6 +907,7 @@ hyscan_sonar_schema_generator_set_params (HyScanSonarSchema             *schema,
                                           gdouble                        min_duration,
                                           gdouble                        max_duration,
                                           gdouble                        duration_step,
+                                          const gchar                   *duration_name,
                                           gdouble                        dirty_cycle)
 {
   HyScanDataSchemaBuilder *builder;
@@ -980,27 +947,12 @@ hyscan_sonar_schema_generator_set_params (HyScanSonarSchema             *schema,
 
   /* Параметры сигнала. */
   status = FALSE;
-  key_id = g_strdup_printf ("%s/min-duration", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "min-duration", NULL, min_duration))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/max-duration", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "max-duration", NULL, max_duration))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/duration-step", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "duration-step", NULL, duration_step))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  key_id = g_strdup_printf ("%s/duration", prefix);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "duration", duration_name, min_duration))
+    {
+      if (hyscan_data_schema_builder_key_double_range (builder, key_id, min_duration, max_duration, duration_step))
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    }
   g_free (key_id);
 
   if (!status)
@@ -1024,7 +976,7 @@ exit:
  * @source: тип источника данных
  * @min_gain: минимальное значение коэффициента усиления, дБ
  * @max_gain: максимальное значение коэффициента усиления, дБ
- * @can_decrease: возможность уменьшения коэффициента усиления
+ * @decrease: возможность уменьшения коэффициента усиления
  *
  * Функция устанавливает предельные параметры системы ВАРУ.
  *
@@ -1035,7 +987,7 @@ hyscan_sonar_schema_tvg_set_params (HyScanSonarSchema *schema,
                                     HyScanSourceType   source,
                                     gdouble            min_gain,
                                     gdouble            max_gain,
-                                    gboolean           can_decrease)
+                                    gboolean           decrease)
 {
   HyScanDataSchemaBuilder *builder;
   HyScanSonarInfoCapabilities *capabilities;
@@ -1066,28 +1018,25 @@ hyscan_sonar_schema_tvg_set_params (HyScanSonarSchema *schema,
 
   /* Параметры ВАРУ. */
   status = FALSE;
-  key_id = g_strdup_printf ("%s/min-gain", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "min-gain", NULL, min_gain))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  key_id = g_strdup_printf ("%s/gain", prefix);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gain", NULL, min_gain))
+    {
+      if (hyscan_data_schema_builder_key_double_range (builder, key_id, min_gain, max_gain, 1.0))
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    }
   g_free (key_id);
 
   if (!status)
     goto exit;
 
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/max-gain", prefix);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "max-gain", NULL, max_gain))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
-
-  if (!status)
-    goto exit;
-
-  status = FALSE;
-  key_id = g_strdup_printf ("%s/can-decrease", prefix);
-  if (hyscan_data_schema_builder_key_boolean_create (builder, key_id, "can-decrease", NULL, can_decrease))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  g_free (key_id);
+  if (decrease)
+    {
+      status = FALSE;
+      key_id = g_strdup_printf ("%s/decrease", prefix);
+      if (hyscan_data_schema_builder_key_boolean_create (builder, key_id, "decrease", NULL, decrease))
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+      g_free (key_id);
+    }
 
 exit:
   g_free (prefix);

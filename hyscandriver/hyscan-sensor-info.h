@@ -69,6 +69,7 @@ struct _HyScanSensorInfoClass
 /**
  * HyScanSensorInfoSensor:
  * @name: название датчика
+ * @dev_id: уникальный идентификатор устройства
  * @description: описание датчика
  * @position: местоположение приёмной антенны по умолчанию
  *
@@ -77,6 +78,7 @@ struct _HyScanSensorInfoClass
 struct _HyScanSensorInfoSensor
 {
   const gchar                     *name;
+  const gchar                     *dev_id;
   const gchar                     *description;
   HyScanAntennaPosition           *position;
 };

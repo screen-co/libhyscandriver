@@ -79,6 +79,7 @@ struct _HyScanSonarInfoClass
 /**
  * HyScanSonarInfoSource:
  * @source: тип источника данных
+ * @dev_id: уникальный идентификатор устройства
  * @description: описание источника данных
  * @master: ведущий источник данных
  * @position: местоположение приёмной антенны по умолчанию
@@ -92,6 +93,7 @@ struct _HyScanSonarInfoClass
 struct _HyScanSonarInfoSource
 {
   HyScanSourceType                 source;
+  const gchar                     *dev_id;
   const gchar                     *description;
   HyScanSourceType                 master;
   HyScanAntennaPosition           *position;
@@ -152,7 +154,7 @@ struct _HyScanSonarInfoGenerator
  * HyScanSonarInfoTVG:
  * @min_gain: минимальное значение коэффициента усиления, дБ
  * @max_gain: максимальное значение коэффициента усиления, дБ
- * @can_decrease: возможность уменьшения коэффициента усиления
+ * @decrease: возможность уменьшения коэффициента усиления
  *
  * Параметры системы ВАРУ.
  */
@@ -160,20 +162,22 @@ struct _HyScanSonarInfoTVG
 {
   gdouble                          min_gain;
   gdouble                          max_gain;
-  gboolean                         can_decrease;
+  gboolean                         decrease;
 };
 
 /**
  * HyScanSonarInfoSignal:
- * @min_duration: минимальная длительность сигнала, с
- * @max_duration: максимальная длительность сигнала, с
- * @duration_step: рекомендуемый шаг изменения длительности сигнала, с
+ * @duration_name: название единицы длительности сигнала
+ * @min_duration: минимальная длительность сигнала
+ * @max_duration: максимальная длительность сигнала
+ * @duration_step: рекомендуемый шаг изменения длительности сигнала
  * @dirty_cycle: скважность
  *
- * Параметры сигнала.
+ * Параметры сигнала. Длительность сигнала задаётся в условных единицах.
  */
 struct _HyScanSonarInfoSignal
 {
+  const gchar                     *duration_name;
   gdouble                          min_duration;
   gdouble                          max_duration;
   gdouble                          duration_step;
