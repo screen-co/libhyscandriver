@@ -153,7 +153,8 @@ hyscan_discover_stop (HyScanDiscover *discover)
  * функцией #g_list_free_full. Для освобождения элементов списка необходимо
  * использовать функцию #hyscan_discover_info_free.
  *
- * Returns: (element-type HyScanDiscoverInfo) (transfer full): список устройств.
+ * Returns: (element-type HyScanDiscoverInfo) (transfer full): Список устройств
+ * или NULL.
  */
 GList *
 hyscan_discover_list (HyScanDiscover *discover)
