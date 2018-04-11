@@ -98,6 +98,7 @@ typedef enum
  * @HYSCAN_SONAR_TVG_MODE_INVALID: Система ВАРУ отсутствует.
  * @HYSCAN_SONAR_TVG_MODE_AUTO: Автоматический режим работы.
  * @HYSCAN_SONAR_TVG_MODE_POINTS: Усиление заданное точками.
+ * @HYSCAN_SONAR_TVG_MODE_CONSTANT: Постоянный уровень усиления.
  * @HYSCAN_SONAR_TVG_MODE_LINEAR_DB: Линейное увеличение усиления в дБ / 100 метров.
  * @HYSCAN_SONAR_TVG_MODE_LOGARITHMIC: Управление усилением по логарифмическому закону.
  *
@@ -109,8 +110,9 @@ typedef enum
 
   HYSCAN_SONAR_TVG_MODE_AUTO                   = (1 << 0),
   HYSCAN_SONAR_TVG_MODE_POINTS                 = (1 << 1),
-  HYSCAN_SONAR_TVG_MODE_LINEAR_DB              = (1 << 2),
-  HYSCAN_SONAR_TVG_MODE_LOGARITHMIC            = (1 << 3)
+  HYSCAN_SONAR_TVG_MODE_CONSTANT               = (1 << 2),
+  HYSCAN_SONAR_TVG_MODE_LINEAR_DB              = (1 << 3),
+  HYSCAN_SONAR_TVG_MODE_LOGARITHMIC            = (1 << 4)
 } HyScanSonarTVGModeType;
 
 #define HYSCAN_TYPE_SONAR            (hyscan_sonar_get_type ())
@@ -133,6 +135,7 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
  * @generator_set_extended: Функция включает расширенный режим работы генератора.
  * @tvg_set_auto: Функция включает автоматический режим управления системой ВАРУ.
  * @tvg_set_points: Функция устанавливает усиление по контрольным точкам.
+ * @tvg_set_constant: Функция устанавливает постоянный уровень усиления.
  * @tvg_set_linear_db: Функция устанавливает линейное увеличение усиления в дБ на 100 метров.
  * @tvg_set_logarithmic: Функция устанавливает логарифмический вид закона усиления системой ВАРУ.
  * @set_software_ping: Функция устанавливает программное управление излучением.
@@ -184,6 +187,10 @@ struct _HyScanSonarInterface
                                                                 gdouble                         time_step,
                                                                 const gdouble                  *gains,
                                                                 guint32                         n_gains);
+
+  gboolean             (*tvg_set_constant)                     (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         gain);
 
   gboolean             (*tvg_set_linear_db)                    (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
@@ -262,6 +269,11 @@ gboolean               hyscan_sonar_tvg_set_points             (HyScanSonar     
                                                                 gdouble                         time_step,
                                                                 const gdouble                  *gains,
                                                                 guint32                         n_gains);
+
+HYSCAN_API
+gboolean               hyscan_sonar_tvg_set_constant           (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                         gain);
 
 HYSCAN_API
 gboolean               hyscan_sonar_tvg_set_linear_db          (HyScanSonar                    *sonar,

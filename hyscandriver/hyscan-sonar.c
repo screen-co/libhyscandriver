@@ -85,8 +85,7 @@
  *
  * - #HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO - автоматический выбор сигнала;
  * - #HYSCAN_SONAR_GENERATOR_SIGNAL_TONE - тональный сигнал;
- * - #HYSCAN_SONAR_GENERATOR_SIGNAL_LFM - линейно-частотно модулированный сигнал;
- * - #HYSCAN_SONAR_GENERATOR_SIGNAL_LFMD - линейно-частотно модулированный сигнал с уменьшением частоты.
+ * - #HYSCAN_SONAR_GENERATOR_SIGNAL_LFM - линейно-частотно модулированный сигнал.
  *
  * Выбор режима работы генератора осуществляется с помощью функций
  * #hyscan_sonar_generator_set_auto, #hyscan_sonar_generator_set_simple и
@@ -101,12 +100,20 @@
  *
  * - #HYSCAN_SONAR_TVG_MODE_AUTO - автоматический;
  * - #HYSCAN_SONAR_TVG_MODE_POINTS - по заданым точкам;
+ * - #HYSCAN_SONAR_TVG_MODE_CONSTANT - постоянный уровень усиления;
  * - #HYSCAN_SONAR_TVG_MODE_LINEAR_DB - линейное изменение усиления в дБ;
  * - #HYSCAN_SONAR_TVG_MODE_LOGARITHMIC - управление усилением по логарифмическому закону.
  *
  * При выборе автоматического режима работы, система ВАРУ будет самостоятельно
  * управлять усилением приёмных каналов. Включение автоматического режима
  * осуществляется функцией #hyscan_sonar_tvg_set_auto.
+ *
+ * Возможно задание произвольного вида усиления по точкам заданным на
+ * равномерной временной сетке. Для этого предназначена функция
+ * #hyscan_sonar_tvg_set_points.
+ *
+ * Постоянный уровень усиления можно задать с помощью функции
+ * #hyscan_sonar_tvg_set_constamt.
  *
  * Функция #hyscan_sonar_tvg_set_linear_db активирует режим ВАРУ, при котором
  * коэффициент усиления, в дБ, линейно изменяется на указанную величину каждые
@@ -515,6 +522,34 @@ hyscan_sonar_tvg_set_points (HyScanSonar      *sonar,
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->tvg_set_points != NULL)
     return (* iface->tvg_set_points) (sonar, source, time_step, gains, n_gains);
+
+  return FALSE;
+}
+
+/**
+ * hyscan_sonar_tvg_set_constant:
+ * @sonar: указатель на #HyScanSonar
+ * @source: идентификатор источника данных #HyScanSourceType
+ * @gain: уровень усиления, дБ
+ *
+ * Функция устанавливает постоянный уровень усиления. Величина усиления должна
+ * находится в пределах от минимального до максимально возможного для источника
+ * данных.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_tvg_set_constant (HyScanSonar      *sonar,
+                               HyScanSourceType  source,
+                               gdouble           gain)
+{
+  HyScanSonarInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
+
+  iface = HYSCAN_SONAR_GET_IFACE (sonar);
+  if (iface->tvg_set_constant != NULL)
+    return (* iface->tvg_set_constant) (sonar, source, gain);
 
   return FALSE;
 }
