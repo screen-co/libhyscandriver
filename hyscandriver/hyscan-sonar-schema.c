@@ -544,9 +544,10 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
   /* Режимы работы ВАРУ. */
   if (tvg_capabilities)
     {
-      cap_string = g_strdup_printf ("%s %s %s %s",
+      cap_string = g_strdup_printf ("%s %s %s %s %s",
         (tvg_capabilities & HYSCAN_SONAR_TVG_MODE_AUTO) ? "auto" : "",
         (tvg_capabilities & HYSCAN_SONAR_TVG_MODE_POINTS) ? "points" : "",
+        (tvg_capabilities & HYSCAN_SONAR_TVG_MODE_CONSTANT) ? "constant" : "",
         (tvg_capabilities & HYSCAN_SONAR_TVG_MODE_LINEAR_DB) ? "linear-db" : "",
         (tvg_capabilities & HYSCAN_SONAR_TVG_MODE_LOGARITHMIC) ? "logarithmic" : "");
 

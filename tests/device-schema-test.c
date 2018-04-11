@@ -263,8 +263,9 @@ create_source (HyScanSourceType source,
 
       capabilities.tvg = HYSCAN_SONAR_TVG_MODE_AUTO;
       capabilities.tvg |= (source % 2) ? HYSCAN_SONAR_TVG_MODE_POINTS : 0;
-      capabilities.tvg |= (source % 3) ? HYSCAN_SONAR_TVG_MODE_LINEAR_DB : 0;
-      capabilities.tvg |= (source % 4) ? HYSCAN_SONAR_TVG_MODE_LOGARITHMIC : 0;
+      capabilities.tvg |= (source % 3) ? HYSCAN_SONAR_TVG_MODE_CONSTANT : 0;
+      capabilities.tvg |= (source % 4) ? HYSCAN_SONAR_TVG_MODE_LINEAR_DB : 0;
+      capabilities.tvg |= (source % 5) ? HYSCAN_SONAR_TVG_MODE_LOGARITHMIC : 0;
       decrease = (source % 2);
 
       if (capabilities.tvg != HYSCAN_SONAR_TVG_MODE_AUTO)

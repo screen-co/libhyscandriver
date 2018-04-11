@@ -421,6 +421,9 @@ hyscan_sonar_info_parse_capabilities (HyScanDataSchema *schema,
           if (g_ascii_strcasecmp (caps[i], "points") == 0)
             info.tvg |= HYSCAN_SONAR_TVG_MODE_POINTS;
 
+          if (g_ascii_strcasecmp (caps[i], "constant") == 0)
+            info.tvg |= HYSCAN_SONAR_TVG_MODE_CONSTANT;
+
           if (g_ascii_strcasecmp (caps[i], "linear-db") == 0)
             info.tvg |= HYSCAN_SONAR_TVG_MODE_LINEAR_DB;
 
