@@ -71,6 +71,7 @@ typedef GObject HyScanDevice;
  * HyScanDiscoverInfo:
  * @info: Краткая информация об устройстве
  * @uri: Путь для подключения к устройству
+ * @multi: Признак возможности множественного подключения
  *
  * Структура содержит общую информацию об устройстве.
  */
@@ -78,6 +79,7 @@ struct _HyScanDiscoverInfo
 {
   const gchar                 *info;
   const gchar                 *uri;
+  gboolean                     multi;
 };
 
 /**
@@ -140,7 +142,8 @@ HyScanDevice *                 hyscan_discover_connect         (HyScanDiscover  
 
 HYSCAN_API
 HyScanDiscoverInfo *           hyscan_discover_info_new        (const gchar                   *info,
-                                                                const gchar                   *uri);
+                                                                const gchar                   *uri,
+                                                                gboolean                       multi);
 
 HYSCAN_API
 HyScanDiscoverInfo *           hyscan_discover_info_copy       (HyScanDiscoverInfo            *info);

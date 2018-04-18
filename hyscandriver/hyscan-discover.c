@@ -48,7 +48,9 @@
  * - #hyscan_discover_stop - прерывает обнаружение устройств;
  *
  * Список обнаруженных устройств можно получить функцией #hyscan_discover_list.
- * Память, используемая списоком, должена быть освобождена функцией #hyscan_discover_free_info.
+ * Некоторые устройства, обычно датчики, допускают параллельное подключение
+ * нескольких абонентов. Память, используемая списоком, должена быть освобождена
+ * функцией #hyscan_discover_free_info.
  *
  * При подключении к устройству можно дополнительно передать параметры драйвера.
  * Список параметров драйвера можно узнать с помощью функции #hyscan_discover_config.
@@ -178,7 +180,8 @@ hyscan_discover_list (HyScanDiscover *discover)
  * Функция возвращает схему с параметрами драйвера устройства. Эти параметры
  * можно передать в функцию #hyscan_discover_connect.
  *
- * Returns: (transfer full): #HyScanDataSchema или NULL если параметров нет. Для удаления #g_object_unref.
+ * Returns: (transfer full): #HyScanDataSchema или NULL если параметров нет.
+ * Для удаления #g_object_unref.
  */
 HyScanDataSchema *
 hyscan_discover_config (HyScanDiscover *discover,
@@ -249,6 +252,7 @@ hyscan_discover_connect (HyScanDiscover  *discover,
  * hyscan_discover_info_new:
  * @info: краткая информация об устройстве
  * @uri: путь для подключения к устройству
+ * @multi: признак возможности множественного подключения
  *
  * Функция создаёт экземпляр структуры #HyScanDiscoverInfo.
  *
@@ -257,7 +261,8 @@ hyscan_discover_connect (HyScanDiscover  *discover,
  */
 HyScanDiscoverInfo *
 hyscan_discover_info_new (const gchar *info,
-                          const gchar *uri)
+                          const gchar *uri,
+                          gboolean     multi)
 {
   HyScanDiscoverInfo list;
 
@@ -284,6 +289,7 @@ hyscan_discover_info_copy (HyScanDiscoverInfo *info)
   new_info = g_slice_new (HyScanDiscoverInfo);
   new_info->info = g_strdup (info->info);
   new_info->uri = g_strdup (info->uri);
+  new_info->multi = info->multi;
 
   return new_info;
 }
