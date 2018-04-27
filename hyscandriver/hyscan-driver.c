@@ -368,6 +368,18 @@ hyscan_driver_discover_config (HyScanDiscover *discover,
   return hyscan_discover_config (driver->priv->discover, uri);
 }
 
+static gboolean
+hyscan_driver_discover_check (HyScanDiscover *discover,
+                              const gchar    *uri)
+{
+  HyScanDriver *driver = HYSCAN_DRIVER (discover);
+
+  if (driver->priv->discover == NULL)
+    return FALSE;
+
+  return hyscan_discover_check (driver->priv->discover, uri);
+}
+
 static HyScanDevice *
 hyscan_driver_discover_connect (HyScanDiscover  *discover,
                                 const gchar     *uri,
@@ -523,5 +535,6 @@ hyscan_driver_interface_init (HyScanDiscoverInterface *iface)
   iface->stop = hyscan_driver_discover_stop;
   iface->list = hyscan_driver_discover_list;
   iface->config = hyscan_driver_discover_config;
+  iface->check = hyscan_driver_discover_check;
   iface->connect = hyscan_driver_discover_connect;
 }
