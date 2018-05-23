@@ -127,6 +127,7 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
  * HyScanSonarInterface:
  * @g_iface: Базовый интерфейс.
  * @set_sound_velocity: Функция задаёт таблицу профиля скорости звука.
+ * @receiver_get_time: Функция расчитывает время приёма эхосигнала.
  * @receiver_set_time: Функция задаёт время приёма эхосигнала.
  * @receiver_set_auto: Функция задаёт автоматический выбор времени приёма эхосигнала.
  * @generator_set_preset: Функция включает преднастроенный режим работы генератора.
@@ -151,9 +152,15 @@ struct _HyScanSonarInterface
   gboolean             (*set_sound_velocity)                   (HyScanSonar                    *sonar,
                                                                 GList                          *svp);
 
+  gboolean             (*receiver_get_time)                    (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                        *receive_time,
+                                                                gdouble                        *wait_time);
+
   gboolean             (*receiver_set_time)                    (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
-                                                                gdouble                         receive_time);
+                                                                gdouble                         receive_time,
+                                                                gdouble                         wait_time);
 
   gboolean             (*receiver_set_auto)                    (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source);
@@ -225,9 +232,16 @@ gboolean               hyscan_sonar_set_sound_velocity         (HyScanSonar     
                                                                 GList                          *svp);
 
 HYSCAN_API
+gboolean               hyscan_sonar_receiver_get_time          (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                gdouble                        *receive_time,
+                                                                gdouble                        *wait_time);
+
+HYSCAN_API
 gboolean               hyscan_sonar_receiver_set_time          (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
-                                                                gdouble                         receive_time);
+                                                                gdouble                         receive_time,
+                                                                gdouble                         wait_time);
 
 HYSCAN_API
 gboolean               hyscan_sonar_receiver_set_auto          (HyScanSonar                    *sonar,

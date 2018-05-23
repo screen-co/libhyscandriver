@@ -63,6 +63,11 @@
  * приёма эхосигнала, функция #hyscan_sonar_receiver_set_auto включает
  * автоматическую настройку времени приёма.
  *
+ * Время, задаваемое функцией #hyscan_sonar_receiver_set_time, может отличаться
+ * от реально используемым гидролокатором. Это зависит от типа сигнала и
+ * возможностей аппаратуры. Узнать точное время приёма можно с помощью функции
+ * #hyscan_sonar_receiver_get_time.
+ *
  * С источником гидролокационных данных, может быть связан генератор излучаемого
  * сигнала. Управление генератором может осуществляться в одном из доступных
  * режимов. Режим работы генератора может задаваться независимо для каждого
@@ -305,10 +310,41 @@ hyscan_sonar_set_sound_velocity (HyScanSonar *sonar,
 }
 
 /**
+ * hyscan_sonar_receiver_get_time:
+ * @sonar: указатель на #HyScanSonar
+ * @source: идентификатор источника данных #HyScanSourceType
+ * @receive_time: (inout): время приёма эхосигнала, секунды
+ * @wait_time: (inout): время задержки излучения после приёма, секунды
+ *
+ * Функция расчитывает время приёма эхосигнала. Пользователь передаёт функции
+ * требуемое время приёма, а в ответ получает реально достижимое. До вызова
+ * этой функции, пользователь должен установить рабочий сигнал.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_receiver_get_time (HyScanSonar      *sonar,
+                                HyScanSourceType  source,
+                                gdouble          *receive_time,
+                                gdouble          *wait_time)
+{
+  HyScanSonarInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
+
+  iface = HYSCAN_SONAR_GET_IFACE (sonar);
+  if (iface->receiver_get_time != NULL)
+    return (* iface->receiver_get_time) (sonar, source, receive_time, wait_time);
+
+  return FALSE;
+}
+
+/**
  * hyscan_sonar_receiver_set_time:
  * @sonar: указатель на #HyScanSonar
  * @source: идентификатор источника данных #HyScanSourceType
  * @receive_time: время приёма эхосигнала, секунды
+ * @wait_time: время задержки излучения после приёма, секунды
  *
  * Функция задаёт время приёма эхосигнала.
  *
@@ -317,7 +353,8 @@ hyscan_sonar_set_sound_velocity (HyScanSonar *sonar,
 gboolean
 hyscan_sonar_receiver_set_time (HyScanSonar      *sonar,
                                 HyScanSourceType  source,
-                                gdouble           receive_time)
+                                gdouble           receive_time,
+                                gdouble           wait_time)
 {
   HyScanSonarInterface *iface;
 
@@ -325,7 +362,7 @@ hyscan_sonar_receiver_set_time (HyScanSonar      *sonar,
 
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->receiver_set_time != NULL)
-    return (* iface->receiver_set_time) (sonar, source, receive_time);
+    return (* iface->receiver_set_time) (sonar, source, receive_time, wait_time);
 
   return FALSE;
 }
