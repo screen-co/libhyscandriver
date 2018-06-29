@@ -178,13 +178,13 @@ struct _HyScanSonarSchemaPrivate
   GHashTable                  *slaves;                         /* Таблица ведомых/ведущих источников данных. */
 };
 
-static void      hyscan_sonar_schema_set_property              (GObject                 *object,
-                                                                guint                    prop_id,
-                                                                const GValue            *value,
-                                                                GParamSpec              *pspec);
+static void      hyscan_sonar_schema_set_property              (GObject               *object,
+                                                                guint                  prop_id,
+                                                                const GValue          *value,
+                                                                GParamSpec            *pspec);
 
-static void      hyscan_sonar_schema_object_constructed        (GObject                 *object);
-static void      hyscan_sonar_schema_object_finalize           (GObject                 *object);
+static void      hyscan_sonar_schema_object_constructed        (GObject               *object);
+static void      hyscan_sonar_schema_object_finalize           (GObject               *object);
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanSonarSchema, hyscan_sonar_schema, G_TYPE_OBJECT)
 

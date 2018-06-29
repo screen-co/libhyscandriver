@@ -44,14 +44,42 @@ G_BEGIN_DECLS
  *
  * Идентификатор схемы устройства.
  */
-#define HYSCAN_DEVICE_SCHEMA_ID         1374652938475623487
+#define HYSCAN_DEVICE_SCHEMA_ID                        1374652938475623487
 
 /**
  * HYSCAN_DEVICE_SCHEMA_VERSION:
  *
  * Версия схемы устройства.
  */
-#define HYSCAN_DEVICE_SCHEMA_VERSION    20180100
+#define HYSCAN_DEVICE_SCHEMA_VERSION                   20180100
+
+/**
+ * HYSCAN_DEVICE_SCHEMA_STATUS_OK:
+ *
+ * Устройство функционирует в штатном режиме.
+ */
+#define HYSCAN_DEVICE_SCHEMA_STATUS_OK                 "ok"
+
+/**
+ * HYSCAN_DEVICE_SCHEMA_STATUS_WARNING:
+ *
+ * Устройство функционирует в штатном режиме.
+ */
+#define HYSCAN_DEVICE_SCHEMA_STATUS_WARNING            "warning"
+
+/**
+ * HYSCAN_DEVICE_SCHEMA_STATUS_CRITICAL:
+ *
+ * Устройство функционирует в штатном режиме.
+ */
+#define HYSCAN_DEVICE_SCHEMA_STATUS_CRITICAL           "critical"
+
+/**
+ * HYSCAN_DEVICE_SCHEMA_STATUS_ERROR:
+ *
+ * Устройство функционирует в штатном режиме.
+ */
+#define HYSCAN_DEVICE_SCHEMA_STATUS_ERROR              "error"
 
 gboolean       hyscan_device_schema_set_id             (HyScanDataSchemaBuilder       *builder);
 

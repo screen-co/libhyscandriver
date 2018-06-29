@@ -47,7 +47,7 @@
  * в ветке "/sensors/sensor-name", где sensor-name - имя датчика и содержит
  * следующие поля:
  *
- * - id - поле определяющее налчичие датчика, тип STRING, обязательное;
+ * - dev-id - уникальный идентификатор устройства, тип STRING, обязательное;
  * - description - поле с описанием датчика, тип STRING, необязательное.
  *
  * Для датчика может быть задано местоположение антенн по умолчанию. Если
@@ -66,7 +66,7 @@
  *
  * Пример всех параметров для датчика с именем "nmea":
  *
- * - /sensors/nmea/id
+ * - /sensors/nmea/dev-id
  * - /sensors/nmea/description
  * - /sensors/nmea/antenna/position/x
  * - /sensors/nmea/antenna/position/y
@@ -112,8 +112,8 @@ static void    hyscan_sensor_schema_set_property             (GObject           
                                                               const GValue            *value,
                                                               GParamSpec              *pspec);
 
-static void    hyscan_sensor_schema_object_constructed       (GObject               *object);
-static void    hyscan_sensor_schema_object_finalize          (GObject               *object);
+static void    hyscan_sensor_schema_object_constructed       (GObject                 *object);
+static void    hyscan_sensor_schema_object_finalize          (GObject                 *object);
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanSensorSchema, hyscan_sensor_schema, G_TYPE_OBJECT)
 
@@ -272,7 +272,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
     {
       status = FALSE;
       key_id = g_strdup_printf ("/sensors/%s/description", name);
-      if (hyscan_data_schema_builder_key_string_create (builder, key_id, "id", NULL, description))
+      if (hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description))
         status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
       g_free (key_id);
 

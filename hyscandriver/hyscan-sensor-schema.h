@@ -36,6 +36,7 @@
 #define __HYSCAN_SENSOR_SCHEMA_H__
 
 #include <hyscan-sensor-info.h>
+#include <hyscan-device-schema.h>
 #include <hyscan-data-schema-builder.h>
 
 G_BEGIN_DECLS

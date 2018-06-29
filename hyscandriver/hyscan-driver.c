@@ -473,7 +473,7 @@ hyscan_driver_list (const gchar *path)
     }
 
   /* Список драйверов. */
-  names = g_array_new (TRUE, TRUE, sizeof (gpointer));
+  names = g_array_new (TRUE, TRUE, sizeof (gchar*));
 
   /* Шаблон имени драйвера. */
   pattern = g_strdup_printf ("^%s-[0-9A-Za-z]+\\.%s$",
