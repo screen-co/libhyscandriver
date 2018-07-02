@@ -178,7 +178,7 @@ hyscan_device_schema_check_id (HyScanDataSchema *schema)
  * hyscan_device_schema_get_boolean:
  * @schema: указатель на #HyScanDataSchema
  * @name: название параметра
- * @value: (out) (allow-none): значение параметра
+ * @value: (out) (nullable): значение параметра
  *
  * Функция получает значение параметра типа BOOLEAN.
  *
@@ -207,10 +207,10 @@ hyscan_device_schema_get_boolean (HyScanDataSchema *schema,
  * hyscan_device_schema_get_integer:
  * @schema: указатель на #HyScanDataSchema
  * @name: название параметра
- * @min_value: (out) (allow-none): минимальное значение параметра
- * @max_value: (out) (allow-none): максимальное значение параметра
- * @default_value: (out) (allow-none): значение параметра по умолчанию
- * @value_step: (out) (allow-none): рекомендуемый шаг изменения значения параметра
+ * @min_value: (out) (nullable): минимальное значение параметра
+ * @max_value: (out) (nullable): максимальное значение параметра
+ * @default_value: (out) (nullable): значение параметра по умолчанию
+ * @value_step: (out) (nullable): рекомендуемый шаг изменения значения параметра
  *
  * Функция получает значение параметра типа INTEGER.
  *
@@ -254,10 +254,10 @@ hyscan_device_schema_get_integer (HyScanDataSchema *schema,
  * hyscan_device_schema_get_double:
  * @schema: указатель на #HyScanDataSchema
  * @name: название параметра
- * @min_value: (out) (allow-none): минимальное значение параметра
- * @max_value: (out) (allow-none): максимальное значение параметра
- * @default_value: (out) (allow-none): значение параметра по умолчанию
- * @value_step: (out) (allow-none): рекомендуемый шаг изменения значения параметра
+ * @min_value: (out) (nullable): минимальное значение параметра
+ * @max_value: (out) (nullable): максимальное значение параметра
+ * @default_value: (out) (nullable): значение параметра по умолчанию
+ * @value_step: (out) (nullable): рекомендуемый шаг изменения значения параметра
  *
  * Функция получает значение параметра типа DOUBLE.
  *
