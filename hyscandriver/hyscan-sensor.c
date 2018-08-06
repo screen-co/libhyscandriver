@@ -73,7 +73,8 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
   g_signal_new ("device-state", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
                 g_cclosure_marshal_VOID__STRING,
-                G_TYPE_NONE, 1, G_TYPE_STRING);
+                G_TYPE_NONE, 1,
+                G_TYPE_STRING);
 
   /**
    * HyScanSensor::sensor-data:
@@ -88,7 +89,11 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
   g_signal_new ("sensor-data", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
                 hyscan_driver_marshal_VOID__STRING_INT_INT64_OBJECT,
-                G_TYPE_NONE, 4, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INT64, HYSCAN_TYPE_BUFFER);
+                G_TYPE_NONE, 4,
+                G_TYPE_STRING,
+                G_TYPE_INT,
+                G_TYPE_INT64,
+                HYSCAN_TYPE_BUFFER);
 
   /**
    * HyScanSensor::sensor-log:
@@ -106,7 +111,11 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
   g_signal_new ("sensor-log", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
                 hyscan_driver_marshal_VOID__STRING_INT64_INT_STRING,
-                G_TYPE_NONE, 4, G_TYPE_STRING, G_TYPE_INT64, G_TYPE_INT, G_TYPE_STRING);
+                G_TYPE_NONE, 4,
+                G_TYPE_STRING,
+                G_TYPE_INT64,
+                G_TYPE_INT,
+                G_TYPE_STRING);
 }
 
 /**

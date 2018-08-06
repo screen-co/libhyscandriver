@@ -253,6 +253,8 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   g_return_val_if_fail (HYSCAN_IS_SENSOR_SCHEMA (schema), FALSE);
 
   builder = schema->priv->builder;
+  if (builder == NULL)
+    return FALSE;
 
   if (g_hash_table_contains (schema->priv->sensors, name))
     return FALSE;
@@ -309,6 +311,8 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
   g_return_val_if_fail (HYSCAN_IS_SENSOR_SCHEMA (schema), FALSE);
 
   builder = schema->priv->builder;
+  if (builder == NULL)
+    return FALSE;
 
   if (!g_hash_table_contains (schema->priv->sensors, name))
     return FALSE;

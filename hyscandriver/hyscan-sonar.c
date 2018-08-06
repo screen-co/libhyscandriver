@@ -185,12 +185,14 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
   g_signal_new ("device-state", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
                 g_cclosure_marshal_VOID__STRING,
-                G_TYPE_NONE, 1, G_TYPE_STRING);
+                G_TYPE_NONE, 1,
+                G_TYPE_STRING);
 
   /**
    * HyScanSonar::sonar-signal:
    * @sonar: указатель на #HyScanSonar
    * @source: идентификатор источника данных #HyScanSourceType
+   * @channel: индекс канала данных
    * @time: время начала действия сигнала, мкс
    * @points: образ сигнала #HyScanBuffer
    *
@@ -199,8 +201,12 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
    */
   g_signal_new ("sonar-signal", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
-                hyscan_driver_marshal_VOID__INT_INT64_OBJECT,
-                G_TYPE_NONE, 3, G_TYPE_INT, G_TYPE_INT64, HYSCAN_TYPE_BUFFER);
+                hyscan_driver_marshal_VOID__INT_UINT_INT64_OBJECT,
+                G_TYPE_NONE, 4,
+                G_TYPE_INT,
+                G_TYPE_UINT,
+                G_TYPE_INT64,
+                HYSCAN_TYPE_BUFFER);
 
   /**
    * HyScanSonar::sonar-tvg:
@@ -216,55 +222,34 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
   g_signal_new ("sonar-tvg", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
                 hyscan_driver_marshal_VOID__INT_UINT_INT64_OBJECT,
-                G_TYPE_NONE, 4, G_TYPE_INT, G_TYPE_UINT, G_TYPE_INT64, HYSCAN_TYPE_BUFFER);
-
-  /**
-   * HyScanSonar::sonar-raw-data:
-   * @sonar: указатель на #HyScanSonar
-   * @source: идентификатор источника данных #HyScanSourceType
-   * @channel: индекс канала данных
-   * @time: время приёма данных, мкс
-   * @info: параметры данных #HyScanRawDataInfo
-   * @data: данные #HyScanBuffer
-   *
-   * Данный сигнал посылается при получении сырых данных от гидролокатора.
-   */
-  g_signal_new ("sonar-raw-data", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
-                NULL, NULL,
-                hyscan_driver_marshal_VOID__INT_UINT_INT64_POINTER_OBJECT,
-                G_TYPE_NONE, 5, G_TYPE_INT, G_TYPE_UINT, G_TYPE_INT64, G_TYPE_POINTER, HYSCAN_TYPE_BUFFER);
-
-  /**
-   * HyScanSonar::sonar-noise-data:
-   * @sonar: указатель на #HyScanSonar
-   * @source: идентификатор источника данных #HyScanSourceType
-   * @channel: индекс канала данных
-   * @time: время приёма данных, мкс
-   * @info: параметры данных #HyScanRawDataInfo
-   * @data: данные #HyScanBuffer
-   *
-   * Данный сигнал посылается при получении сырых данных от гидролокатора
-   * при выключенном излучении - данные шума.
-   */
-  g_signal_new ("sonar-noise-data", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
-                NULL, NULL,
-                hyscan_driver_marshal_VOID__INT_UINT_INT64_POINTER_OBJECT,
-                G_TYPE_NONE, 5, G_TYPE_INT, G_TYPE_UINT, G_TYPE_INT64, G_TYPE_POINTER, HYSCAN_TYPE_BUFFER);
+                G_TYPE_NONE, 4,
+                G_TYPE_INT,
+                G_TYPE_UINT,
+                G_TYPE_INT64,
+                HYSCAN_TYPE_BUFFER);
 
   /**
    * HyScanSonar::sonar-acoustic-data:
    * @sonar: указатель на #HyScanSonar
    * @source: идентификатор источника данных #HyScanSourceType
+   * @channel: индекс канала данных
+   * @noise: признак данных шума (выключенное излучение)
    * @time: время приёма данных, мкс
    * @info: параметры данных #HyScanAcousticDataInfo
    * @data: данные #HyScanBuffer
    *
-   * Данный сигнал посылается при получении акустических данных от гидролокатора.
+   * Данный сигнал посылается при получении гидроакустических данных.
    */
   g_signal_new ("sonar-acoustic-data", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
-                hyscan_driver_marshal_VOID__INT_INT64_POINTER_OBJECT,
-                G_TYPE_NONE, 4, G_TYPE_INT, G_TYPE_INT64, G_TYPE_POINTER, HYSCAN_TYPE_BUFFER);
+                hyscan_driver_marshal_VOID__INT_UINT_BOOLEAN_INT64_POINTER_OBJECT,
+                G_TYPE_NONE, 6,
+                G_TYPE_INT,
+                G_TYPE_UINT,
+                G_TYPE_BOOLEAN,
+                G_TYPE_INT64,
+                G_TYPE_POINTER,
+                HYSCAN_TYPE_BUFFER);
 
   /**
    * HyScanSonar::sonar-log:
@@ -282,7 +267,11 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
   g_signal_new ("sonar-log", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
                 hyscan_driver_marshal_VOID__STRING_INT64_INT_STRING,
-                G_TYPE_NONE, 4, G_TYPE_STRING, G_TYPE_INT64, G_TYPE_INT, G_TYPE_STRING);
+                G_TYPE_NONE, 4,
+                G_TYPE_STRING,
+                G_TYPE_INT64,
+                G_TYPE_INT,
+                G_TYPE_STRING);
 }
 
 /**
