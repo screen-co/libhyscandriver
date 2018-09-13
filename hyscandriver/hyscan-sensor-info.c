@@ -243,7 +243,7 @@ static GHashTable *
 hyscan_sensor_info_parse_sensors (HyScanDataSchema *schema)
 {
   GHashTable *sensors;
-  gchar **keys;
+  const gchar * const *keys;
   guint i;
 
   keys = hyscan_data_schema_list_keys (schema);
@@ -291,8 +291,6 @@ hyscan_sensor_info_parse_sensors (HyScanDataSchema *schema)
 
       g_strfreev (keyv);
     }
-
-  g_strfreev (keys);
 
   if (g_hash_table_size (sensors) == 0)
     g_clear_pointer (&sensors, g_hash_table_unref);

@@ -268,7 +268,7 @@ HyScanSourceType *
 hyscan_sonar_info_list_sources_int (HyScanDataSchema *schema,
                                     guint32          *n_sources)
 {
-  gchar **keys;
+  const gchar * const *keys;
   GArray *sources;
   guint i;
 
@@ -301,8 +301,6 @@ hyscan_sonar_info_list_sources_int (HyScanDataSchema *schema,
 
       g_strfreev (keyv);
     }
-
-  g_strfreev (keys);
 
   if (sources->len == 0)
     {
@@ -464,8 +462,8 @@ hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
                                  HyScanSourceType  source)
 {
   GList *presets = NULL;
+  const gchar * const *keys;
   gchar prefix[128];
-  gchar **keys;
   guint i;
 
   g_snprintf (prefix, sizeof (prefix),
@@ -490,7 +488,6 @@ hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
 
       presets = g_list_prepend (presets, hyscan_data_schema_enum_value_copy (&preset));
     }
-  g_strfreev (keys);
 
   return presets;
 }
