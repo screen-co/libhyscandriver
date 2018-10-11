@@ -118,7 +118,7 @@
  * #hyscan_sonar_tvg_set_points.
  *
  * Постоянный уровень усиления можно задать с помощью функции
- * #hyscan_sonar_tvg_set_constamt.
+ * #hyscan_sonar_tvg_set_constant.
  *
  * Функция #hyscan_sonar_tvg_set_linear_db активирует режим ВАРУ, при котором
  * коэффициент усиления, в дБ, линейно изменяется на указанную величину каждые
