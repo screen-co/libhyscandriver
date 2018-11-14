@@ -48,9 +48,6 @@
  * - #hyscan_discover_stop - прерывает обнаружение устройств;
  *
  * Список обнаруженных устройств можно получить функцией #hyscan_discover_list.
- * Некоторые устройства, обычно датчики, допускают параллельное подключение
- * нескольких абонентов. Память, используемая списоком, должена быть освобождена
- * функцией #hyscan_discover_free_info.
  *
  * При подключении к устройству можно дополнительно передать параметры драйвера.
  * Список параметров драйвера можно узнать с помощью функции #hyscan_discover_config.
@@ -86,7 +83,7 @@ hyscan_discover_default_init (HyScanDiscoverInterface *iface)
    *
    * Данный сигнал периодически посылается во время процесса обнаружения и
    * несёт информацию о его прогрессе. Сигнал посылается из рабочего потока
-   * драйвера, такми образом обработчики этого сигнала не могут использовать
+   * драйвера, таким образом обработчики этого сигнала не могут использовать
    * функции работающие через #GMainLoop, например все функции Gtk.
    */
   g_signal_new ("progress", HYSCAN_TYPE_DISCOVER, G_SIGNAL_RUN_LAST, 0,
@@ -99,7 +96,7 @@ hyscan_discover_default_init (HyScanDiscoverInterface *iface)
    * @discover: указатель на #HyScanDiscover
    *
    * Данный сигнал посылается при завершении процесса поиска. Сигнал посылается
-   * из рабочего потока драйвера, такми образом обработчики этого сигнала не
+   * из рабочего потока драйвера, таким образом обработчики этого сигнала не
    * могут использовать функции работающие через #GMainLoop, например все
    * функции Gtk.
    */
@@ -156,7 +153,7 @@ hyscan_discover_stop (HyScanDiscover *discover)
  * использовать функцию #hyscan_discover_info_free.
  *
  * Returns: (element-type HyScanDiscoverInfo) (transfer full): Список устройств
- * или NULL.
+ * или %NULL.
  */
 GList *
 hyscan_discover_list (HyScanDiscover *discover)
@@ -180,7 +177,7 @@ hyscan_discover_list (HyScanDiscover *discover)
  * Функция возвращает схему с параметрами драйвера устройства. Эти параметры
  * можно передать в функцию #hyscan_discover_connect.
  *
- * Returns: (transfer full): #HyScanDataSchema или NULL если параметров нет.
+ * Returns: (transfer full): #HyScanDataSchema или %NULL если параметров нет.
  * Для удаления #g_object_unref.
  */
 HyScanDataSchema *
@@ -202,14 +199,17 @@ hyscan_discover_config (HyScanDiscover *discover,
  * hyscan_discover_check:
  * @discover: указатель на #HyScanDiscover
  * @uri: путь для подключения к устройству
+ * @params: параметры драйвера
  *
- * Функция проверяет присутствие устройства для указанного пути.
+ * Функция проверяет возможность подключения к устройству для указанного пути
+ * и параметров драйвера.
  *
- * Returns: %TRUE если устройство присутствует, иначе %FALSE.
+ * Returns: %TRUE если подключение возможно, иначе %FALSE.
  */
 gboolean
-hyscan_discover_check (HyScanDiscover *discover,
-                       const gchar    *uri)
+hyscan_discover_check (HyScanDiscover  *discover,
+                       const gchar     *uri,
+                       HyScanParamList *params)
 {
   HyScanDiscoverInterface *iface;
 
@@ -217,7 +217,7 @@ hyscan_discover_check (HyScanDiscover *discover,
 
   iface = HYSCAN_DISCOVER_GET_IFACE (discover);
   if (iface->check != NULL)
-    return (* iface->check) (discover, uri);
+    return (* iface->check) (discover, uri, params);
 
   return FALSE;
 }
@@ -250,6 +250,7 @@ hyscan_discover_connect (HyScanDiscover  *discover,
 
 /**
  * hyscan_discover_info_new:
+ * @name: название устройства
  * @info: краткая информация об устройстве
  * @uri: путь для подключения к устройству
  * @multi: признак возможности множественного подключения
@@ -260,14 +261,17 @@ hyscan_discover_connect (HyScanDiscover  *discover,
  *
  */
 HyScanDiscoverInfo *
-hyscan_discover_info_new (const gchar *info,
-                          const gchar *uri,
-                          gboolean     multi)
+hyscan_discover_info_new (const gchar      *name,
+                          HyScanDataSchema *info,
+                          const gchar      *uri,
+                          gboolean          multi)
 {
   HyScanDiscoverInfo list;
 
+  list.name = name;
   list.info = info;
   list.uri = uri;
+  list.multi = multi;
 
   return hyscan_discover_info_copy (&list);
 }
@@ -287,7 +291,8 @@ hyscan_discover_info_copy (HyScanDiscoverInfo *info)
   HyScanDiscoverInfo *new_info;
 
   new_info = g_slice_new (HyScanDiscoverInfo);
-  new_info->info = g_strdup (info->info);
+  new_info->name = g_strdup (info->name);
+  new_info->info = (info->info != NULL) ? g_object_ref (info->info) : NULL;
   new_info->uri = g_strdup (info->uri);
   new_info->multi = info->multi;
 
@@ -303,7 +308,8 @@ hyscan_discover_info_copy (HyScanDiscoverInfo *info)
 void
 hyscan_discover_info_free (HyScanDiscoverInfo *info)
 {
-  g_free ((gchar*)info->info);
+  g_free ((gchar*)info->name);
+  g_clear_object (&info->info);
   g_free ((gchar*)info->uri);
 
   g_slice_free (HyScanDiscoverInfo, info);

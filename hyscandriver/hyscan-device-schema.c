@@ -106,14 +106,9 @@ gboolean
 hyscan_device_schema_set_id (HyScanDataSchemaBuilder *builder)
 {
   HyScanDataSchema *schema;
-  gchar *schema_data;
-  gchar *schema_id;
-
   gboolean status = FALSE;
 
-  schema_id = hyscan_data_schema_builder_get_id (builder);
-  schema_data = hyscan_data_schema_builder_get_data (builder);
-  schema = hyscan_data_schema_new_from_string (schema_data, schema_id);
+  schema = hyscan_data_schema_builder_get_schema (builder);
 
   /* Если версия и идентификатор схемы устройства ещё не заданы, задаём их. */
   if (!hyscan_data_schema_has_key (schema, "/schema/id") &&
@@ -137,8 +132,6 @@ hyscan_device_schema_set_id (HyScanDataSchemaBuilder *builder)
     }
 
   g_object_unref (schema);
-  g_free (schema_data);
-  g_free (schema_id);
 
   return status;
 }

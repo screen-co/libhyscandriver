@@ -45,7 +45,7 @@ G_BEGIN_DECLS
  *
  * Версия API интерфейса обнаружения устройств.
  */
-#define HYSCAN_DISCOVER_API             20170100
+#define HYSCAN_DISCOVER_API             20180100
 
 #define HYSCAN_TYPE_DISCOVER_INFO       (hyscan_discover_info_get_type ())
 
@@ -69,6 +69,7 @@ typedef GObject HyScanDevice;
 
 /**
  * HyScanDiscoverInfo:
+ * @name: Название устройства
  * @info: Краткая информация об устройстве
  * @uri: Путь для подключения к устройству
  * @multi: Признак возможности множественного подключения
@@ -77,7 +78,8 @@ typedef GObject HyScanDevice;
  */
 struct _HyScanDiscoverInfo
 {
-  const gchar                 *info;
+  const gchar                 *name;
+  HyScanDataSchema            *info;
   const gchar                 *uri;
   gboolean                     multi;
 };
@@ -89,7 +91,7 @@ struct _HyScanDiscoverInfo
  * @stop: Функция принудительно останавливает процесс обнаружения устройств.
  * @list: Функция возвращает список обнаруженных устройств с общей информацией о них.
  * @config: Функция возвращает схему с параметрами драйвера устройства.
- * @check: Функция проверяет присутствие устройства для указанного пути.
+ * @check: Функция проверяет возможность подключения к устройству.
  * @connect: Функция производит подключение к устройству.
  */
 struct _HyScanDiscoverInterface
@@ -106,7 +108,8 @@ struct _HyScanDiscoverInterface
                                                                 const gchar                   *uri);
 
   gboolean                     (*check)                        (HyScanDiscover                *discover,
-                                                                const gchar                   *uri);
+                                                                const gchar                   *uri,
+                                                                HyScanParamList               *params);
 
   HyScanDevice *               (*connect)                      (HyScanDiscover                *discover,
                                                                 const gchar                   *uri,
@@ -134,7 +137,8 @@ HyScanDataSchema *             hyscan_discover_config          (HyScanDiscover  
 
 HYSCAN_API
 gboolean                       hyscan_discover_check           (HyScanDiscover                *discover,
-                                                                const gchar                   *uri);
+                                                                const gchar                   *uri,
+                                                                HyScanParamList               *params);
 
 HYSCAN_API
 HyScanDevice *                 hyscan_discover_connect         (HyScanDiscover                *discover,
@@ -142,7 +146,8 @@ HyScanDevice *                 hyscan_discover_connect         (HyScanDiscover  
                                                                 HyScanParamList               *params);
 
 HYSCAN_API
-HyScanDiscoverInfo *           hyscan_discover_info_new        (const gchar                   *info,
+HyScanDiscoverInfo *           hyscan_discover_info_new        (const gchar                   *name,
+                                                                HyScanDataSchema              *info,
                                                                 const gchar                   *uri,
                                                                 gboolean                       multi);
 

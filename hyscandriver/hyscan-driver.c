@@ -369,15 +369,16 @@ hyscan_driver_discover_config (HyScanDiscover *discover,
 }
 
 static gboolean
-hyscan_driver_discover_check (HyScanDiscover *discover,
-                              const gchar    *uri)
+hyscan_driver_discover_check (HyScanDiscover  *discover,
+                              const gchar     *uri,
+                              HyScanParamList *params)
 {
   HyScanDriver *driver = HYSCAN_DRIVER (discover);
 
   if (driver->priv->discover == NULL)
     return FALSE;
 
-  return hyscan_discover_check (driver->priv->discover, uri);
+  return hyscan_discover_check (driver->priv->discover, uri, params);
 }
 
 static HyScanDevice *

@@ -62,7 +62,6 @@ hyscan_driver_info (void)
   if (info == NULL)
     {
       HyScanDataSchemaBuilder *builder;
-      gchar *schema_data;
 
       builder = hyscan_data_schema_builder_new ("driver-info");
 
@@ -82,11 +81,9 @@ hyscan_driver_info (void)
                                                      "Dummy mark", "Dummy mark",
                                                      DUMMY);
 
-      schema_data = hyscan_data_schema_builder_get_data (builder);
-      info = hyscan_data_schema_new_from_string (schema_data, "driver-info");
+      info = hyscan_data_schema_builder_get_schema (builder);
 
       g_object_unref (builder);
-      g_free (schema_data);
     }
 
   return g_object_ref (info);

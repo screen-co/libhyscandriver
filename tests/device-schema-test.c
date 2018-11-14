@@ -457,7 +457,6 @@ main (int    argc,
   HyScanSensorInfo *sensor_info;
   HyScanSonarInfo *sonar_info;
   HyScanDataSchema *schema;
-  gchar *schema_data;
 
   const HyScanSourceType *sources;
   const gchar * const *sensors;
@@ -496,10 +495,7 @@ main (int    argc,
     }
 
   /* Создаём схему устройства. */
-  schema_data = hyscan_data_schema_builder_get_data (builder);
-  schema = hyscan_data_schema_new_from_string (schema_data, "device");
-  g_free (schema_data);
-
+  schema = hyscan_data_schema_builder_get_schema (builder);
   sensor_info = hyscan_sensor_info_new (schema);
   sonar_info = hyscan_sonar_info_new (schema);
 
