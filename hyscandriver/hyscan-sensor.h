@@ -53,6 +53,7 @@ typedef struct _HyScanSensorInterface HyScanSensorInterface;
  * @g_iface: Базовый интерфейс.
  * @set_sound_velocity: Функция задаёт таблицу профиля скорости звука.
  * @set_enable: Функция включает или выключает приём данных.
+ * @disconnect: Функция выполняет отключение от датчика.
  */
 struct _HyScanSensorInterface
 {
@@ -64,6 +65,8 @@ struct _HyScanSensorInterface
   gboolean             (*set_enable)                           (HyScanSensor                  *sensor,
                                                                 const gchar                   *name,
                                                                 gboolean                       enable);
+
+  gboolean             (*disconnect)                           (HyScanSensor                  *sensor);
 };
 
 HYSCAN_API
@@ -77,6 +80,9 @@ HYSCAN_API
 gboolean               hyscan_sensor_set_enable                (HyScanSensor                  *sensor,
                                                                 const gchar                   *name,
                                                                 gboolean                       enable);
+
+HYSCAN_API
+gboolean               hyscan_sensor_disconnect                (HyScanSensor                  *sensor);
 
 G_END_DECLS
 

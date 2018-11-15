@@ -142,8 +142,9 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
  * @set_software_ping: Функция устанавливает программное управление излучением.
  * @start: Функция переводит гидролокатор в рабочий режим.
  * @stop: Функция переводит гидролокатор в ждущий режим и отключает запись данных.
- * @sync: Функция синхронизирует состояние гидролокатора
+ * @sync: Функция синхронизирует состояние гидролокатора в соответствии с заданными параметрами.
  * @ping: Функция выполняет один цикл излучения сигнала и приёма данных.
+ * @disconnect: Функция выполняет отключение от гидролокатора.
  */
 struct _HyScanSonarInterface
 {
@@ -222,6 +223,8 @@ struct _HyScanSonarInterface
   gboolean             (*sync)                                 (HyScanSonar                    *sonar);
 
   gboolean             (*ping)                                 (HyScanSonar                    *sonar);
+
+  gboolean             (*disconnect)                           (HyScanSonar                    *sonar);
 };
 
 HYSCAN_API
@@ -269,7 +272,6 @@ gboolean               hyscan_sonar_generator_set_extended     (HyScanSonar     
                                                                 HyScanSonarGeneratorSignalType  signal,
                                                                 gdouble                         duration,
                                                                 gdouble                         power);
-
 
 HYSCAN_API
 gboolean               hyscan_sonar_tvg_set_auto               (HyScanSonar                    *sonar,
@@ -319,6 +321,9 @@ gboolean               hyscan_sonar_sync                       (HyScanSonar     
 
 HYSCAN_API
 gboolean               hyscan_sonar_ping                       (HyScanSonar                    *sonar);
+
+HYSCAN_API
+gboolean               hyscan_sonar_disconnect                 (HyScanSonar                    *sonar);
 
 G_END_DECLS
 

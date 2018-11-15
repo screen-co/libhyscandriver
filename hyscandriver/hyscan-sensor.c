@@ -50,6 +50,9 @@
  *
  * Приём данных каждым из датчиков можно включить или выключить с помощью
  * функции #hyscan_sensor_set_enable.
+ *
+ * До удаления объекта управления, обязательно должно быть выполнено отключение
+ * от датчика с помощью функции #hyscan_sensor_disconnect.
  */
 
 #include "hyscan-sensor.h"
@@ -164,6 +167,29 @@ hyscan_sensor_set_enable (HyScanSensor *sensor,
   iface = HYSCAN_SENSOR_GET_IFACE (sensor);
   if (iface->set_enable != NULL)
     return (* iface->set_enable) (sensor, name, enable);
+
+  return FALSE;
+}
+
+/**
+ * hyscan_sensor_disconnect:
+ * @sensor: указатель на #HyScanSensor
+ *
+ * Функция выполняет отключение от датчика. Отключение обязательно должно
+ * быть выполнено до удаления объекта управления датчиком.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sensor_disconnect (HyScanSensor *sensor)
+{
+  HyScanSensorInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SENSOR (sensor), FALSE);
+
+  iface = HYSCAN_SENSOR_GET_IFACE (sensor);
+  if (iface->disconnect != NULL)
+    return (* iface->disconnect) (sensor);
 
   return FALSE;
 }

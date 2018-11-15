@@ -162,6 +162,9 @@
  *
  * Функция #hyscan_sonar_ping используется для программного управления
  * излучением.
+ *
+ * До удаления объекта управления, обязательно должно быть выполнено отключение
+ * от гидролокатора с помощью функции #hyscan_sonar_disconnect.
  */
 
 #include "hyscan-sonar.h"
@@ -767,6 +770,29 @@ hyscan_sonar_ping (HyScanSonar *sonar)
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->ping != NULL)
     return (* iface->ping) (sonar);
+
+  return FALSE;
+}
+
+/**
+ * hyscan_sonar_disconnect:
+ * @sonar: указатель на #HyScanSonar
+ *
+ * Функция выполняет отключение от гидролокатора. Отключение обязательно должно
+ * быть выполнено до удаления объекта управления локатором.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_disconnect (HyScanSonar *sonar)
+{
+  HyScanSonarInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
+
+  iface = HYSCAN_SONAR_GET_IFACE (sonar);
+  if (iface->disconnect != NULL)
+    return (* iface->disconnect) (sonar);
 
   return FALSE;
 }
