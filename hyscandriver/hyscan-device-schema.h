@@ -63,21 +63,21 @@ G_BEGIN_DECLS
 /**
  * HYSCAN_DEVICE_SCHEMA_STATUS_WARNING:
  *
- * Устройство функционирует в штатном режиме.
+ * В работе устройства присутствуют кратковременные сбои.
  */
 #define HYSCAN_DEVICE_SCHEMA_STATUS_WARNING            "warning"
 
 /**
  * HYSCAN_DEVICE_SCHEMA_STATUS_CRITICAL:
  *
- * Устройство функционирует в штатном режиме.
+ * В работе устройства присутствуют постоянные сбои.
  */
 #define HYSCAN_DEVICE_SCHEMA_STATUS_CRITICAL           "critical"
 
 /**
  * HYSCAN_DEVICE_SCHEMA_STATUS_ERROR:
  *
- * Устройство функционирует в штатном режиме.
+ * Ошибка, устройство не может продолжать работу.
  */
 #define HYSCAN_DEVICE_SCHEMA_STATUS_ERROR              "error"
 
