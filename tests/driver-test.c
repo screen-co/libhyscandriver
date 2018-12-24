@@ -108,7 +108,6 @@ main (int    argc,
     g_error ("dummy drivers not found");
 
   g_strfreev (names);
-  xmlCleanupParser ();
 
   g_message ("All done");
 

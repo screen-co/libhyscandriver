@@ -565,7 +565,6 @@ main (int    argc,
   g_object_unref (sensor_info);
   g_object_unref (sonar_info);
   g_object_unref (builder);
-  xmlCleanupParser ();
 
   g_message ("All done");
 
