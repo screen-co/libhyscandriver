@@ -45,8 +45,8 @@
  * Драйвер устройства может содержать параметры, управляющие его поведением.
  * Параметры, расчитанные на пользователей устройства, должны находится в ветке
  * "/params/dev-id". Системные параметры, предназначенные для разработчиков,
- * должны находится в ветке "/system/dev-id". Уровень вложенности, для обоих
- * веток, не должен превышать трёх, например:
+ * должны находится в ветке "/system/dev-id". Уровень вложенности для обеих
+ * веток не должен превышать трёх, например:
  *
  * - /params/h5se7/mode/type
  * - /system/h5se7/state
@@ -116,11 +116,11 @@ hyscan_device_schema_set_id (HyScanDataSchemaBuilder *builder)
     {
       hyscan_data_schema_builder_key_integer_create (builder, "/schema/id", "id",
                                                      "Device schema id", HYSCAN_DEVICE_SCHEMA_ID);
-      hyscan_data_schema_builder_key_set_access (builder, "/schema/id", HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+      hyscan_data_schema_builder_key_set_access (builder, "/schema/id", HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
       hyscan_data_schema_builder_key_integer_create (builder, "/schema/version", "version",
                                                      "Device schema version", HYSCAN_DEVICE_SCHEMA_VERSION);
-      hyscan_data_schema_builder_key_set_access (builder, "/schema/version", HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+      hyscan_data_schema_builder_key_set_access (builder, "/schema/version", HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
       status = TRUE;
     }

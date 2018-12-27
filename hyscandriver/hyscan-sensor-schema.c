@@ -263,7 +263,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   status = FALSE;
   key_id = g_strdup_printf ("/sensors/%s/dev-id", name);
   if (hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -275,7 +275,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
       status = FALSE;
       key_id = g_strdup_printf ("/sensors/%s/description", name);
       if (hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
       g_free (key_id);
 
       if (!status)
@@ -322,7 +322,7 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
   /* Местоположение антенны. */
   key_id = g_strdup_printf ("%s/x", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, position->x))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -330,7 +330,7 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
 
   key_id = g_strdup_printf ("%s/y", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  position->y))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -338,7 +338,7 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
 
   key_id = g_strdup_printf ("%s/z", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  position->z))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -346,7 +346,7 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
 
   key_id = g_strdup_printf ("%s/psi", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, position->psi))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -354,7 +354,7 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
 
   key_id = g_strdup_printf ("%s/gamma", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, position->gamma))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -362,7 +362,7 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
 
   key_id = g_strdup_printf ("%s/theta", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, position->theta))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
 exit:

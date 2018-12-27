@@ -303,7 +303,7 @@ hyscan_sonar_schema_set_software_ping (HyScanSonarSchema *schema)
 
   key_id = "/sources/software-ping";
   if (hyscan_data_schema_builder_key_boolean_create (builder, key_id, "software-ping", NULL, TRUE))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   return status;
 }
@@ -482,7 +482,7 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/dev-id", prefix);
   if (hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -494,7 +494,7 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
       status = FALSE;
       key_id = g_strdup_printf ("/sources/%s/description", source_name);
       if (hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
       g_free (key_id);
 
       if (!status)
@@ -511,7 +511,7 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
       status = FALSE;
       key_id = g_strdup_printf ("%s/receiver/capabilities", prefix);
       if (hyscan_data_schema_builder_key_string_create (builder, key_id, "capabilities", NULL, cap_string))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
       g_free (cap_string);
       g_free (key_id);
@@ -532,7 +532,7 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
       status = FALSE;
       key_id = g_strdup_printf ("%s/generator/capabilities", prefix);
       if (hyscan_data_schema_builder_key_string_create (builder, key_id, "capabilities", NULL, cap_string))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
       g_free (cap_string);
       g_free (key_id);
@@ -554,7 +554,7 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
       status = FALSE;
       key_id = g_strdup_printf ("%s/tvg/capabilities", prefix);
       if (hyscan_data_schema_builder_key_string_create (builder, key_id, "capabilities", NULL, cap_string))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
       g_free (cap_string);
       g_free (key_id);
@@ -625,7 +625,7 @@ hyscan_sonar_schema_source_set_master (HyScanSonarSchema *schema,
 
   key_id = g_strdup_printf ("/sources/%s/master", source_name);
   if (hyscan_data_schema_builder_key_string_create (builder, key_id, "master", NULL, master_name))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (status)
@@ -677,7 +677,7 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/x", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, position->x))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -686,7 +686,7 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/y", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  position->y))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -695,7 +695,7 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/z", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  position->z))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -704,7 +704,7 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/psi", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, position->psi))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -713,7 +713,7 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/gamma", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, position->gamma))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   if (!status)
@@ -722,7 +722,7 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/theta", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, position->theta))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
 exit:
@@ -777,7 +777,7 @@ hyscan_sonar_schema_receiver_set_params (HyScanSonarSchema *schema,
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "time", NULL, min_time))
     {
       if (hyscan_data_schema_builder_key_double_range (builder, key_id, min_time, max_time, 1.0))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
     }
   g_free (key_id);
 
@@ -832,7 +832,7 @@ hyscan_sonar_schema_generator_add_preset (HyScanSonarSchema *schema,
   status = FALSE;
   key_id = g_strdup_printf ("/sources/%s/generator/presets/%d", source_name, preset_id);
   if (hyscan_data_schema_builder_key_integer_create (builder, key_id, preset_name, preset_description, preset_id))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   return status;
@@ -880,7 +880,7 @@ hyscan_sonar_schema_generator_add_auto (HyScanSonarSchema *schema,
   status = FALSE;
   key_id = g_strdup_printf ("/sources/%s/generator/automatic", source_name);
   if (hyscan_data_schema_builder_key_boolean_create (builder, key_id, "automatic", NULL, TRUE))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
   return status;
@@ -952,7 +952,7 @@ hyscan_sonar_schema_generator_set_params (HyScanSonarSchema             *schema,
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "duration", duration_name, min_duration))
     {
       if (hyscan_data_schema_builder_key_double_range (builder, key_id, min_duration, max_duration, duration_step))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
     }
   g_free (key_id);
 
@@ -962,7 +962,7 @@ hyscan_sonar_schema_generator_set_params (HyScanSonarSchema             *schema,
   status = FALSE;
   key_id = g_strdup_printf ("%s/dirty-cycle", prefix);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "dirty-cycle", NULL, dirty_cycle))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   g_free (key_id);
 
 exit:
@@ -1023,7 +1023,7 @@ hyscan_sonar_schema_tvg_set_params (HyScanSonarSchema *schema,
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gain", NULL, min_gain))
     {
       if (hyscan_data_schema_builder_key_double_range (builder, key_id, min_gain, max_gain, 1.0))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
     }
   g_free (key_id);
 
@@ -1035,7 +1035,7 @@ hyscan_sonar_schema_tvg_set_params (HyScanSonarSchema *schema,
       status = FALSE;
       key_id = g_strdup_printf ("%s/decrease", prefix);
       if (hyscan_data_schema_builder_key_boolean_create (builder, key_id, "decrease", NULL, decrease))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
       g_free (key_id);
     }
 
