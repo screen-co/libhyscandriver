@@ -1,6 +1,6 @@
 /* hyscan-sensor.h
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -35,7 +35,6 @@
 #ifndef __HYSCAN_SENSOR_H__
 #define __HYSCAN_SENSOR_H__
 
-#include <glib-object.h>
 #include <hyscan-types.h>
 
 G_BEGIN_DECLS
@@ -51,38 +50,24 @@ typedef struct _HyScanSensorInterface HyScanSensorInterface;
 /**
  * HyScanSensorInterface:
  * @g_iface: Базовый интерфейс.
- * @set_sound_velocity: Функция задаёт таблицу профиля скорости звука.
  * @set_enable: Функция включает или выключает приём данных.
- * @disconnect: Функция выполняет отключение от датчика.
  */
 struct _HyScanSensorInterface
 {
   GTypeInterface       g_iface;
 
-  gboolean             (*set_sound_velocity)                   (HyScanSensor                  *sensor,
-                                                                GList                         *svp);
-
   gboolean             (*set_enable)                           (HyScanSensor                  *sensor,
                                                                 const gchar                   *name,
                                                                 gboolean                       enable);
-
-  gboolean             (*disconnect)                           (HyScanSensor                  *sensor);
 };
 
 HYSCAN_API
 GType                  hyscan_sensor_get_type                  (void);
 
 HYSCAN_API
-gboolean               hyscan_sensor_set_sound_velocity        (HyScanSensor                  *sensor,
-                                                                GList                         *svp);
-
-HYSCAN_API
 gboolean               hyscan_sensor_set_enable                (HyScanSensor                  *sensor,
                                                                 const gchar                   *name,
                                                                 gboolean                       enable);
-
-HYSCAN_API
-gboolean               hyscan_sensor_disconnect                (HyScanSensor                  *sensor);
 
 G_END_DECLS
 

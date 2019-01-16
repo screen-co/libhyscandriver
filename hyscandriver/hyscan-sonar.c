@@ -1,6 +1,6 @@
 /* hyscan-sonar.c
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -46,10 +46,6 @@
  * - управление излучением;
  * - генератор излучаемого сигнала;
  * - регулировка усиления и дискретизации эхосигнала;
- *
- * Перед началом работы рекомендуется задать профиль скорости звука. Для этого
- * используется функция #hyscan_sonar_set_sound_velocity. По умолчанию
- * используется фиксированное значение скорости звука, равное 1500 м/с.
  *
  * В зависимости от типа, гидролокатор может иметь различное число источников
  * данных. Каждый из источников гидролокационных данных связан с одним из
@@ -157,9 +153,6 @@
  *
  * Функция #hyscan_sonar_ping используется для программного управления
  * излучением.
- *
- * До удаления объекта управления, обязательно должно быть выполнено отключение
- * от гидролокатора с помощью функции #hyscan_sonar_disconnect.
  */
 
 #include "hyscan-sonar.h"
@@ -173,26 +166,12 @@ static void
 hyscan_sonar_default_init (HyScanSonarInterface *iface)
 {
   /**
-   * HyScanSonar::device-state:
-   * @sonar: указатель на #HyScanSonar
-   * @dev_id: идентификатор устройства
-   *
-   * Данный сигнал посылается при изменении состояния устройства. Сами
-   * изменения необходимо считывать через параметры в ветке "/state".
-   */
-  g_signal_new ("device-state", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
-                NULL, NULL,
-                g_cclosure_marshal_VOID__STRING,
-                G_TYPE_NONE, 1,
-                G_TYPE_STRING);
-
-  /**
    * HyScanSonar::sonar-signal:
    * @sonar: указатель на #HyScanSonar
    * @source: идентификатор источника данных #HyScanSourceType
    * @channel: индекс канала данных
    * @time: время начала действия сигнала, мкс
-   * @points: образ сигнала #HyScanBuffer
+   * @image: (nullable): образ сигнала #HyScanBuffer
    *
    * Данный сигнал посылается при изменении излучаемого сигнала.
    * В нём передаёт новый образ сигнала для свёртки.
@@ -248,52 +227,6 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
                 G_TYPE_INT64,
                 G_TYPE_POINTER,
                 HYSCAN_TYPE_BUFFER);
-
-  /**
-   * HyScanSonar::sonar-log:
-   * @sonar: указатель на #HyScanSonar
-   * @source: источник сообщения (NULL терминированная строка)
-   * @time: время приёма сообщения, мкс
-   * @level: тип сообщения #HyScanLogLevel
-   * @message: сообщение (NULL терминированная строка)
-   *
-   * В процессе работы драйвер может отправлять различные информационные и
-   * диагностические сообщения. При получении такого сообщения интерфейс
-   * посылает данный сигнал, в котором передаёт их пользователю. Название
-   * источника сообщения определяется драйвером.
-   */
-  g_signal_new ("sonar-log", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
-                NULL, NULL,
-                hyscan_driver_marshal_VOID__STRING_INT64_INT_STRING,
-                G_TYPE_NONE, 4,
-                G_TYPE_STRING,
-                G_TYPE_INT64,
-                G_TYPE_INT,
-                G_TYPE_STRING);
-}
-
-/**
- * hyscan_sonar_set_sound_velocity:
- * @sonar: указатель на #HyScanSonar
- * @svp: (element-type: HyScanSoundVelocity) (transfer none): таблица профиля скорости звука
- *
- * Функция задаёт таблицу профиля скорости звука.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_set_sound_velocity (HyScanSonar *sonar,
-                                 GList       *svp)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->set_sound_velocity != NULL)
-    return (* iface->set_sound_velocity) (sonar, svp);
-
-  return FALSE;
 }
 
 /**
@@ -467,8 +400,10 @@ hyscan_sonar_generator_set_extended (HyScanSonar                    *sonar,
  *
  * Функция включает автоматический режим управления системой ВАРУ.
  *
- * Если в качестве значений параметров уровня сигнала и (или) чувствительности
- * передать отрицательное число, будут установлены значения по умолчанию.
+ * Уровень сигнала и чувствительность должны находиться в диапазоне значений от
+ * 0.0 до 1.0 включительно. Если в качестве значений параметров уровня сигнала
+ * и (или) чувствительности передать отрицательное число, будут установлены
+ * значения по умолчанию.
  *
  * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
@@ -497,8 +432,10 @@ hyscan_sonar_tvg_set_auto (HyScanSonar      *sonar,
  * @gains: (array length=n_gains) (transfer none): массив коэффициентов усиления, дБ
  * @n_gains: число коэффициентов усиления
  *
- * Функция устанавливает усиление определённое контрольными точками,
- * заданными на равномерной временной оси.
+ * Функция устанавливает усиление определённое контрольными точками,заданными
+ * на равномерной временной оси. Значения коэффициентов усиления должны
+ * находится в пределах от минимального до максимально возможного для источника
+ * данных.
  *
  * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
@@ -735,29 +672,6 @@ hyscan_sonar_ping (HyScanSonar *sonar)
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->ping != NULL)
     return (* iface->ping) (sonar);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sonar_disconnect:
- * @sonar: указатель на #HyScanSonar
- *
- * Функция выполняет отключение от гидролокатора. Отключение обязательно должно
- * быть выполнено до удаления объекта управления локатором.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_disconnect (HyScanSonar *sonar)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->disconnect != NULL)
-    return (* iface->disconnect) (sonar);
 
   return FALSE;
 }

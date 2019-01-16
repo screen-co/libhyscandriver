@@ -1,6 +1,6 @@
 /* hyscan-driver.c
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -82,6 +82,7 @@
  * загрузки из указанного каталога.
  */
 
+#include "hyscan-driver-schema.h"
 #include "hyscan-driver.h"
 
 #include <gmodule.h>
@@ -236,57 +237,17 @@ hyscan_driver_get_info_int (GModule *module)
   HyScanDataSchema *info = NULL;
 
   if (module == NULL)
-    goto fail;
+    return NULL;
 
-  if (g_module_symbol (module, HYSCAN_DRIVER_INFO_SYMBOL, (gpointer *) &info_func))
-    {
-      GVariant *value = NULL;
-      gint64 api_version = 0;
-      gint64 schema_version = 0;
-      gint64 schema_id = 0;
+  if (!g_module_symbol (module, HYSCAN_DRIVER_INFO_SYMBOL, (gpointer *) &info_func))
+    return NULL;
 
-      /* Проверка типа. */
-      info = info_func ();
-      if (!HYSCAN_IS_DATA_SCHEMA (info))
-        goto fail;
+  info = info_func ();
+  if (hyscan_driver_schema_check_id (info))
+    return info;
 
-      /* Идентификатор и версия схемы. */
-      if ((value = hyscan_data_schema_key_get_default (info, "/schema/id")) != NULL)
-        {
-          schema_id = g_variant_get_int64 (value);
-          g_variant_unref (value);
-        }
-
-      if ((value = hyscan_data_schema_key_get_default (info, "/schema/version")) != NULL)
-        {
-          schema_version = g_variant_get_int64 (value);
-          g_variant_unref (value);
-        }
-
-      if ((schema_id != HYSCAN_DRIVER_SCHEMA_ID) || (schema_version != HYSCAN_DRIVER_SCHEMA_VERSION))
-        {
-          g_warning ("HyScanDriver: %s: incorrect driver schema", g_module_name (module));
-          goto fail;
-        }
-
-      /* Версия API. */
-      if ((value = hyscan_data_schema_key_get_default (info, "/api/version")) != NULL)
-        {
-          api_version = g_variant_get_int64 (value);
-          g_variant_unref (value);
-        }
-
-      if (api_version != HYSCAN_DISCOVER_API)
-        {
-          g_warning ("HyScanDriver: %s: incorrect api version", g_module_name (module));
-          goto fail;
-        }
-
-      return info;
-    }
-
-fail:
   g_clear_object (&info);
+
   return NULL;
 }
 

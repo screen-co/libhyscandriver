@@ -34,7 +34,6 @@
 
 #include <hyscan-sensor-schema.h>
 #include <hyscan-sonar-schema.h>
-#include <libxml/parser.h>
 #include <string.h>
 
 #define N_SENSORS 16
@@ -451,7 +450,7 @@ int
 main (int    argc,
       char **argv)
 {
-  HyScanDataSchemaBuilder *builder;
+  HyScanDeviceSchema *device_schema;
   HyScanSensorSchema *sensor_schema;
   HyScanSonarSchema *sonar_schema;
   HyScanSensorInfo *sensor_info;
@@ -466,9 +465,9 @@ main (int    argc,
 
   seed = 1000.0 * g_random_double ();
 
-  builder = hyscan_data_schema_builder_new ("device");
-  sensor_schema = hyscan_sensor_schema_new (builder);
-  sonar_schema = hyscan_sonar_schema_new (builder);
+  device_schema = hyscan_device_schema_new (HYSCAN_DEVICE_SCHEMA_VERSION);
+  sensor_schema = hyscan_sensor_schema_new (device_schema);
+  sonar_schema = hyscan_sonar_schema_new (device_schema);
 
   hyscan_sonar_schema_set_software_ping (sonar_schema);
 
@@ -495,7 +494,7 @@ main (int    argc,
     }
 
   /* Создаём схему устройства. */
-  schema = hyscan_data_schema_builder_get_schema (builder);
+  schema = hyscan_data_schema_builder_get_schema (HYSCAN_DATA_SCHEMA_BUILDER (device_schema));
   sensor_info = hyscan_sensor_info_new (schema);
   sonar_info = hyscan_sonar_info_new (schema);
 
@@ -560,11 +559,11 @@ main (int    argc,
     }
 
   g_object_unref (schema);
+  g_object_unref (device_schema);
   g_object_unref (sensor_schema);
   g_object_unref (sonar_schema);
   g_object_unref (sensor_info);
   g_object_unref (sonar_info);
-  g_object_unref (builder);
 
   g_message ("All done");
 

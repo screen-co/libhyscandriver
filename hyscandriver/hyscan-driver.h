@@ -1,6 +1,6 @@
 /* hyscan-driver.h
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -36,23 +36,8 @@
 #define __HYSCAN_DRIVER_H__
 
 #include <hyscan-discover.h>
-#include <hyscan-data-schema.h>
 
 G_BEGIN_DECLS
-
-/**
- * HYSCAN_DRIVER_SCHEMA_ID:
- *
- * Идентификатор схемы информации о драйвере.
- */
-#define HYSCAN_DRIVER_SCHEMA_ID        6327345620348565983
-
-/**
- * HYSCAN_DRIVER_SCHEMA_VERSION:
- *
- * Версия схемы информации о драйвере.
- */
-#define HYSCAN_DRIVER_SCHEMA_VERSION   20170100
 
 #define HYSCAN_TYPE_DRIVER             (hyscan_driver_get_type ())
 #define HYSCAN_DRIVER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_DRIVER, HyScanDriver))

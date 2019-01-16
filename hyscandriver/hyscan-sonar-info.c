@@ -1,6 +1,6 @@
 /* hyscan-sonar-info.c
  *
- * Copyright 2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2018-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -57,11 +57,11 @@
 #include "hyscan-discover.h"
 #include <hyscan-param.h>
 
-#define SONAR_PARAM_NAME(source,prefix,param)                    hyscan_sonar_info_sonar_param_name (name_buffer, \
-                                                                 (gulong)sizeof (name_buffer), \
-                                                                 hyscan_source_get_name_by_type (source), \
-                                                                 prefix, \
-                                                                 param)
+#define SONAR_PARAM_NAME(source, ...)  hyscan_param_name_constructor (key_id, \
+                                         (guint)sizeof (key_id), \
+                                         "sources", \
+                                         hyscan_source_get_name_by_type (source), \
+                                         __VA_ARGS__)
 
 enum
 {
@@ -83,12 +83,6 @@ static void            hyscan_sonar_info_set_property          (GObject         
                                                                 GParamSpec            *pspec);
 static void            hyscan_sonar_info_object_constructed    (GObject               *object);
 static void            hyscan_sonar_info_object_finalize       (GObject               *object);
-
-static const gchar *   hyscan_sonar_info_sonar_param_name      (gchar                 *buffer,
-                                                                guint                  size,
-                                                                const gchar           *source,
-                                                                const gchar           *prefix,
-                                                                const gchar           *param);
 
 static HyScanSourceType *
                        hyscan_sonar_info_list_sources_int      (HyScanDataSchema      *schema,
@@ -212,7 +206,7 @@ hyscan_sonar_info_object_constructed (GObject *object)
     }
 
   /* Признак программного управления излучением. */
-  if (!hyscan_device_schema_get_boolean (priv->schema, "/sources/software-ping", &priv->software_ping))
+  if (!hyscan_data_schema_key_get_boolean (priv->schema, "/sources/software-ping", &priv->software_ping))
     priv->software_ping = FALSE;
 
   /* Параметры источников данных. */
@@ -239,28 +233,6 @@ hyscan_sonar_info_object_finalize (GObject *object)
   g_clear_pointer (&priv->sources_list, g_array_unref);
 
   G_OBJECT_CLASS (hyscan_sonar_info_parent_class)->finalize (object);
-}
-
-/* Функция формирует название параметра гидролокатора. */
-static const gchar *
-hyscan_sonar_info_sonar_param_name (gchar       *buffer,
-                                    guint        size,
-                                    const gchar *source,
-                                    const gchar *prefix,
-                                    const gchar *param)
-{
-  if (prefix != NULL)
-    {
-      g_snprintf (buffer, size, "/sources/%s/%s/%s",
-                  source, prefix, param);
-    }
-  else
-    {
-      g_snprintf (buffer, size, "/sources/%s/%s",
-                  source, param);
-    }
-
-  return buffer;
 }
 
 /* Функуция возвращает список источников гидролокационных данных. */
@@ -318,31 +290,30 @@ hyscan_sonar_info_parse_position (HyScanDataSchema *schema,
                                   HyScanSourceType  source)
 {
   HyScanAntennaPosition info;
-  gchar name_buffer[128];
-  const gchar *name;
+  gchar key_id[128];
 
-  name = SONAR_PARAM_NAME (source, "position", "x");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.x, NULL))
+  SONAR_PARAM_NAME (source, "position/x", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.x, NULL))
     return NULL;
 
-  name = SONAR_PARAM_NAME (source, "position", "y");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.y, NULL))
+  SONAR_PARAM_NAME (source, "position/y", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.y, NULL))
     return NULL;
 
-  name = SONAR_PARAM_NAME (source, "position", "z");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.z, NULL))
+  SONAR_PARAM_NAME (source, "position/z", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.z, NULL))
     return NULL;
 
-  name = SONAR_PARAM_NAME (source, "position", "psi");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.psi, NULL))
+  SONAR_PARAM_NAME (source, "position/psi", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.psi, NULL))
     return NULL;
 
-  name = SONAR_PARAM_NAME (source, "position", "gamma");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.gamma, NULL))
+  SONAR_PARAM_NAME (source, "position/gamma", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.gamma, NULL))
     return NULL;
 
-  name = SONAR_PARAM_NAME (source, "position", "theta");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.theta, NULL))
+  SONAR_PARAM_NAME (source, "position/theta", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.theta, NULL))
     return NULL;
 
   return hyscan_antenna_position_copy (&info);
@@ -354,8 +325,7 @@ hyscan_sonar_info_parse_capabilities (HyScanDataSchema *schema,
                                       HyScanSourceType  source)
 {
   HyScanSonarInfoCapabilities info;
-  gchar name_buffer[128];
-  const gchar *name;
+  gchar key_id[128];
 
   const gchar *cap_string;
   gchar **caps;
@@ -366,8 +336,8 @@ hyscan_sonar_info_parse_capabilities (HyScanDataSchema *schema,
   info.tvg = HYSCAN_SONAR_TVG_MODE_NONE;
 
   /* Режимы работы приёмника. */
-  name = SONAR_PARAM_NAME (source, "receiver", "capabilities");
-  cap_string = hyscan_device_schema_get_string (schema, name);
+  SONAR_PARAM_NAME (source, "receiver/capabilities", NULL);
+  cap_string = hyscan_data_schema_key_get_string (schema, key_id);
   if (cap_string != NULL)
     {
       caps = g_strsplit (cap_string, " ", -1);
@@ -383,8 +353,8 @@ hyscan_sonar_info_parse_capabilities (HyScanDataSchema *schema,
     }
 
   /* Режимы работы генератора. */
-  name = SONAR_PARAM_NAME (source, "generator", "capabilities");
-  cap_string = hyscan_device_schema_get_string (schema, name);
+  SONAR_PARAM_NAME (source, "generator/capabilities", NULL);
+  cap_string = hyscan_data_schema_key_get_string (schema, key_id);
   if (cap_string != NULL)
     {
       caps = g_strsplit (cap_string, " ", -1);
@@ -406,8 +376,8 @@ hyscan_sonar_info_parse_capabilities (HyScanDataSchema *schema,
     }
 
   /* Режимы работы ВАРУ. */
-  name = SONAR_PARAM_NAME (source, "tvg", "capabilities");
-  cap_string = hyscan_device_schema_get_string (schema, name);
+  SONAR_PARAM_NAME (source, "tvg/capabilities", NULL);
+  cap_string = hyscan_data_schema_key_get_string (schema, key_id);
   if (cap_string != NULL)
     {
       caps = g_strsplit (cap_string, " ", -1);
@@ -440,16 +410,14 @@ hyscan_sonar_info_parse_receiver (HyScanDataSchema *schema,
                                   HyScanSourceType  source)
 {
   HyScanSonarInfoReceiver info;
-  gchar name_buffer[128];
-  const gchar *name;
+  gchar key_id[128];
   gboolean status;
 
   /* Основная информация. */
-  name = SONAR_PARAM_NAME (source, "receiver", "time");
-  status = hyscan_device_schema_get_double (schema, name, &info.min_time,
-                                                          &info.max_time,
-                                                          NULL,
-                                                          NULL);
+  SONAR_PARAM_NAME (source, "receiver/time", NULL);
+  status = hyscan_data_schema_key_get_double (schema, key_id,
+                                              &info.min_time, &info.max_time,
+                                              NULL, NULL);
   if (!status)
     return NULL;
 
@@ -463,12 +431,10 @@ hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
 {
   GList *presets = NULL;
   const gchar * const *keys;
-  gchar prefix[128];
+  gchar key_id[128];
   guint i;
 
-  g_snprintf (prefix, sizeof (prefix),
-              "/sources/%s/generator/presets/",
-              hyscan_source_get_name_by_type (source));
+  SONAR_PARAM_NAME (source, "generator/presets/", NULL);
 
   keys = hyscan_data_schema_list_keys (schema);
   for (i = 0; keys[i] != NULL; i++)
@@ -476,10 +442,10 @@ hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
       HyScanDataSchemaEnumValue preset;
       gint64 id;
 
-      if (!g_str_has_prefix (keys[i], prefix))
+      if (!g_str_has_prefix (keys[i], key_id))
         continue;
 
-      if (!hyscan_device_schema_get_integer (schema, keys[i], NULL, NULL, &id, NULL))
+      if (!hyscan_data_schema_key_get_integer (schema, keys[i], NULL, NULL, &id, NULL))
         continue;
 
       preset.value = id;
@@ -499,34 +465,26 @@ hyscan_sonar_info_parse_signal (HyScanDataSchema *schema,
                                 const gchar      *signal)
 {
   HyScanSonarInfoSignal info;
-  gchar name_buffer[128];
-  const gchar *name;
-  gchar prefix[128];
-
+  gchar key_id[128];
   gboolean status;
 
-  g_snprintf (prefix, sizeof (prefix), "generator/%s", signal);
-
-  name = SONAR_PARAM_NAME (source, prefix, "duration");
-  status = hyscan_device_schema_get_double (schema, name, &info.min_duration,
-                                                          &info.max_duration,
-                                                          NULL,
-                                                          &info.duration_step);
+  SONAR_PARAM_NAME (source, "generator", signal, "duration", NULL);
+  status = hyscan_data_schema_key_get_double (schema, key_id,
+                                              &info.min_duration, &info.max_duration,
+                                              NULL, &info.duration_step);
   if (!status)
     return NULL;
 
-  info.duration_name = hyscan_data_schema_key_get_description (schema, name);
+  info.duration_name = hyscan_data_schema_key_get_description (schema, key_id);
   if (info.duration_name == NULL)
     return NULL;
 
-  name = SONAR_PARAM_NAME (source, prefix, "dirty-cycle");
-  status = hyscan_device_schema_get_double (schema, name, NULL,
-                                                          NULL,
-                                                          &info.dirty_cycle,
-                                                          NULL);
+  SONAR_PARAM_NAME (source, "generator", signal, "dirty-cycle", NULL);
+  status = hyscan_data_schema_key_get_double (schema, key_id,
+                                              NULL, NULL,
+                                              &info.dirty_cycle, NULL);
   if (!status)
     return NULL;
-
 
   return hyscan_sonar_info_signal_copy (&info);
 }
@@ -537,8 +495,7 @@ hyscan_sonar_info_parse_generator (HyScanDataSchema *schema,
                                    HyScanSourceType  source)
 {
   HyScanSonarInfoGenerator *info;
-  gchar name_buffer[128];
-  const gchar *name;
+  gchar key_id[128];
 
   gboolean automatic;
   HyScanSonarInfoSignal *tone;
@@ -546,8 +503,8 @@ hyscan_sonar_info_parse_generator (HyScanDataSchema *schema,
   GList *presets;
 
   /* Автоматический выбор сигнала. */
-  name = SONAR_PARAM_NAME (source, "generator", "automatic");
-  if (!hyscan_device_schema_get_boolean (schema, name, &automatic))
+  SONAR_PARAM_NAME (source, "generator/automatic", NULL);
+  if (!hyscan_data_schema_key_get_boolean (schema, key_id, &automatic))
     automatic = FALSE;
 
   /* Параметры тонального сигнала. */
@@ -583,20 +540,18 @@ hyscan_sonar_info_parse_tvg (HyScanDataSchema *schema,
                              HyScanSourceType  source)
 {
   HyScanSonarInfoTVG info;
-  gchar name_buffer[128];
-  const gchar *name;
+  gchar key_id[128];
   gboolean status;
 
-  name = SONAR_PARAM_NAME (source, "tvg", "gain");
-  status = hyscan_device_schema_get_double (schema, name, &info.min_gain,
-                                                          &info.max_gain,
-                                                          NULL,
-                                                          NULL);
+  SONAR_PARAM_NAME (source, "tvg/gain", NULL);
+  status = hyscan_data_schema_key_get_double (schema, key_id,
+                                              &info.min_gain, &info.max_gain,
+                                              NULL, NULL);
   if (!status)
     return NULL;
 
-  name = SONAR_PARAM_NAME (source, "tvg", "decrease");
-  if (!hyscan_device_schema_get_boolean (schema, name, &info.decrease))
+  SONAR_PARAM_NAME (source, "tvg/decrease", NULL);
+  if (!hyscan_data_schema_key_get_boolean (schema, key_id, &info.decrease))
     info.decrease = FALSE;
 
   return hyscan_sonar_info_tvg_copy (&info);
@@ -607,8 +562,7 @@ static HyScanSonarInfoSource *
 hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
                                 HyScanSourceType  source)
 {
-  gchar name_buffer[128];
-  const gchar *name;
+  gchar key_id[128];
 
   HyScanSonarInfoSource *info = NULL;
   const gchar *dev_id = NULL;
@@ -621,18 +575,18 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   HyScanSonarInfoTVG *tvg = NULL;
 
   /* уникальный идентификатор устройства. */
-  name = SONAR_PARAM_NAME (source, NULL, "dev-id");
-  dev_id = hyscan_device_schema_get_string (schema, name);
+  SONAR_PARAM_NAME (source, "dev-id", NULL);
+  dev_id = hyscan_data_schema_key_get_string (schema, key_id);
   if (dev_id == NULL)
     goto fail;
 
   /* Описание источника данных. */
-  name = SONAR_PARAM_NAME (source, NULL, "description");
-  description = hyscan_device_schema_get_string (schema, name);
+  SONAR_PARAM_NAME (source, "description", NULL);
+  description = hyscan_data_schema_key_get_string (schema, key_id);
 
   /* Ведущий источник данных. */
-  name = SONAR_PARAM_NAME (source, NULL, "master");
-  master = hyscan_source_get_type_by_name (hyscan_device_schema_get_string (schema, name));
+  SONAR_PARAM_NAME (source, "master", NULL);
+  master = hyscan_source_get_type_by_name (hyscan_data_schema_key_get_string (schema, key_id));
 
   /* Местоположение антенн по умолчанию. */
   position = hyscan_sonar_info_parse_position (schema, source);

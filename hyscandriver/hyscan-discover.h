@@ -1,6 +1,6 @@
 /* hyscan-discover.h
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -35,17 +35,11 @@
 #ifndef __HYSCAN_DISCOVER_H__
 #define __HYSCAN_DISCOVER_H__
 
+#include <hyscan-device.h>
 #include <hyscan-param-list.h>
 #include <hyscan-data-schema.h>
 
 G_BEGIN_DECLS
-
-/**
- * HYSCAN_DISCOVER_API:
- *
- * Версия API интерфейса обнаружения устройств.
- */
-#define HYSCAN_DISCOVER_API             20180100
 
 #define HYSCAN_TYPE_DISCOVER_INFO       (hyscan_discover_info_get_type ())
 
@@ -57,15 +51,6 @@ G_BEGIN_DECLS
 typedef struct _HyScanDiscover HyScanDiscover;
 typedef struct _HyScanDiscoverInterface HyScanDiscoverInterface;
 typedef struct _HyScanDiscoverInfo HyScanDiscoverInfo;
-
-/**
- * HyScanDevice:
- *
- * Абстрактный тип, описывающий подключение к устройству.
- *
- */
-typedef GObject HyScanDevice;
-#define HYSCAN_DEVICE(obj)              (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_TYPE_OBJECT, HyScanDevice))
 
 /**
  * HyScanDiscoverInfo:

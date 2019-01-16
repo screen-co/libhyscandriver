@@ -21,10 +21,12 @@ add_custom_command (OUTPUT "${CMAKE_BINARY_DIR}/marshallers/hyscan-driver-marsha
                     VERBATIM)
 
 add_library (${HYSCAN_DRIVER_LIBRARY} SHARED
+             hyscan-discover.c
+             hyscan-driver.c
+             hyscan-device.c
              hyscan-sonar.c
              hyscan-sensor.c
-             hyscan-driver.c
-             hyscan-discover.c
+             hyscan-driver-schema.c
              hyscan-device-schema.c
              hyscan-sonar-schema.c
              hyscan-sensor-schema.c
@@ -53,13 +55,17 @@ install (FILES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hyscandriver-${HYSCAN_MAJOR_VE
          DESTINATION "lib/pkgconfig"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
-install (FILES hyscan-sonar.h
-               hyscan-sensor.h
+install (FILES hyscan-discover.h
                hyscan-driver.h
-               hyscan-discover.h
+               hyscan-device.h
+               hyscan-sonar.h
+               hyscan-sensor.h
+               hyscan-driver-schema.h
+               hyscan-device-schema.h
                hyscan-sonar-schema.h
                hyscan-sensor-schema.h
                hyscan-sonar-info.h
+               hyscan-sensor-info.h
          COMPONENT development
          DESTINATION "include/hyscan-${HYSCAN_MAJOR_VERSION}/hyscandriver"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

@@ -1,6 +1,6 @@
 /* hyscan-sonar.h
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -126,7 +126,6 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
 /**
  * HyScanSonarInterface:
  * @g_iface: Базовый интерфейс.
- * @set_sound_velocity: Функция задаёт таблицу профиля скорости звука.
  * @receiver_set_time: Функция задаёт время приёма эхосигнала.
  * @receiver_set_auto: Функция задаёт автоматический выбор времени приёма эхосигнала.
  * @generator_set_preset: Функция включает преднастроенный режим работы генератора.
@@ -143,14 +142,10 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
  * @stop: Функция переводит гидролокатор в ждущий режим и отключает запись данных.
  * @sync: Функция синхронизирует состояние гидролокатора в соответствии с заданными параметрами.
  * @ping: Функция выполняет один цикл излучения сигнала и приёма данных.
- * @disconnect: Функция выполняет отключение от гидролокатора.
  */
 struct _HyScanSonarInterface
 {
   GTypeInterface       g_iface;
-
-  gboolean             (*set_sound_velocity)                   (HyScanSonar                    *sonar,
-                                                                GList                          *svp);
 
   gboolean             (*receiver_set_time)                    (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
@@ -217,16 +212,10 @@ struct _HyScanSonarInterface
   gboolean             (*sync)                                 (HyScanSonar                    *sonar);
 
   gboolean             (*ping)                                 (HyScanSonar                    *sonar);
-
-  gboolean             (*disconnect)                           (HyScanSonar                    *sonar);
 };
 
 HYSCAN_API
 GType                  hyscan_sonar_get_type                   (void);
-
-HYSCAN_API
-gboolean               hyscan_sonar_set_sound_velocity         (HyScanSonar                    *sonar,
-                                                                GList                          *svp);
 
 HYSCAN_API
 gboolean               hyscan_sonar_receiver_set_time          (HyScanSonar                    *sonar,
@@ -309,9 +298,6 @@ gboolean               hyscan_sonar_sync                       (HyScanSonar     
 
 HYSCAN_API
 gboolean               hyscan_sonar_ping                       (HyScanSonar                    *sonar);
-
-HYSCAN_API
-gboolean               hyscan_sonar_disconnect                 (HyScanSonar                    *sonar);
 
 G_END_DECLS
 

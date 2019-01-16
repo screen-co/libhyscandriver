@@ -33,7 +33,7 @@
  */
 
 #include "hyscan-dummy-discover.h"
-#include <hyscan-data-schema-builder.h>
+#include <hyscan-driver-schema.h>
 #include <hyscan-driver.h>
 #include <gmodule.h>
 
@@ -61,21 +61,11 @@ hyscan_driver_info (void)
 {
   if (info == NULL)
     {
+      HyScanDriverSchema *schema;
       HyScanDataSchemaBuilder *builder;
 
-      builder = hyscan_data_schema_builder_new ("driver-info");
-
-      hyscan_data_schema_builder_key_integer_create (builder, "/schema/id",
-                                                     "Schema id", "Schema id",
-                                                     HYSCAN_DRIVER_SCHEMA_ID);
-
-      hyscan_data_schema_builder_key_integer_create (builder, "/schema/version",
-                                                     "Schema version", "Schema version",
-                                                     HYSCAN_DRIVER_SCHEMA_VERSION);
-
-      hyscan_data_schema_builder_key_integer_create (builder, "/api/version",
-                                                     "API version", "API version",
-                                                     HYSCAN_DISCOVER_API);
+      schema = hyscan_driver_schema_new (HYSCAN_DRIVER_SCHEMA_VERSION);
+      builder = HYSCAN_DATA_SCHEMA_BUILDER (schema);
 
       hyscan_data_schema_builder_key_integer_create (builder, "/dummy",
                                                      "Dummy mark", "Dummy mark",
@@ -83,7 +73,7 @@ hyscan_driver_info (void)
 
       info = hyscan_data_schema_builder_get_schema (builder);
 
-      g_object_unref (builder);
+      g_object_unref (schema);
     }
 
   return g_object_ref (info);

@@ -1,6 +1,6 @@
 /* hyscan-device-schema.c
  *
- * Copyright 2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -37,16 +37,21 @@
  * @Short_description: описание схемы устройства
  * @Title: HyScanDeviceSchema
  *
+ * Класс предназначен для автоматизации процесса создания схемы данных
+ * устройства. Класс наследуется от #HyScanDataSchemaBuilder и создаёт в схеме
+ * устройства базовые параметры, такие как идентификатор и версию схемы.
+ *
  * Схема устройства содержит параметры, описывающие структуру и характеристики
  * датчиков и гидролокатора. Описание датчиков должно находится в ветке
- * "/sensors", а гидролокатора в ветке "/sources". Подробное описание этих
- * веток приведено в #HyScanSensorSchema и #HyScanSonarSchema.
+ * "/sensors", а гидролокационных источников данных в ветке "/sources".
+ * Подробное описание этих веток приведено в #HyScanSensorSchema и
+ * #HyScanSonarSchema.
  *
  * Драйвер устройства может содержать параметры, управляющие его поведением.
- * Параметры, расчитанные на пользователей устройства, должны находится в ветке
- * "/params/dev-id". Системные параметры, предназначенные для разработчиков,
- * должны находится в ветке "/system/dev-id". Уровень вложенности для обеих
- * веток не должен превышать трёх, например:
+ * Параметры, предназначенные для пользователей устройства, должны находится в
+ * ветке "/params/dev-id". Системные параметры, предназначенные для
+ * разработчиков, должны находится в ветке "/system/dev-id". Уровень
+ * вложенности для обеих веток не должен превышать трёх, например:
  *
  * - /params/h5se7/mode/type
  * - /system/h5se7/state
@@ -55,13 +60,14 @@
  *
  * Для информирования пользователя о текущем состоянии устройства предназначена
  * ветка "/state/dev-id". В ней должен находится обязательный параметр -
- * status с типом SRING, который содержит текущий статус устройства.
+ * status с типом ENUM (enum-id = "status"), который содержит текущий статус
+ * устройства.
  *
  * Дополнительные параметры должны размещаться в отдельных ветка. Одна ветка
  * предназначена для одного параметра. В ветке должны быть следующие параметры:
  *
  * - value - значение, тип зависит от значения;
- * - status - статус, тип STRING.
+ * - status - статус, тип ENUM (enum-id = "status").
  *
  * Например для отображения статуса системы питания, параметры должны иметь
  * следующий вид:
@@ -71,14 +77,8 @@
  *
  * Название величины значения должно находиться в поле описания параметра
  * (/state/h5se7/psu/value). Название и описание контролируемого параметра
- * должно находиться в описании ветки (/state/h5se7/psu).
- *
- * Поле status может принимать одно из следующих значений:
- *
- * - #HYSCAN_DEVICE_SCHEMA_STATUS_OK - устройство функционирует в штатном режиме;
- * - #HYSCAN_DEVICE_SCHEMA_STATUS_WARNING - в работе устройства присутствуют кратковременные сбои;
- * - #HYSCAN_DEVICE_SCHEMA_STATUS_CRITICAL - в работе устройства присутствуют постоянные сбои;
- * - #HYSCAN_DEVICE_SCHEMA_STATUS_ERROR - ошибка, устройство не может продолжать работу.
+ * должно находиться в описании ветки (/state/h5se7/psu). Поле status может
+ * принимать одно из значений #HyScanDeviceStatusType (enum-id = "status").
  *
  * Параметры в ветке "/state" могут изменяться во время работы устройства, но
  * доступны только для чтения. При изменении этих параметров, драйвер
@@ -91,53 +91,116 @@
  * Во все ветках "dev-id" - уникальный идентификатор устройства.
  */
 
-#include <hyscan-types.h>
 #include "hyscan-device-schema.h"
+#include "hyscan-device.h"
 
-/**
- * hyscan_device_schema_set_id:
- * @builder: указатель на #HyScanDataSchemaBuilder
- *
- * Функция устанавливает идентификатор и версию схемы устройства.
- *
- * Returns: %TRUE если установка выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_device_schema_set_id (HyScanDataSchemaBuilder *builder)
+#define HYSCAN_DEVICE_SCHEMA_ID                         1374652938475623487
+
+enum
 {
-  HyScanDataSchema *schema;
-  gboolean status = FALSE;
+  PROP_O,
+  PROP_VERSION
+};
 
-  schema = hyscan_data_schema_builder_get_schema (builder);
+struct _HyScanDeviceSchemaPrivate
+{
+  gint64       version;
+};
 
-  /* Если версия и идентификатор схемы устройства ещё не заданы, задаём их. */
-  if (!hyscan_data_schema_has_key (schema, "/schema/id") &&
-      !hyscan_data_schema_has_key (schema, "/schema/version"))
+static void    hyscan_device_schema_set_property       (GObject       *object,
+                                                        guint          prop_id,
+                                                        const GValue  *value,
+                                                        GParamSpec    *pspec);
+static void    hyscan_device_schema_object_constructed (GObject       *object);
+
+G_DEFINE_TYPE_WITH_PRIVATE (HyScanDeviceSchema, hyscan_device_schema, HYSCAN_TYPE_DATA_SCHEMA_BUILDER)
+
+static void
+hyscan_device_schema_class_init (HyScanDeviceSchemaClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->set_property = hyscan_device_schema_set_property;
+  object_class->constructed = hyscan_device_schema_object_constructed;
+
+  g_object_class_install_property (object_class, PROP_VERSION,
+    g_param_spec_int64 ("version", "Version", "Device schema version", 0, G_MAXINT64, 0,
+                        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+}
+
+static void
+hyscan_device_schema_init (HyScanDeviceSchema *schema)
+{
+  schema->priv = hyscan_device_schema_get_instance_private (schema);
+}
+
+static void
+hyscan_device_schema_set_property (GObject      *object,
+                                   guint         prop_id,
+                                   const GValue *value,
+                                   GParamSpec   *pspec)
+{
+  HyScanDeviceSchema *schema = HYSCAN_DEVICE_SCHEMA (object);
+  HyScanDeviceSchemaPrivate *priv = schema->priv;
+
+  switch (prop_id)
     {
-      hyscan_data_schema_builder_key_integer_create (builder, "/schema/id", "id",
-                                                     "Device schema id", HYSCAN_DEVICE_SCHEMA_ID);
-      hyscan_data_schema_builder_key_set_access (builder, "/schema/id", HYSCAN_DATA_SCHEMA_ACCESS_READ);
+    case PROP_VERSION:
+      priv->version = g_value_get_int64 (value);
+      break;
 
-      hyscan_data_schema_builder_key_integer_create (builder, "/schema/version", "version",
-                                                     "Device schema version", HYSCAN_DEVICE_SCHEMA_VERSION);
-      hyscan_data_schema_builder_key_set_access (builder, "/schema/version", HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
-      status = TRUE;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
     }
+}
 
-  /* Если версия и идентификатор заданы, проверяем их. */
-  else if (hyscan_device_schema_check_id (schema))
-    {
-      status = TRUE;
-    }
+static void
+hyscan_device_schema_object_constructed (GObject *object)
+{
+  HyScanDeviceSchema *schema = HYSCAN_DEVICE_SCHEMA (object);
+  HyScanDataSchemaBuilder *builder = HYSCAN_DATA_SCHEMA_BUILDER (object);
 
-  g_object_unref (schema);
+  G_OBJECT_CLASS (hyscan_device_schema_parent_class)->constructed (object);
 
-  return status;
+  hyscan_data_schema_builder_key_integer_create (builder, "/schema/id", "id",
+                                                 "Device schema id", HYSCAN_DEVICE_SCHEMA_ID);
+  hyscan_data_schema_builder_key_set_access (builder, "/schema/id", HYSCAN_DATA_SCHEMA_ACCESS_READ);
+
+  hyscan_data_schema_builder_key_integer_create (builder, "/schema/version", "version",
+                                                 "Device schema version", schema->priv->version);
+  hyscan_data_schema_builder_key_set_access (builder, "/schema/version", HYSCAN_DATA_SCHEMA_ACCESS_READ);
+
+  hyscan_data_schema_builder_enum_create (builder, HYSCAN_DEVICE_STATUS_ENUM);
+  hyscan_data_schema_builder_enum_value_create (builder, HYSCAN_DEVICE_STATUS_ENUM,
+                                                HYSCAN_DEVICE_STATUS_ERROR, "Error", NULL);
+  hyscan_data_schema_builder_enum_value_create (builder, HYSCAN_DEVICE_STATUS_ENUM,
+                                                HYSCAN_DEVICE_STATUS_CRITICAL, "Critical", NULL);
+  hyscan_data_schema_builder_enum_value_create (builder, HYSCAN_DEVICE_STATUS_ENUM,
+                                                HYSCAN_DEVICE_STATUS_WARNING, "Warning", NULL);
+  hyscan_data_schema_builder_enum_value_create (builder, HYSCAN_DEVICE_STATUS_ENUM,
+                                                HYSCAN_DEVICE_STATUS_OK, "Ok", NULL);
 }
 
 /**
- * hyscan_device_schema_set_id:
+ * hyscan_device_schema_new:
+ * @version: версия схемы устройства
+ *
+ * Функция создаёт новый объект #HyScanDeviceSchema.
+ *
+ * Returns: #HyScanDeviceSchema. Для удаления #g_object_unref.
+ */
+HyScanDeviceSchema *
+hyscan_device_schema_new (gint64 version)
+{
+  return g_object_new (HYSCAN_TYPE_DEVICE_SCHEMA,
+                       "schema-id", "device",
+                       "version", version,
+                       NULL);
+}
+
+/**
+ * hyscan_device_schema_check_id:
  * @schema: указатель на #HyScanDataSchema
  *
  * Функция проверяет идентификатор и версию схемы устройства.
@@ -147,173 +210,17 @@ hyscan_device_schema_set_id (HyScanDataSchemaBuilder *builder)
 gboolean
 hyscan_device_schema_check_id (HyScanDataSchema *schema)
 {
-  GVariant *id;
-  GVariant *version;
-  gboolean status = FALSE;
+  gint64 id = 0;
+  gint64 version = 0;
 
-  id = hyscan_data_schema_key_get_default (schema, "/schema/id");
-  version = hyscan_data_schema_key_get_default (schema, "/schema/version");
-
-  /* Проверяем текущую версию и идентификатор схемы устройства. */
-  if ((id != NULL) && (g_variant_get_int64 (id) == HYSCAN_DEVICE_SCHEMA_ID) &&
-      (version != NULL) && (g_variant_get_int64 (version) == HYSCAN_DEVICE_SCHEMA_VERSION))
+  if (!hyscan_data_schema_key_get_integer (schema, "/schema/id", NULL, NULL, &id, NULL) ||
+      !hyscan_data_schema_key_get_integer (schema, "/schema/version", NULL, NULL, &version, NULL))
     {
-      status = TRUE;
+      return FALSE;
     }
 
-  g_clear_pointer (&version, g_variant_unref);
-  g_clear_pointer (&id, g_variant_unref);
-
-  return status;
-}
-
-/**
- * hyscan_device_schema_get_boolean:
- * @schema: указатель на #HyScanDataSchema
- * @name: название параметра
- * @value: (out) (nullable): значение параметра
- *
- * Функция получает значение параметра типа BOOLEAN.
- *
- * Return: %TRUE если значение параметра получено, иначе %FALSE.
- */
-gboolean
-hyscan_device_schema_get_boolean (HyScanDataSchema *schema,
-                                  const gchar      *name,
-                                  gboolean         *value)
-{
-  HyScanDataSchemaKeyType ktype;
-  GVariant *vvalue;
-
-  ktype = hyscan_data_schema_key_get_value_type (schema, name);
-  if (ktype != HYSCAN_DATA_SCHEMA_KEY_BOOLEAN)
+  if ((id != HYSCAN_DEVICE_SCHEMA_ID) || (version != HYSCAN_DEVICE_SCHEMA_VERSION))
     return FALSE;
 
-  vvalue = hyscan_data_schema_key_get_default (schema, name);
-  (value != NULL) ? *value = g_variant_get_boolean (vvalue) : 0;
-  g_variant_unref (vvalue);
-
   return TRUE;
-}
-
-/**
- * hyscan_device_schema_get_integer:
- * @schema: указатель на #HyScanDataSchema
- * @name: название параметра
- * @min_value: (out) (nullable): минимальное значение параметра
- * @max_value: (out) (nullable): максимальное значение параметра
- * @default_value: (out) (nullable): значение параметра по умолчанию
- * @value_step: (out) (nullable): рекомендуемый шаг изменения значения параметра
- *
- * Функция получает значение параметра типа INTEGER.
- *
- * Return: %TRUE если значение параметра получено, иначе %FALSE.
- */
-gboolean
-hyscan_device_schema_get_integer (HyScanDataSchema *schema,
-                                  const gchar      *name,
-                                  gint64           *min_value,
-                                  gint64           *max_value,
-                                  gint64           *default_value,
-                                  gint64           *value_step)
-{
-  HyScanDataSchemaKeyType ktype;
-  GVariant *vvalue;
-
-  ktype = hyscan_data_schema_key_get_value_type (schema, name);
-  if (ktype != HYSCAN_DATA_SCHEMA_KEY_INTEGER)
-    return FALSE;
-
-  vvalue = hyscan_data_schema_key_get_minimum (schema, name);
-  (min_value != NULL) ? *min_value = g_variant_get_int64 (vvalue) : 0;
-  g_variant_unref (vvalue);
-
-  vvalue = hyscan_data_schema_key_get_maximum (schema, name);
-  (max_value != NULL) ? *max_value = g_variant_get_int64 (vvalue) : 0;
-  g_variant_unref (vvalue);
-
-  vvalue = hyscan_data_schema_key_get_default (schema, name);
-  (default_value != NULL) ? *default_value = g_variant_get_int64 (vvalue) : 0;
-  g_variant_unref (vvalue);
-
-  vvalue = hyscan_data_schema_key_get_step (schema, name);
-  (value_step != NULL) ? *value_step = g_variant_get_int64 (vvalue) : 0;
-  g_variant_unref (vvalue);
-
-  return TRUE;
-}
-
-/**
- * hyscan_device_schema_get_double:
- * @schema: указатель на #HyScanDataSchema
- * @name: название параметра
- * @min_value: (out) (nullable): минимальное значение параметра
- * @max_value: (out) (nullable): максимальное значение параметра
- * @default_value: (out) (nullable): значение параметра по умолчанию
- * @value_step: (out) (nullable): рекомендуемый шаг изменения значения параметра
- *
- * Функция получает значение параметра типа DOUBLE.
- *
- * Return: %TRUE если значение параметра получено, иначе %FALSE.
- */
-gboolean
-hyscan_device_schema_get_double (HyScanDataSchema *schema,
-                                 const gchar      *name,
-                                 gdouble          *min_value,
-                                 gdouble          *max_value,
-                                 gdouble          *default_value,
-                                 gdouble          *value_step)
-{
-  HyScanDataSchemaKeyType ktype;
-  GVariant *vvalue;
-
-  ktype = hyscan_data_schema_key_get_value_type (schema, name);
-  if (ktype != HYSCAN_DATA_SCHEMA_KEY_DOUBLE)
-    return FALSE;
-
-  vvalue = hyscan_data_schema_key_get_minimum (schema, name);
-  (min_value != NULL) ? *min_value = g_variant_get_double (vvalue) : 0;
-  g_variant_unref (vvalue);
-
-  vvalue = hyscan_data_schema_key_get_maximum (schema, name);
-  (max_value != NULL) ? *max_value = g_variant_get_double (vvalue) : 0;
-  g_variant_unref (vvalue);
-
-  vvalue = hyscan_data_schema_key_get_default (schema, name);
-  (default_value != NULL) ? *default_value = g_variant_get_double (vvalue) : 0;
-  g_variant_unref (vvalue);
-
-  vvalue = hyscan_data_schema_key_get_step (schema, name);
-  (value_step != NULL) ? *value_step = g_variant_get_double (vvalue) : 0;
-  g_variant_unref (vvalue);
-
-  return TRUE;
-}
-
-/**
- * hyscan_device_schema_get_string:
- * @schema: указатель на #HyScanDataSchema
- * @name: название параметра
- *
- * Функция получает значение параметра типа STRING.
- *
- * Return: Значение параметры или NULL.
- */
-const gchar *
-hyscan_device_schema_get_string (HyScanDataSchema *schema,
-                                 const gchar      *name)
-{
-  HyScanDataSchemaKeyType ktype;
-  GVariant *vvalue;
-  const gchar *value;
-
-  ktype = hyscan_data_schema_key_get_value_type (schema, name);
-  if (ktype != HYSCAN_DATA_SCHEMA_KEY_STRING)
-    return NULL;
-
-  vvalue = hyscan_data_schema_key_get_default (schema, name);
-  value = g_variant_get_string (vvalue, NULL);
-  g_variant_unref (vvalue);
-
-  return value;
 }

@@ -1,4 +1,4 @@
-/* hyscan-device-schema.h
+/* hyscan-driver-schema.h
  *
  * Copyright 2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
@@ -32,61 +32,52 @@
  * лицензии. Для этого свяжитесь с ООО Экран - <info@screen-co.ru>.
  */
 
-#ifndef __HYSCAN_DEVICE_SCHEMA_H__
-#define __HYSCAN_DEVICE_SCHEMA_H__
+#ifndef __HYSCAN_DRIVER_SCHEMA_H__
+#define __HYSCAN_DRIVER_SCHEMA_H__
 
 #include <hyscan-data-schema-builder.h>
-#include <hyscan-device.h>
 
 G_BEGIN_DECLS
 
 /**
- * HYSCAN_DEVICE_SCHEMA_VERSION:
+ * HYSCAN_DRIVER_SCHEMA_VERSION:
  *
- * Версия схемы устройства.
+ * Версия схемы информации о драйвере.
  */
-#define HYSCAN_DEVICE_SCHEMA_VERSION          20190100
+#define HYSCAN_DRIVER_SCHEMA_VERSION          20190100
 
-/**
- * HYSCAN_DEVICE_STATUS_ENUM:
- *
- * Идентификатор списка возможных значений статуса устройства.
- *
- */
-#define HYSCAN_DEVICE_STATUS_ENUM             "status"
+#define HYSCAN_TYPE_DRIVER_SCHEMA             (hyscan_driver_schema_get_type ())
+#define HYSCAN_DRIVER_SCHEMA(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_DRIVER_SCHEMA, HyScanDriverSchema))
+#define HYSCAN_IS_DRIVER_SCHEMA(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HYSCAN_TYPE_DRIVER_SCHEMA))
+#define HYSCAN_DRIVER_SCHEMA_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HYSCAN_TYPE_DRIVER_SCHEMA, HyScanDriverSchemaClass))
+#define HYSCAN_IS_DRIVER_SCHEMA_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HYSCAN_TYPE_DRIVER_SCHEMA))
+#define HYSCAN_DRIVER_SCHEMA_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HYSCAN_TYPE_DRIVER_SCHEMA, HyScanDriverSchemaClass))
 
-#define HYSCAN_TYPE_DEVICE_SCHEMA             (hyscan_device_schema_get_type ())
-#define HYSCAN_DEVICE_SCHEMA(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HYSCAN_TYPE_DEVICE_SCHEMA, HyScanDeviceSchema))
-#define HYSCAN_IS_DEVICE_SCHEMA(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HYSCAN_TYPE_DEVICE_SCHEMA))
-#define HYSCAN_DEVICE_SCHEMA_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HYSCAN_TYPE_DEVICE_SCHEMA, HyScanDeviceSchemaClass))
-#define HYSCAN_IS_DEVICE_SCHEMA_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HYSCAN_TYPE_DEVICE_SCHEMA))
-#define HYSCAN_DEVICE_SCHEMA_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HYSCAN_TYPE_DEVICE_SCHEMA, HyScanDeviceSchemaClass))
+typedef struct _HyScanDriverSchema HyScanDriverSchema;
+typedef struct _HyScanDriverSchemaPrivate HyScanDriverSchemaPrivate;
+typedef struct _HyScanDriverSchemaClass HyScanDriverSchemaClass;
 
-typedef struct _HyScanDeviceSchema HyScanDeviceSchema;
-typedef struct _HyScanDeviceSchemaPrivate HyScanDeviceSchemaPrivate;
-typedef struct _HyScanDeviceSchemaClass HyScanDeviceSchemaClass;
-
-struct _HyScanDeviceSchema
+struct _HyScanDriverSchema
 {
   HyScanDataSchemaBuilder parent_instance;
 
-  HyScanDeviceSchemaPrivate *priv;
+  HyScanDriverSchemaPrivate *priv;
 };
 
-struct _HyScanDeviceSchemaClass
+struct _HyScanDriverSchemaClass
 {
   HyScanDataSchemaBuilderClass parent_class;
 };
 
 HYSCAN_API
-GType                  hyscan_device_schema_get_type   (void);
+GType                  hyscan_driver_schema_get_type   (void);
 
 HYSCAN_API
-HyScanDeviceSchema *   hyscan_device_schema_new        (gint64                 version);
+HyScanDriverSchema *   hyscan_driver_schema_new        (gint64                 version);
 
 HYSCAN_API
-gboolean               hyscan_device_schema_check_id   (HyScanDataSchema      *schema);
+gboolean               hyscan_driver_schema_check_id   (HyScanDataSchema      *schema);
 
 G_END_DECLS
 
-#endif /* __HYSCAN_DEVICE_SCHEMA_H__ */
+#endif /* __HYSCAN_DRIVER_SCHEMA_H__ */

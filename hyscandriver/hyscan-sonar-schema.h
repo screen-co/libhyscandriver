@@ -1,6 +1,6 @@
 /* hyscan-sonar-schema.h
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -37,7 +37,6 @@
 
 #include <hyscan-sonar-info.h>
 #include <hyscan-device-schema.h>
-#include <hyscan-data-schema-builder.h>
 
 G_BEGIN_DECLS
 
@@ -68,7 +67,7 @@ HYSCAN_API
 GType                  hyscan_sonar_schema_get_type                    (void);
 
 HYSCAN_API
-HyScanSonarSchema *    hyscan_sonar_schema_new                         (HyScanDataSchemaBuilder       *builder);
+HyScanSonarSchema *    hyscan_sonar_schema_new                         (HyScanDeviceSchema            *schema);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_set_software_ping           (HyScanSonarSchema             *schema);
@@ -105,7 +104,7 @@ gboolean               hyscan_sonar_schema_receiver_set_params         (HyScanSo
 HYSCAN_API
 gboolean               hyscan_sonar_schema_generator_add_preset        (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
-                                                                        gint                           preset_id,
+                                                                        guint                          preset_id,
                                                                         const gchar                   *preset_name,
                                                                         const gchar                   *preset_description);
 

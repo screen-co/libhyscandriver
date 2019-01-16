@@ -1,6 +1,6 @@
 /* hyscan-sensor-schema.h
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -37,7 +37,6 @@
 
 #include <hyscan-sensor-info.h>
 #include <hyscan-device-schema.h>
-#include <hyscan-data-schema-builder.h>
 
 G_BEGIN_DECLS
 
@@ -68,7 +67,7 @@ HYSCAN_API
 GType                  hyscan_sensor_schema_get_type           (void);
 
 HYSCAN_API
-HyScanSensorSchema    *hyscan_sensor_schema_new                (HyScanDataSchemaBuilder       *builder);
+HyScanSensorSchema    *hyscan_sensor_schema_new                (HyScanDeviceSchema            *schema);
 
 HYSCAN_API
 gboolean               hyscan_sensor_schema_add_full           (HyScanSensorSchema            *schema,

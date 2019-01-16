@@ -1,6 +1,6 @@
 /* hyscan-sensor-schema.c
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -80,7 +80,7 @@
  * а общая информация об устройстве и драйвере в ветке "/info". Описание этих
  * веток приведено в #HyscanDeviceSchema.
  *
- * Для создания схемы используется класс #HyScanDataSchemaBuilder, указатель
+ * Для создания схемы используется класс #HyScanDeviceSchema, указатель
  * на который передаётся в функцию #hyscan_sensor_schema_new.
  *
  * Датчик добавляется с помощью функции #hyscan_sensor_schema_add_sensor.
@@ -95,25 +95,29 @@
 #include "hyscan-sensor-schema.h"
 #include "hyscan-device-schema.h"
 
+#define SENSOR_PARAM_NAME(...)  hyscan_param_name_constructor (key_id, \
+                                  (guint)sizeof (key_id), \
+                                  "sensors", __VA_ARGS__)
+
 enum
 {
   PROP_O,
-  PROP_BUILDER
+  PROP_SCHEMA
 };
 
 struct _HyScanSensorSchemaPrivate
 {
-  HyScanDataSchemaBuilder     *builder;                      /* Строитель схемы. */
-  GHashTable                  *sensors;                      /* Наличие датчиков. */
+  HyScanDataSchemaBuilder     *builder;                        /* Строитель схемы. */
+  GHashTable                  *sensors;                        /* Наличие датчиков. */
 };
 
-static void    hyscan_sensor_schema_set_property             (GObject                 *object,
-                                                              guint                    prop_id,
-                                                              const GValue            *value,
-                                                              GParamSpec              *pspec);
+static void    hyscan_sensor_schema_set_property               (GObject                 *object,
+                                                                guint                    prop_id,
+                                                                const GValue            *value,
+                                                                GParamSpec              *pspec);
 
-static void    hyscan_sensor_schema_object_constructed       (GObject                 *object);
-static void    hyscan_sensor_schema_object_finalize          (GObject                 *object);
+static void    hyscan_sensor_schema_object_constructed         (GObject                 *object);
+static void    hyscan_sensor_schema_object_finalize            (GObject                 *object);
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanSensorSchema, hyscan_sensor_schema, G_TYPE_OBJECT)
 
@@ -127,8 +131,8 @@ hyscan_sensor_schema_class_init (HyScanSensorSchemaClass *klass)
   object_class->constructed = hyscan_sensor_schema_object_constructed;
   object_class->finalize = hyscan_sensor_schema_object_finalize;
 
-  g_object_class_install_property (object_class, PROP_BUILDER,
-    g_param_spec_object ("builder", "Builder", "Schema builder", HYSCAN_TYPE_DATA_SCHEMA_BUILDER,
+  g_object_class_install_property (object_class, PROP_SCHEMA,
+    g_param_spec_object ("schema", "Schema", "Device schema", HYSCAN_TYPE_DEVICE_SCHEMA,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 
@@ -149,7 +153,7 @@ hyscan_sensor_schema_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_BUILDER:
+    case PROP_SCHEMA:
       priv->builder = g_value_dup_object (value);
       break;
 
@@ -164,15 +168,6 @@ hyscan_sensor_schema_object_constructed (GObject *object)
 {
   HyScanSensorSchema *schema = HYSCAN_SENSOR_SCHEMA (object);
   HyScanSensorSchemaPrivate *priv = schema->priv;
-  HyScanDataSchemaBuilder *builder = priv->builder;
-
-  G_OBJECT_CLASS (hyscan_sensor_schema_parent_class)->constructed (object);
-
-  if (builder == NULL)
-    return;
-
-  if (!hyscan_device_schema_set_id (builder))
-    return;
 
   priv->sensors = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 }
@@ -191,16 +186,17 @@ hyscan_sensor_schema_object_finalize (GObject *object)
 
 /**
  * hyscan_sensor_schema_new:
+ * @schema: указатель на #HyScanDeviceSchema
  *
  * Функция создаёт новый объект HyScanSensorSchema.
  *
  * Returns: #HyScanSensorSchema. Для удаления #g_object_unref.
  */
 HyScanSensorSchema *
-hyscan_sensor_schema_new (HyScanDataSchemaBuilder *builder)
+hyscan_sensor_schema_new (HyScanDeviceSchema *schema)
 {
   return g_object_new (HYSCAN_TYPE_SENSOR_SCHEMA,
-                       "builder", builder,
+                       "schema", schema,
                        NULL);
 }
 
@@ -232,7 +228,7 @@ hyscan_sensor_schema_add_full (HyScanSensorSchema     *schema,
 /**
  * hyscan_sensor_schema_add_sensor:
  * @schema: указатель на #HyScanSensorSchema
- * @name: название датчика
+ * @sensor: название датчика
  * @dev_id: уникальный идентификатор устройства
  * @description: описание датчика
  *
@@ -242,13 +238,13 @@ hyscan_sensor_schema_add_full (HyScanSensorSchema     *schema,
  */
 gboolean
 hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
-                                 const gchar        *name,
+                                 const gchar        *sensor,
                                  const gchar        *dev_id,
                                  const gchar        *description)
 {
   HyScanDataSchemaBuilder *builder;
   gboolean status;
-  gchar *key_id;
+  gchar key_id[128];
 
   g_return_val_if_fail (HYSCAN_IS_SENSOR_SCHEMA (schema), FALSE);
 
@@ -256,15 +252,14 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   if (builder == NULL)
     return FALSE;
 
-  if (g_hash_table_contains (schema->priv->sensors, name))
+  if (g_hash_table_contains (schema->priv->sensors, sensor))
     return FALSE;
 
   /* Уникальный идентификатор устройства. */
   status = FALSE;
-  key_id = g_strdup_printf ("/sensors/%s/dev-id", name);
+  SENSOR_PARAM_NAME (sensor, "dev-id", NULL);
   if (hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-  g_free (key_id);
 
   if (!status)
     return FALSE;
@@ -273,17 +268,16 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   if (description != NULL)
     {
       status = FALSE;
-      key_id = g_strdup_printf ("/sensors/%s/description", name);
+      SENSOR_PARAM_NAME (sensor, "description", NULL);
       if (hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description))
         status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-      g_free (key_id);
 
       if (!status)
         return FALSE;
     }
 
   if (status)
-    g_hash_table_insert (schema->priv->sensors, g_strdup (name), NULL);
+    g_hash_table_insert (schema->priv->sensors, g_strdup (sensor), NULL);
 
   return status;
 }
@@ -300,13 +294,12 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
  */
 gboolean
 hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
-                                   const gchar           *name,
+                                   const gchar           *sensor,
                                    HyScanAntennaPosition *position)
 {
   HyScanDataSchemaBuilder *builder;
   gboolean status = FALSE;
-  gchar *prefix;
-  gchar *key_id;
+  gchar key_id[128];
 
   g_return_val_if_fail (HYSCAN_IS_SENSOR_SCHEMA (schema), FALSE);
 
@@ -314,59 +307,57 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
   if (builder == NULL)
     return FALSE;
 
-  if (!g_hash_table_contains (schema->priv->sensors, name))
+  if (!g_hash_table_contains (schema->priv->sensors, sensor))
     return FALSE;
 
-  prefix = g_strdup_printf ("/sensors/%s/antenna/position", name);
 
   /* Местоположение антенны. */
-  key_id = g_strdup_printf ("%s/x", prefix);
+  status = FALSE;
+  SENSOR_PARAM_NAME (sensor, "position/x", NULL);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, position->x))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-  g_free (key_id);
 
   if (!status)
     goto exit;
 
-  key_id = g_strdup_printf ("%s/y", prefix);
+  status = FALSE;
+  SENSOR_PARAM_NAME (sensor, "position/y", NULL);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  position->y))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-  g_free (key_id);
 
   if (!status)
     goto exit;
 
-  key_id = g_strdup_printf ("%s/z", prefix);
+  status = FALSE;
+  SENSOR_PARAM_NAME (sensor, "position/z", NULL);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  position->z))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-  g_free (key_id);
 
   if (!status)
     goto exit;
 
-  key_id = g_strdup_printf ("%s/psi", prefix);
+  status = FALSE;
+  SENSOR_PARAM_NAME (sensor, "position/psi", NULL);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, position->psi))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-  g_free (key_id);
 
   if (!status)
     goto exit;
 
-  key_id = g_strdup_printf ("%s/gamma", prefix);
+  status = FALSE;
+  SENSOR_PARAM_NAME (sensor, "position/gamma", NULL);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, position->gamma))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-  g_free (key_id);
 
   if (!status)
     goto exit;
 
-  key_id = g_strdup_printf ("%s/theta", prefix);
+  status = FALSE;
+  SENSOR_PARAM_NAME (sensor, "position/theta", NULL);
   if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, position->theta))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-  g_free (key_id);
 
 exit:
-  g_free (prefix);
 
   return status;
 }

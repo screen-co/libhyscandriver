@@ -1,6 +1,6 @@
 /* hyscan-sensor-info.c
  *
- * Copyright 2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2018-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanDriver library.
  *
@@ -52,9 +52,9 @@
 #include "hyscan-device-schema.h"
 #include <hyscan-data-schema.h>
 
-#define SENSOR_PARAM_NAME(sensor,prefix,param)                 hyscan_sensor_info_sonar_param_name (name_buffer, \
-                                                               (gulong)sizeof (name_buffer), \
-                                                               sensor, prefix, param)
+#define SENSOR_PARAM_NAME(...)  hyscan_param_name_constructor (key_id, \
+                                  (guint)sizeof (key_id), \
+                                  "sensors", __VA_ARGS__)
 
 enum
 {
@@ -64,9 +64,9 @@ enum
 
 struct _HyScanSensorInfoPrivate
 {
-  HyScanDataSchema            *schema;         /* Схема устройства. */
-  GHashTable                  *sensors;        /* Параметры датчиков. */
-  GArray                      *sensors_list;   /* Список датчиков. */
+  HyScanDataSchema    *schema;                                  /* Схема устройства. */
+  GHashTable          *sensors;                                /* Параметры датчиков. */
+  GArray              *sensors_list;                           /* Список датчиков. */
 };
 
 static void            hyscan_sensor_info_set_property         (GObject               *object,
@@ -75,12 +75,6 @@ static void            hyscan_sensor_info_set_property         (GObject         
                                                                 GParamSpec            *pspec);
 static void            hyscan_sensor_info_object_constructed   (GObject               *object);
 static void            hyscan_sensor_info_object_finalize      (GObject               *object);
-
-static const gchar *   hyscan_sensor_info_sonar_param_name     (gchar                 *buffer,
-                                                                guint                  size,
-                                                                const gchar           *sensor,
-                                                                const gchar           *prefix,
-                                                                const gchar           *param);
 
 static HyScanAntennaPosition *
                        hyscan_sensor_info_parse_position       (HyScanDataSchema      *schema,
@@ -180,59 +174,36 @@ hyscan_sensor_info_object_finalize (GObject *object)
   G_OBJECT_CLASS (hyscan_sensor_info_parent_class)->finalize (object);
 }
 
-/* Функция формирует название параметра датчика. */
-static const gchar *
-hyscan_sensor_info_sonar_param_name (gchar       *buffer,
-                                     guint        size,
-                                     const gchar *sensor,
-                                     const gchar *prefix,
-                                     const gchar *param)
-{
-  if (prefix != NULL)
-    {
-      g_snprintf (buffer, size, "/sensors/%s/%s/%s",
-                  sensor, prefix, param);
-    }
-  else
-    {
-      g_snprintf (buffer, size, "/sensors/%s/%s",
-                  sensor, param);
-    }
-
-  return buffer;
-}
-
 /* Функция считывает информацию о местоположении антенн. */
 static HyScanAntennaPosition *
 hyscan_sensor_info_parse_position (HyScanDataSchema *schema,
                                    const gchar      *sensor)
 {
   HyScanAntennaPosition info;
-  gchar name_buffer[128];
-  const gchar *name;
+  gchar key_id[128];
 
-  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/x");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.x, NULL))
+  SENSOR_PARAM_NAME (sensor, "position/x", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.x, NULL))
     return NULL;
 
-  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/y");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.y, NULL))
+  SENSOR_PARAM_NAME (sensor, "position/y", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.y, NULL))
     return NULL;
 
-  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/z");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.z, NULL))
+  SENSOR_PARAM_NAME (sensor, "position/z", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.z, NULL))
     return NULL;
 
-  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/psi");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.psi, NULL))
+  SENSOR_PARAM_NAME (sensor, "position/psi", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.psi, NULL))
     return NULL;
 
-  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/gamma");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.gamma, NULL))
+  SENSOR_PARAM_NAME (sensor, "position/gamma", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.gamma, NULL))
     return NULL;
 
-  name = SENSOR_PARAM_NAME (sensor, "antenna", "position/theta");
-  if (!hyscan_device_schema_get_double (schema, name, NULL, NULL, &info.theta, NULL))
+  SENSOR_PARAM_NAME (sensor, "position/theta", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.theta, NULL))
     return NULL;
 
   return hyscan_antenna_position_copy (&info);
@@ -244,6 +215,7 @@ hyscan_sensor_info_parse_sensors (HyScanDataSchema *schema)
 {
   GHashTable *sensors;
   const gchar * const *keys;
+  gchar key_id[128];
   guint i;
 
   keys = hyscan_data_schema_list_keys (schema);
@@ -269,16 +241,14 @@ hyscan_sensor_info_parse_sensors (HyScanDataSchema *schema)
           HyScanSensorInfoSensor *info;
           const gchar *description;
           const gchar *dev_id;
-          gchar name_buffer[128];
-          const gchar *name;
 
-          name = SENSOR_PARAM_NAME (keyv[2], NULL, "dev-id");
-          dev_id = hyscan_device_schema_get_string (schema, name);
+          SENSOR_PARAM_NAME (keyv[2], "dev-id", NULL);
+          dev_id = hyscan_data_schema_key_get_string (schema, key_id);
           if (dev_id == NULL)
             continue;
 
-          name = SENSOR_PARAM_NAME (keyv[2], NULL, "description");
-          description = hyscan_device_schema_get_string (schema, name);
+          SENSOR_PARAM_NAME (keyv[2], "description", NULL);
+          description = hyscan_data_schema_key_get_string (schema, key_id);
 
           info = g_slice_new0 (HyScanSensorInfoSensor);
           info->name = g_strdup (keyv[2]);
