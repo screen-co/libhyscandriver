@@ -51,9 +51,8 @@ endif ()
 
 pkg_check_modules (GLIB2 REQUIRED glib-2.0 gobject-2.0 gthread-2.0 gio-2.0)
 pkg_check_modules (GMODULE2 REQUIRED gmodule-2.0)
-pkg_check_modules (LIBXML2 REQUIRED libxml-2.0)
-link_directories (${GLIB2_LIBRARY_DIRS} ${GMODULE2_LIBRARY_DIRS} ${LIBXML2_LIBRARY_DIRS})
-add_definitions (${GLIB2_CFLAGS} ${GMODULE2_CFLAGS} ${LIBXML2_CFLAGS})
+link_directories (${GLIB2_LIBRARY_DIRS} ${GMODULE2_LIBRARY_DIRS})
+add_definitions (${GLIB2_CFLAGS} ${GMODULE2_CFLAGS})
 
 if (HYSCAN_USE_SYS_LIBS)
   pkg_check_modules (HYSCAN REQUIRED "hyscantypes-${HYSCAN_MAJOR_VERSION}")

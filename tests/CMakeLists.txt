@@ -1,6 +1,5 @@
 
 set (TEST_LIBRARIES ${GLIB2_LIBRARIES}
-                    ${LIBXML2_LIBRARIES}
                     ${HYSCAN_DRIVER_LIBRARY})
 
 add_definitions (-DDUMMY_DRIVER_PREFIX="dummy")
