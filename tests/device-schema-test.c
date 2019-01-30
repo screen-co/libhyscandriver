@@ -47,26 +47,15 @@ HyScanSourceType orig_sources[] =
   HYSCAN_SOURCE_ECHOSOUNDER,
   HYSCAN_SOURCE_ECHOSOUNDER_HI,
   HYSCAN_SOURCE_PROFILER,
-  HYSCAN_SOURCE_ECHOPROFILER,
+  HYSCAN_SOURCE_PROFILER_ECHO,
   HYSCAN_SOURCE_BATHYMETRY_STARBOARD,
   HYSCAN_SOURCE_BATHYMETRY_PORT,
   HYSCAN_SOURCE_LOOK_AROUND_STARBOARD,
-  HYSCAN_SOURCE_LOOK_AROUND_PORT
+  HYSCAN_SOURCE_LOOK_AROUND_PORT,
+  HYSCAN_SOURCE_FORWARD_LOOK,
+  HYSCAN_SOURCE_FORWARD_ECHO
 };
 guint32 orig_n_sources = sizeof (orig_sources) / sizeof (HyScanSourceType);
-
-HyScanSourceType
-get_master (HyScanSourceType source)
-{
-  if (source == HYSCAN_SOURCE_BATHYMETRY_STARBOARD)
-    return HYSCAN_SOURCE_SIDE_SCAN_STARBOARD;
-  if (source == HYSCAN_SOURCE_BATHYMETRY_PORT)
-    return HYSCAN_SOURCE_SIDE_SCAN_PORT;
-  if (source == HYSCAN_SOURCE_ECHOPROFILER)
-    return HYSCAN_SOURCE_PROFILER;
-
-  return HYSCAN_SOURCE_INVALID;
-}
 
 HyScanAntennaPosition *
 create_sensor_position (const gchar *name,
@@ -123,30 +112,21 @@ HyScanSonarInfoSource *
 create_source (HyScanSourceType source,
                gdouble          seed)
 {
+  HyScanSonarInfoSource info = {0};
   HyScanSonarInfoSource *pinfo;
-  HyScanSonarInfoSource info;
 
-  HyScanSourceType master;
-  HyScanAntennaPosition position;
-  HyScanSonarInfoCapabilities capabilities;
-  HyScanSonarInfoReceiver receiver;
-  HyScanSonarInfoGenerator generator;
-  HyScanSonarInfoTVG tvg;
-
-  HyScanSonarInfoSignal tone;
-  HyScanSonarInfoSignal lfm;
+  HyScanAntennaPosition position = {0};
+  HyScanSonarInfoReceiver receiver = {0};
+  HyScanSonarInfoTVG tvg = {0};
   GList *presets = NULL;
 
   const gchar *source_name;
+  HyScanSourceType i;
 
   memset (&info, 0, sizeof (info));
   memset (&position, 0, sizeof (position));
-  memset (&capabilities, 0, sizeof (capabilities));
   memset (&receiver, 0, sizeof (receiver));
-  memset (&generator, 0, sizeof (generator));
   memset (&tvg, 0, sizeof (tvg));
-  memset (&tone, 0, sizeof (tone));
-  memset (&lfm, 0, sizeof (lfm));
 
   source_name = hyscan_source_get_name_by_type (source);
   seed = seed * source;
@@ -156,126 +136,50 @@ create_source (HyScanSourceType source,
   info.dev_id = source_name;
   info.description = source_name;
 
-  /* Ведущий источник данных. */
-  master = get_master (source);
-  info.master = master;
-
   /* Местоположение антенн по умолчанию. */
-  if (master == HYSCAN_SOURCE_INVALID)
-    {
-      position.x = -seed;
-      position.y = seed;
-      position.z = -seed / 2.0;
-      position.psi = -seed * 2.0;
-      position.gamma = seed / 2.0;
-      position.theta = seed * 2.0;
-      info.position = &position;
-    }
-
-  /* Режимы работы источника данных. */
-  capabilities.receiver = HYSCAN_SONAR_RECEIVER_MODE_NONE;
-  capabilities.generator = HYSCAN_SONAR_GENERATOR_MODE_NONE;
-  capabilities.tvg = HYSCAN_SONAR_TVG_MODE_NONE;
-  info.capabilities = &capabilities;
+  position.x = -seed;
+  position.y = seed;
+  position.z = -seed / 2.0;
+  position.psi = -seed * 2.0;
+  position.gamma = seed / 2.0;
+  position.theta = seed * 2.0;
+  info.position = &position;
 
   /* Параметры приёмника. */
-  if ((master == HYSCAN_SOURCE_INVALID) || (master == HYSCAN_SOURCE_PROFILER))
+  receiver.capabilities = HYSCAN_SONAR_RECEIVER_MODE_MANUAL;
+  receiver.capabilities |= (source % 2) ? HYSCAN_SONAR_RECEIVER_MODE_AUTO : 0;
+  receiver.min_time = -seed;
+  receiver.max_time = seed;
+  info.receiver = &receiver;
+
+  /* Режимы работы генератора. */
+  for (i = 0; i < source; i++)
     {
-      capabilities.receiver = HYSCAN_SONAR_RECEIVER_MODE_MANUAL;
-      capabilities.receiver |= (source % 2) ? HYSCAN_SONAR_RECEIVER_MODE_AUTO : 0;
+      HyScanDataSchemaEnumValue *preset;
+      gchar *name = g_strdup_printf ("%s preset %d", source_name, i + 1);
+      gchar *description = g_strdup_printf ("%s description %d", source_name, i + 1);
 
-      receiver.min_time = -seed;
-      receiver.max_time = seed;
-      info.receiver = &receiver;
+      preset = hyscan_data_schema_enum_value_new (i, name, description);
+      presets = g_list_append (presets, preset);
+
+      g_free (description);
+      g_free (name);
     }
-
-  /* Параметры генератора. */
-  if (master == HYSCAN_SOURCE_INVALID)
-    {
-      HyScanSonarGeneratorSignalType signals;
-      guint n_presets = source;
-      guint i;
-
-      capabilities.generator = HYSCAN_SONAR_GENERATOR_MODE_PRESET;
-      capabilities.generator |= (source % 2) ? HYSCAN_SONAR_GENERATOR_MODE_AUTO : 0;
-      capabilities.generator |= (source % 3) ? HYSCAN_SONAR_GENERATOR_MODE_SIMPLE : 0;
-      capabilities.generator |= (source % 4) ? HYSCAN_SONAR_GENERATOR_MODE_EXTENDED : 0;
-
-      /* Типы сигналов. */
-      signals = HYSCAN_SONAR_GENERATOR_SIGNAL_NONE;
-      if (capabilities.generator != HYSCAN_SONAR_GENERATOR_MODE_PRESET)
-        {
-          signals |= (source % 2) ? HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO : 0;
-          signals |= (source % 3) ? HYSCAN_SONAR_GENERATOR_SIGNAL_TONE : 0;
-          signals |= (source % 4) ? HYSCAN_SONAR_GENERATOR_SIGNAL_LFM : 0;
-
-          /* Автоматический выбор сигнала. */
-          generator.automatic = signals & HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO;
-
-          /* Параметры тонального сигнала. */
-          if (signals & HYSCAN_SONAR_GENERATOR_SIGNAL_TONE)
-            {
-              tone.duration_name = "tone";
-              tone.min_duration = seed / 10;
-              tone.max_duration = seed * 10;
-              tone.duration_step = seed;
-              tone.dirty_cycle = seed;
-
-              generator.tone = &tone;
-            }
-
-          /* Параметры ЛЧМ сигнала. */
-          if (signals & HYSCAN_SONAR_GENERATOR_SIGNAL_LFM)
-            {
-              lfm.duration_name = "lfm";
-              lfm.min_duration = seed / 2;
-              lfm.max_duration = seed * 2;
-              lfm.duration_step = seed;
-              lfm.dirty_cycle = seed;
-
-              generator.lfm = &lfm;
-            }
-        }
-
-      /* Преднастройки генератора. */
-      for (i = 0; i < n_presets; i++)
-        {
-          HyScanDataSchemaEnumValue *preset;
-          gchar *name = g_strdup_printf ("%s preset %d", source_name, i + 1);
-          gchar *description = g_strdup_printf ("%s description %d", source_name, i + 1);
-
-          preset = hyscan_data_schema_enum_value_new (i, name, description);
-          presets = g_list_append (presets, preset);
-
-          g_free (description);
-          g_free (name);
-        }
-      generator.presets = presets;
-
-      info.generator = &generator;
-    }
+  info.presets = presets;
 
   /* Параметры ВАРУ. */
-  if ((master == HYSCAN_SOURCE_INVALID) || (master == HYSCAN_SOURCE_PROFILER))
+  tvg.capabilities = HYSCAN_SONAR_TVG_MODE_AUTO;
+  tvg.capabilities |= (source % 3) ? HYSCAN_SONAR_TVG_MODE_CONSTANT : 0;
+  tvg.capabilities |= (source % 4) ? HYSCAN_SONAR_TVG_MODE_LINEAR_DB : 0;
+  tvg.capabilities |= (source % 5) ? HYSCAN_SONAR_TVG_MODE_LOGARITHMIC : 0;
+  tvg.decrease = (source % 2);
+
+  if (tvg.capabilities != HYSCAN_SONAR_TVG_MODE_AUTO)
     {
-      gboolean decrease;
-
-      capabilities.tvg = HYSCAN_SONAR_TVG_MODE_AUTO;
-      capabilities.tvg |= (source % 2) ? HYSCAN_SONAR_TVG_MODE_POINTS : 0;
-      capabilities.tvg |= (source % 3) ? HYSCAN_SONAR_TVG_MODE_CONSTANT : 0;
-      capabilities.tvg |= (source % 4) ? HYSCAN_SONAR_TVG_MODE_LINEAR_DB : 0;
-      capabilities.tvg |= (source % 5) ? HYSCAN_SONAR_TVG_MODE_LOGARITHMIC : 0;
-      decrease = (source % 2);
-
-      if (capabilities.tvg != HYSCAN_SONAR_TVG_MODE_AUTO)
-        {
-          tvg.min_gain = -seed;
-          tvg.max_gain = seed;
-          tvg.decrease = decrease;
-
-          info.tvg = &tvg;
-        }
+      tvg.min_gain = -seed;
+      tvg.max_gain = seed;
     }
+  info.tvg = &tvg;
 
   pinfo = hyscan_sonar_info_source_copy (&info);
 
@@ -326,10 +230,6 @@ verify_source (const HyScanSonarInfoSource *source1,
   if (g_strcmp0 (source1->description, source2->description) != 0)
     g_error ("description failed");
 
-  /* Ведущий источник данных. */
-  if (source1->master != source2->master)
-    g_error ("master failed");
-
   /* Местоположение антенн по умолчанию. */
   if ((source1->position != NULL) ||
       (source2->position != NULL))
@@ -345,19 +245,12 @@ verify_source (const HyScanSonarInfoSource *source1,
         }
     }
 
-  /* Режимы работы источника данных. */
-  if ((source1->capabilities->receiver != source2->capabilities->receiver) ||
-      (source1->capabilities->generator != source2->capabilities->generator) ||
-      (source1->capabilities->tvg != source2->capabilities->tvg))
-    {
-      g_error ("capabilities failed");
-    }
-
   /* Параметры приёмника. */
   if ((source1->receiver != NULL) ||
       (source2->receiver != NULL))
     {
-      if ((source1->receiver->min_time != source2->receiver->min_time) ||
+      if ((source1->receiver->capabilities != source2->receiver->capabilities) ||
+          (source1->receiver->min_time != source2->receiver->min_time) ||
           (source1->receiver->max_time != source2->receiver->max_time))
         {
           g_error ("receiver failed");
@@ -365,71 +258,38 @@ verify_source (const HyScanSonarInfoSource *source1,
     }
 
   /* Параметры генератора. */
-  if ((source1->generator != NULL) ||
-      (source2->generator != NULL))
+  if ((source1->presets != NULL) ||
+      (source2->presets != NULL))
     {
-      GList *orig_presets = source1->generator->presets;
+      GList *presets1 = source1->presets;
 
       /* Преднастройки генератора. */
-      while (orig_presets != NULL)
+      while (presets1 != NULL)
         {
-          HyScanDataSchemaEnumValue *orig_preset = orig_presets->data;
-          GList *presets = source2->generator->presets;
+          HyScanDataSchemaEnumValue *preset1 = presets1->data;
+          GList *presets2 = source2->presets;
           gboolean status = FALSE;
 
-          while (presets != NULL)
+          while (presets2 != NULL)
             {
-              HyScanDataSchemaEnumValue *preset = presets->data;
+              HyScanDataSchemaEnumValue *preset2 = presets2->data;
 
-              if ((orig_preset->value == preset->value) &&
-                  (g_strcmp0 (orig_preset->name, preset->name) == 0) &&
-                  (g_strcmp0 (orig_preset->description, preset->description) == 0))
+              if ((preset1->value == preset2->value) &&
+                  (g_strcmp0 (preset1->name, preset2->name) == 0) &&
+                  (g_strcmp0 (preset1->description, preset2->description) == 0))
                 {
                   if (status)
-                    g_error ("%s dup", orig_preset->name);
+                    g_error ("%s dup", preset1->name);
 
                   status = TRUE;
                 }
 
-              presets = g_list_next (presets);
+              presets2 = g_list_next (presets2);
             }
           if (!status)
-            g_error ("%s failed", orig_preset->name);
+            g_error ("%s failed", preset1->name);
 
-          orig_presets = g_list_next (orig_presets);
-        }
-
-      /* Параметры сигналов. */
-      if (source1->generator->signals != source2->generator->signals)
-        g_error ("generator signals failed %d %d", source1->generator->signals, source2->generator->signals);
-
-      if (source1->generator->automatic != source2->generator->automatic)
-        g_error ("generator auto signal failed");
-
-      if ((source1->generator->tone != NULL) ||
-          (source2->generator->tone != NULL))
-        {
-          if ((g_strcmp0 (source1->generator->tone->duration_name, source2->generator->tone->duration_name) != 0) ||
-              (source1->generator->tone->min_duration != source2->generator->tone->min_duration) ||
-              (source1->generator->tone->max_duration != source2->generator->tone->max_duration) ||
-              (source1->generator->tone->duration_step != source2->generator->tone->duration_step) ||
-              (source1->generator->tone->dirty_cycle != source2->generator->tone->dirty_cycle))
-            {
-              g_error ("generator tone signal failed");
-            }
-        }
-
-      if ((source1->generator->lfm != NULL) ||
-          (source2->generator->lfm != NULL))
-        {
-          if ((g_strcmp0 (source1->generator->lfm->duration_name, source2->generator->lfm->duration_name) != 0) ||
-              (source1->generator->lfm->min_duration != source2->generator->lfm->min_duration) ||
-              (source1->generator->lfm->max_duration != source2->generator->lfm->max_duration) ||
-              (source1->generator->lfm->duration_step != source2->generator->lfm->duration_step) ||
-              (source1->generator->lfm->dirty_cycle != source2->generator->lfm->dirty_cycle))
-            {
-              g_error ("generator lfm signal failed");
-            }
+          presets1 = g_list_next (presets1);
         }
     }
 
@@ -437,7 +297,8 @@ verify_source (const HyScanSonarInfoSource *source1,
   if ((source1->tvg != NULL) ||
       (source2->tvg != NULL))
     {
-      if ((source1->tvg->min_gain != source2->tvg->min_gain) ||
+      if ((source1->tvg->capabilities != source2->tvg->capabilities) ||
+          (source1->tvg->min_gain != source2->tvg->min_gain) ||
           (source1->tvg->max_gain != source2->tvg->max_gain) ||
           (source1->tvg->decrease != source2->tvg->decrease))
         {
@@ -469,8 +330,6 @@ main (int    argc,
   sensor_schema = hyscan_sensor_schema_new (device_schema);
   sonar_schema = hyscan_sonar_schema_new (device_schema);
 
-  hyscan_sonar_schema_set_software_ping (sonar_schema);
-
   /* Создаём датчики. */
   for (i = 0; i < N_SENSORS; i++)
     {
@@ -497,10 +356,6 @@ main (int    argc,
   schema = hyscan_data_schema_builder_get_schema (HYSCAN_DATA_SCHEMA_BUILDER (device_schema));
   sensor_info = hyscan_sensor_info_new (schema);
   sonar_info = hyscan_sonar_info_new (schema);
-
-  /* Проверяем схему устройства. */
-  if (!hyscan_sonar_info_get_software_ping (sonar_info))
-    g_error ("software ping failed");
 
   /* Проверяем список датчиков. */
   sensors = hyscan_sensor_info_list_sensors (sensor_info);

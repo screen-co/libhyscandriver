@@ -74,7 +74,6 @@ struct _HyScanSonarInfoPrivate
   HyScanDataSchema            *schema;         /* Схема устройства. */
   GHashTable                  *sources;        /* Параметры источников данных. */
   GArray                      *sources_list;   /* Список источников данных. */
-  gboolean                     software_ping;  /* Признак программного управления излучением. */
 };
 
 static void            hyscan_sonar_info_set_property          (GObject               *object,
@@ -92,25 +91,12 @@ static HyScanAntennaPosition *
                        hyscan_sonar_info_parse_position        (HyScanDataSchema      *schema,
                                                                 HyScanSourceType       source);
 
-static HyScanSonarInfoCapabilities *
-                       hyscan_sonar_info_parse_capabilities    (HyScanDataSchema      *schema,
-                                                                HyScanSourceType       source);
-
 static GList *
                        hyscan_sonar_info_parse_presets         (HyScanDataSchema      *schema,
                                                                 HyScanSourceType       source);
 
-static HyScanSonarInfoSignal *
-                       hyscan_sonar_info_parse_signal          (HyScanDataSchema      *schema,
-                                                                HyScanSourceType       source,
-                                                                const gchar           *name);
-
 static HyScanSonarInfoReceiver *
                        hyscan_sonar_info_parse_receiver        (HyScanDataSchema      *schema,
-                                                                HyScanSourceType       source);
-
-static HyScanSonarInfoGenerator *
-                       hyscan_sonar_info_parse_generator       (HyScanDataSchema      *schema,
                                                                 HyScanSourceType       source);
 
 static HyScanSonarInfoTVG *
@@ -126,20 +112,11 @@ static GHashTable *    hyscan_sonar_info_parse_sources         (HyScanDataSchema
 G_DEFINE_BOXED_TYPE (HyScanSonarInfoSource, hyscan_sonar_info_source,
                      hyscan_sonar_info_source_copy, hyscan_sonar_info_source_free)
 
-G_DEFINE_BOXED_TYPE (HyScanSonarInfoCapabilities, hyscan_sonar_info_capabilities,
-                     hyscan_sonar_info_capabilities_copy, hyscan_sonar_info_capabilities_free)
-
 G_DEFINE_BOXED_TYPE (HyScanSonarInfoReceiver, hyscan_sonar_info_receiver,
                      hyscan_sonar_info_receiver_copy, hyscan_sonar_info_receiver_free)
 
-G_DEFINE_BOXED_TYPE (HyScanSonarInfoGenerator, hyscan_sonar_generator_tvg,
-                     hyscan_sonar_info_generator_copy, hyscan_sonar_info_generator_free)
-
 G_DEFINE_BOXED_TYPE (HyScanSonarInfoTVG, hyscan_sonar_info_tvg,
                      hyscan_sonar_info_tvg_copy, hyscan_sonar_info_tvg_free)
-
-G_DEFINE_BOXED_TYPE (HyScanSonarInfoSignal, hyscan_sonar_info_signal,
-                     hyscan_sonar_info_signal_copy, hyscan_sonar_info_signal_free)
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanSonarInfo, hyscan_sonar_info, G_TYPE_OBJECT)
 
@@ -204,10 +181,6 @@ hyscan_sonar_info_object_constructed (GObject *object)
       g_warning ("HyScanSonarInfo: unsupported device schema");
       return;
     }
-
-  /* Признак программного управления излучением. */
-  if (!hyscan_data_schema_key_get_boolean (priv->schema, "/sources/software-ping", &priv->software_ping))
-    priv->software_ping = FALSE;
 
   /* Параметры источников данных. */
   priv->sources = hyscan_sonar_info_parse_sources (priv->schema);
@@ -289,7 +262,7 @@ static HyScanAntennaPosition *
 hyscan_sonar_info_parse_position (HyScanDataSchema *schema,
                                   HyScanSourceType  source)
 {
-  HyScanAntennaPosition info;
+  HyScanAntennaPosition info = {0};
   gchar key_id[128];
 
   SONAR_PARAM_NAME (source, "position/x", NULL);
@@ -319,112 +292,43 @@ hyscan_sonar_info_parse_position (HyScanDataSchema *schema,
   return hyscan_antenna_position_copy (&info);
 }
 
-/* Функция считывает информацию о режимах работы источника данных. */
-static HyScanSonarInfoCapabilities *
-hyscan_sonar_info_parse_capabilities (HyScanDataSchema *schema,
-                                      HyScanSourceType  source)
+/* Функция считывает информацию о приёмнике. */
+static HyScanSonarInfoReceiver *
+hyscan_sonar_info_parse_receiver (HyScanDataSchema *schema,
+                                  HyScanSourceType  source)
 {
-  HyScanSonarInfoCapabilities info;
-  gchar key_id[128];
-
+  HyScanSonarInfoReceiver info = {0};
   const gchar *cap_string;
-  gchar **caps;
-  guint i;
-
-  info.receiver = HYSCAN_SONAR_RECEIVER_MODE_NONE;
-  info.generator = HYSCAN_SONAR_GENERATOR_MODE_NONE;
-  info.tvg = HYSCAN_SONAR_TVG_MODE_NONE;
+  gchar key_id[128];
+  gboolean status;
 
   /* Режимы работы приёмника. */
   SONAR_PARAM_NAME (source, "receiver/capabilities", NULL);
   cap_string = hyscan_data_schema_key_get_string (schema, key_id);
   if (cap_string != NULL)
     {
-      caps = g_strsplit (cap_string, " ", -1);
-      for (i = 0; (caps != NULL) && (caps[i] != NULL); i++)
-        {
-          if (g_ascii_strcasecmp (caps[i], "manual") == 0)
-            info.receiver |= HYSCAN_SONAR_RECEIVER_MODE_MANUAL;
+      if (g_strrstr (cap_string, "manual") != NULL)
+        info.capabilities |= HYSCAN_SONAR_RECEIVER_MODE_MANUAL;
 
-          if (g_ascii_strcasecmp (caps[i], "auto") == 0)
-            info.receiver |= HYSCAN_SONAR_RECEIVER_MODE_AUTO;
-        }
-      g_strfreev (caps);
+      if (g_strrstr (cap_string, "auto") != NULL)
+        info.capabilities |= HYSCAN_SONAR_RECEIVER_MODE_AUTO;
     }
 
-  /* Режимы работы генератора. */
-  SONAR_PARAM_NAME (source, "generator/capabilities", NULL);
-  cap_string = hyscan_data_schema_key_get_string (schema, key_id);
-  if (cap_string != NULL)
+  /* Диапазон времени приёма. */
+  if (info.capabilities & HYSCAN_SONAR_RECEIVER_MODE_MANUAL)
     {
-      caps = g_strsplit (cap_string, " ", -1);
-      for (i = 0; (caps != NULL) && (caps[i] != NULL); i++)
-        {
-          if (g_ascii_strcasecmp (caps[i], "preset") == 0)
-            info.generator |= HYSCAN_SONAR_GENERATOR_MODE_PRESET;
-
-          if (g_ascii_strcasecmp (caps[i], "auto") == 0)
-            info.generator |= HYSCAN_SONAR_GENERATOR_MODE_AUTO;
-
-          if (g_ascii_strcasecmp (caps[i], "simple") == 0)
-            info.generator |= HYSCAN_SONAR_GENERATOR_MODE_SIMPLE;
-
-          if (g_ascii_strcasecmp (caps[i], "extended") == 0)
-            info.generator |= HYSCAN_SONAR_GENERATOR_MODE_EXTENDED;
-        }
-      g_strfreev (caps);
+      SONAR_PARAM_NAME (source, "receiver/time", NULL);
+      status = hyscan_data_schema_key_get_double (schema, key_id,
+                                                  &info.min_time, &info.max_time,
+                                                  NULL, NULL);
+      if (!status)
+        return NULL;
     }
-
-  /* Режимы работы ВАРУ. */
-  SONAR_PARAM_NAME (source, "tvg/capabilities", NULL);
-  cap_string = hyscan_data_schema_key_get_string (schema, key_id);
-  if (cap_string != NULL)
-    {
-      caps = g_strsplit (cap_string, " ", -1);
-      for (i = 0; (caps != NULL) && (caps[i] != NULL); i++)
-        {
-          if (g_ascii_strcasecmp (caps[i], "auto") == 0)
-            info.tvg |= HYSCAN_SONAR_TVG_MODE_AUTO;
-
-          if (g_ascii_strcasecmp (caps[i], "points") == 0)
-            info.tvg |= HYSCAN_SONAR_TVG_MODE_POINTS;
-
-          if (g_ascii_strcasecmp (caps[i], "constant") == 0)
-            info.tvg |= HYSCAN_SONAR_TVG_MODE_CONSTANT;
-
-          if (g_ascii_strcasecmp (caps[i], "linear-db") == 0)
-            info.tvg |= HYSCAN_SONAR_TVG_MODE_LINEAR_DB;
-
-          if (g_ascii_strcasecmp (caps[i], "logarithmic") == 0)
-            info.tvg |= HYSCAN_SONAR_TVG_MODE_LOGARITHMIC;
-        }
-      g_strfreev (caps);
-    }
-
-  return hyscan_sonar_info_capabilities_copy (&info);
-}
-
-/* Функция считывает информацию о приёмнике. */
-static HyScanSonarInfoReceiver *
-hyscan_sonar_info_parse_receiver (HyScanDataSchema *schema,
-                                  HyScanSourceType  source)
-{
-  HyScanSonarInfoReceiver info;
-  gchar key_id[128];
-  gboolean status;
-
-  /* Основная информация. */
-  SONAR_PARAM_NAME (source, "receiver/time", NULL);
-  status = hyscan_data_schema_key_get_double (schema, key_id,
-                                              &info.min_time, &info.max_time,
-                                              NULL, NULL);
-  if (!status)
-    return NULL;
 
   return hyscan_sonar_info_receiver_copy (&info);
 }
 
-/* Функция считывает информацию о преднастрйках генератора. */
+/* Функция считывает информацию о режимах работы генератора. */
 static GList *
 hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
                                  HyScanSourceType  source)
@@ -434,8 +338,7 @@ hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
   gchar key_id[128];
   guint i;
 
-  SONAR_PARAM_NAME (source, "generator/presets/", NULL);
-
+  SONAR_PARAM_NAME (source, "generator/preset-", NULL);
   keys = hyscan_data_schema_list_keys (schema);
   for (i = 0; keys[i] != NULL; i++)
     {
@@ -458,90 +361,34 @@ hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
   return presets;
 }
 
-/* Функция считывает информацию о сигнале. */
-static HyScanSonarInfoSignal *
-hyscan_sonar_info_parse_signal (HyScanDataSchema *schema,
-                                HyScanSourceType  source,
-                                const gchar      *signal)
-{
-  HyScanSonarInfoSignal info;
-  gchar key_id[128];
-  gboolean status;
-
-  SONAR_PARAM_NAME (source, "generator", signal, "duration", NULL);
-  status = hyscan_data_schema_key_get_double (schema, key_id,
-                                              &info.min_duration, &info.max_duration,
-                                              NULL, &info.duration_step);
-  if (!status)
-    return NULL;
-
-  info.duration_name = hyscan_data_schema_key_get_description (schema, key_id);
-  if (info.duration_name == NULL)
-    return NULL;
-
-  SONAR_PARAM_NAME (source, "generator", signal, "dirty-cycle", NULL);
-  status = hyscan_data_schema_key_get_double (schema, key_id,
-                                              NULL, NULL,
-                                              &info.dirty_cycle, NULL);
-  if (!status)
-    return NULL;
-
-  return hyscan_sonar_info_signal_copy (&info);
-}
-
-/* Функция считывает информацию о генераторе. */
-static HyScanSonarInfoGenerator *
-hyscan_sonar_info_parse_generator (HyScanDataSchema *schema,
-                                   HyScanSourceType  source)
-{
-  HyScanSonarInfoGenerator *info;
-  gchar key_id[128];
-
-  gboolean automatic;
-  HyScanSonarInfoSignal *tone;
-  HyScanSonarInfoSignal *lfm;
-  GList *presets;
-
-  /* Автоматический выбор сигнала. */
-  SONAR_PARAM_NAME (source, "generator/automatic", NULL);
-  if (!hyscan_data_schema_key_get_boolean (schema, key_id, &automatic))
-    automatic = FALSE;
-
-  /* Параметры тонального сигнала. */
-  tone = hyscan_sonar_info_parse_signal (schema, source, "tone");
-
-  /* Параметры ЛЧМ сигнала. */
-  lfm = hyscan_sonar_info_parse_signal (schema, source, "lfm");
-
-  /* Преднастройки генератора. */
-  presets = hyscan_sonar_info_parse_presets (schema, source);
-
-  if (!automatic && (tone == NULL) && (lfm == NULL) && (presets == NULL))
-    return NULL;
-
-  info = g_slice_new0 (HyScanSonarInfoGenerator);
-
-  info->signals = HYSCAN_SONAR_GENERATOR_SIGNAL_NONE;
-  info->signals |= automatic ? HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO : 0;
-  info->signals |= (tone != NULL) ? HYSCAN_SONAR_GENERATOR_SIGNAL_TONE : 0;
-  info->signals |= (lfm != NULL) ? HYSCAN_SONAR_GENERATOR_SIGNAL_LFM : 0;
-
-  info->presets = presets;
-  info->automatic = automatic;
-  info->tone = tone;
-  info->lfm = lfm;
-
-  return info;
-}
-
 /* Функция считывает информацию о системе ВАРУ. */
 static HyScanSonarInfoTVG *
 hyscan_sonar_info_parse_tvg (HyScanDataSchema *schema,
                              HyScanSourceType  source)
 {
-  HyScanSonarInfoTVG info;
+  HyScanSonarInfoTVG info = {0};
+  const gchar *cap_string;
   gchar key_id[128];
   gboolean status;
+
+  /* Режимы работы ВАРУ. */
+  SONAR_PARAM_NAME (source, "tvg/capabilities", NULL);
+  cap_string = hyscan_data_schema_key_get_string (schema, key_id);
+  if (cap_string != NULL)
+    {
+      if (g_strrstr (cap_string, "auto") != NULL)
+        info.capabilities |= HYSCAN_SONAR_TVG_MODE_AUTO;
+
+      if (g_strrstr (cap_string, "constant") != NULL)
+        info.capabilities |= HYSCAN_SONAR_TVG_MODE_CONSTANT;
+
+      if (g_strrstr (cap_string, "linear-db") != NULL)
+        info.capabilities |= HYSCAN_SONAR_TVG_MODE_LINEAR_DB;
+
+      if (g_strrstr (cap_string, "logarithmic") != NULL)
+        info.capabilities |= HYSCAN_SONAR_TVG_MODE_LOGARITHMIC;
+    }
+
 
   SONAR_PARAM_NAME (source, "tvg/gain", NULL);
   status = hyscan_data_schema_key_get_double (schema, key_id,
@@ -564,15 +411,13 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
 {
   gchar key_id[128];
 
-  HyScanSonarInfoSource *info = NULL;
   const gchar *dev_id = NULL;
   const gchar *description = NULL;
-  gint64 master = HYSCAN_SOURCE_INVALID;
+  HyScanSonarInfoSource *info = NULL;
   HyScanAntennaPosition *position = NULL;
-  HyScanSonarInfoCapabilities *capabilities = NULL;
   HyScanSonarInfoReceiver *receiver = NULL;
-  HyScanSonarInfoGenerator *generator = NULL;
   HyScanSonarInfoTVG *tvg = NULL;
+  GList *presets = NULL;
 
   /* уникальный идентификатор устройства. */
   SONAR_PARAM_NAME (source, "dev-id", NULL);
@@ -584,75 +429,36 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   SONAR_PARAM_NAME (source, "description", NULL);
   description = hyscan_data_schema_key_get_string (schema, key_id);
 
-  /* Ведущий источник данных. */
-  SONAR_PARAM_NAME (source, "master", NULL);
-  master = hyscan_source_get_type_by_name (hyscan_data_schema_key_get_string (schema, key_id));
-
   /* Местоположение антенн по умолчанию. */
   position = hyscan_sonar_info_parse_position (schema, source);
 
-  /* Режимы работы источника данных. */
-  capabilities = hyscan_sonar_info_parse_capabilities (schema, source);
-  if (capabilities == NULL)
+  /* Параметры приёмника. */
+  receiver = hyscan_sonar_info_parse_receiver (schema, source);
+  if (receiver == NULL)
     goto fail;
 
-  /* Параметры приёмника. */
-  if (capabilities->receiver & HYSCAN_SONAR_RECEIVER_MODE_MANUAL)
-    {
-      receiver = hyscan_sonar_info_parse_receiver (schema, source);
-      if (receiver == NULL)
-        goto fail;
-    }
-
   /* Параметры генератора. */
-  if (capabilities->generator)
-    {
-      generator = hyscan_sonar_info_parse_generator (schema, source);
-      if (generator == NULL)
-        goto fail;
-
-      if ((capabilities->generator != HYSCAN_SONAR_GENERATOR_MODE_NONE) &&
-          (capabilities->generator != HYSCAN_SONAR_GENERATOR_MODE_PRESET))
-        {
-          if ((!generator->automatic) &&
-              (generator->tone == NULL) &&
-              (generator->lfm == NULL))
-            {
-              goto fail;
-            }
-        }
-
-      if (capabilities->generator & HYSCAN_SONAR_GENERATOR_MODE_PRESET)
-        if (generator->presets == NULL)
-          goto fail;
-    }
+  presets = hyscan_sonar_info_parse_presets (schema, source);
 
   /* Параметры ВАРУ. */
-  if ((capabilities->tvg != HYSCAN_SONAR_TVG_MODE_NONE) &&
-      (capabilities->tvg != HYSCAN_SONAR_TVG_MODE_AUTO))
-    {
-      tvg = hyscan_sonar_info_parse_tvg (schema, source);
-      if (tvg == NULL)
-        goto fail;
-    }
+  tvg = hyscan_sonar_info_parse_tvg (schema, source);
+  if (tvg == NULL)
+    goto fail;
 
   info = g_slice_new0 (HyScanSonarInfoSource);
   info->source = source;
   info->dev_id = g_strdup (dev_id);
   info->description = g_strdup (description);
-  info->master = master;
   info->position = position;
-  info->capabilities = capabilities;
   info->receiver = receiver;
-  info->generator = generator;
+  info->presets = presets;
   info->tvg = tvg;
 
   return info;
 
 fail:
-  hyscan_sonar_info_capabilities_free (capabilities);
   hyscan_sonar_info_receiver_free (receiver);
-  hyscan_sonar_info_generator_free (generator);
+  g_list_free_full (presets, (GDestroyNotify)hyscan_data_schema_enum_value_free);
   hyscan_sonar_info_tvg_free (tvg);
 
   return NULL;
@@ -702,23 +508,6 @@ hyscan_sonar_info_new (HyScanDataSchema *schema)
   return g_object_new (HYSCAN_TYPE_SONAR_INFO,
                        "schema", schema,
                        NULL);
-}
-
-/**
- * hyscan_sonar_info_get_software_ping:
- * @info: указатель на #HyScanSonarInfo
- *
- * Функция определяет возможность программного управления излучением.
- *
- * Returns: %TRUE - если имеется возможность программного управления
- * излучением, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_info_get_software_ping (HyScanSonarInfo *info)
-{
-  g_return_val_if_fail (HYSCAN_IS_SONAR_INFO (info), FALSE);
-
-  return info->priv->software_ping;
 }
 
 /**
@@ -788,11 +577,9 @@ hyscan_sonar_info_source_copy (const HyScanSonarInfoSource *info)
   new_info->source = info->source;
   new_info->dev_id = g_strdup (info->dev_id);
   new_info->description = g_strdup (info->description);
-  new_info->master = info->master;
   new_info->position = hyscan_antenna_position_copy (info->position);
-  new_info->capabilities = hyscan_sonar_info_capabilities_copy (info->capabilities);
   new_info->receiver = hyscan_sonar_info_receiver_copy (info->receiver);
-  new_info->generator = hyscan_sonar_info_generator_copy (info->generator);
+  new_info->presets = g_list_copy_deep (info->presets, (GCopyFunc)hyscan_data_schema_enum_value_copy, NULL);
   new_info->tvg = hyscan_sonar_info_tvg_copy (info->tvg);
 
   return new_info;
@@ -813,43 +600,11 @@ hyscan_sonar_info_source_free (HyScanSonarInfoSource *info)
   g_free ((gchar*)info->dev_id);
   g_free ((gchar*)info->description);
   hyscan_antenna_position_free (info->position);
-  hyscan_sonar_info_capabilities_free (info->capabilities);
   hyscan_sonar_info_receiver_free (info->receiver);
-  hyscan_sonar_info_generator_free (info->generator);
+  g_list_free_full (info->presets, (GDestroyNotify)hyscan_data_schema_enum_value_free);
   hyscan_sonar_info_tvg_free (info->tvg);
 
   g_slice_free (HyScanSonarInfoSource, info);
-}
-
-/**
- * hyscan_sonar_info_capabilities_copy:
- * @info: структура #HyScanSonarInfoCapabilities для копирования
- *
- * Функция создаёт копию структуры #HyScanSonarInfoCapabilities.
- *
- * Returns: (transfer full): Новая структура #HyScanSonarInfoCapabilities.
- * Для удаления #hyscan_sonar_info_capabilities_free.
- */
-HyScanSonarInfoCapabilities *
-hyscan_sonar_info_capabilities_copy (const HyScanSonarInfoCapabilities *info)
-{
-  if (info != NULL)
-    return g_slice_dup (HyScanSonarInfoCapabilities, info);
-
-  return NULL;
-}
-
-/**
- * hyscan_sonar_info_capabilities_free:
- * @info: структура #HyScanSonarInfoCapabilities для удаления
- *
- * Функция удаляет структуру #HyScanSonarInfoCapabilities.
- */
-void
-hyscan_sonar_info_capabilities_free (HyScanSonarInfoCapabilities *info)
-{
-  if (info != NULL)
-    g_slice_free (HyScanSonarInfoCapabilities, info);
 }
 
 /**
@@ -884,67 +639,6 @@ hyscan_sonar_info_receiver_free (HyScanSonarInfoReceiver *info)
 }
 
 /**
- * hyscan_sonar_info_generator_copy:
- * @info: структура #HyScanSonarInfoGenerator для копирования
- *
- * Функция создаёт копию структуры #HyScanSonarInfoGenerator.
- *
- * Returns: (transfer full): Новая структура #HyScanSonarInfoGenerator.
- * Для удаления #hyscan_sonar_info_generator_free.
- */
-HyScanSonarInfoGenerator *
-hyscan_sonar_info_generator_copy (const HyScanSonarInfoGenerator *info)
-{
-  HyScanSonarInfoGenerator *new_info;
-  GList *presets, *new_presets;
-
-  if (info == NULL)
-    return NULL;
-
-  new_presets = NULL;
-  presets = info->presets;
-  while (presets != NULL)
-    {
-      new_presets = g_list_prepend (new_presets,
-                                    hyscan_data_schema_enum_value_copy (presets->data));
-
-      presets = g_list_next (presets);
-    }
-
-  new_info = g_slice_new (HyScanSonarInfoGenerator);
-  new_info->presets = g_list_reverse (new_presets);
-  new_info->automatic = info->automatic;
-  new_info->tone = hyscan_sonar_info_signal_copy (info->tone);
-  new_info->lfm = hyscan_sonar_info_signal_copy (info->lfm);
-
-  new_info->signals = HYSCAN_SONAR_GENERATOR_SIGNAL_NONE;
-  new_info->signals |= info->automatic ? HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO : 0;
-  new_info->signals |= (info->tone != NULL) ? HYSCAN_SONAR_GENERATOR_SIGNAL_TONE : 0;
-  new_info->signals |= (info->lfm != NULL) ? HYSCAN_SONAR_GENERATOR_SIGNAL_LFM : 0;
-
-  return new_info;
-}
-
-/**
- * hyscan_sonar_info_generator_free:
- * @info: структура #HyScanSonarInfoGenerator для удаления
- *
- * Функция удаляет структуру #HyScanSonarInfoGenerator.
- */
-void
-hyscan_sonar_info_generator_free (HyScanSonarInfoGenerator *info)
-{
-  if (info == NULL)
-    return;
-
-  hyscan_sonar_info_signal_free (info->tone);
-  hyscan_sonar_info_signal_free (info->lfm);
-  g_list_free_full (info->presets, (GDestroyNotify)hyscan_data_schema_enum_value_free);
-
-  g_slice_free (HyScanSonarInfoGenerator, info);
-}
-
-/**
  * hyscan_sonar_info_tvg_copy:
  * @info: структура #HyScanSonarInfoTVG для копирования
  *
@@ -973,48 +667,4 @@ hyscan_sonar_info_tvg_free (HyScanSonarInfoTVG *info)
 {
   if (info != NULL)
     g_slice_free (HyScanSonarInfoTVG, info);
-}
-
-/**
- * hyscan_sonar_info_signal_copy:
- * @info: структура #HyScanSonarInfoSignal для копирования
- *
- * Функция создаёт копию структуры #HyScanSonarInfoSignal.
- *
- * Returns: (transfer full): Новая структура #HyScanSonarInfoSignal.
- * Для удаления #hyscan_sonar_info_signal_free.
- */
-HyScanSonarInfoSignal *
-hyscan_sonar_info_signal_copy (const HyScanSonarInfoSignal *info)
-{
-  HyScanSonarInfoSignal *new_info;
-
-  if (info == NULL)
-    return NULL;
-
-  new_info = g_slice_new (HyScanSonarInfoSignal);
-  new_info->duration_name = g_strdup (info->duration_name);
-  new_info->min_duration = info->min_duration;
-  new_info->max_duration = info->max_duration;
-  new_info->duration_step = info->duration_step;
-  new_info->dirty_cycle = info->dirty_cycle;
-
-  return new_info;
-}
-
-/**
- * hyscan_sonar_info_signal_free:
- * @info: структура #HyScanSonarInfoSignal для удаления
- *
- * Функция удаляет структуру #HyScanSonarInfoSignal.
- */
-void
-hyscan_sonar_info_signal_free (HyScanSonarInfoSignal *info)
-{
-  if (info == NULL)
-    return;
-
-  g_free ((gchar*)info->duration_name);
-
-  g_slice_free (HyScanSonarInfoSignal, info);
 }

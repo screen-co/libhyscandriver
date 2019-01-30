@@ -59,33 +59,11 @@
  * приёма эхосигнала, функция #hyscan_sonar_receiver_set_auto включает
  * автоматическую настройку времени приёма.
  *
- * С источником гидролокационных данных, может быть связан генератор излучаемого
- * сигнала. Управление генератором может осуществляться в одном из доступных
- * режимов. Режим работы генератора может задаваться независимо для каждого
- * источника данных.
- *
- * Возможны следующие режимы работы генератора:
- *
- * - #HYSCAN_SONAR_GENERATOR_MODE_PRESET - преднастройки;
- * - #HYSCAN_SONAR_GENERATOR_MODE_AUTO - автоматический;
- * - #HYSCAN_SONAR_GENERATOR_MODE_SIMPLE - упрощённый;
- * - #HYSCAN_SONAR_GENERATOR_MODE_EXTENDED - расширенный.
- *
- * В режиме преднастроек пользователь может выбрать один из предварительно
- * настроенных сигналов. Установка режима работы по преднастройкам осуществляется
- * функцией #hyscan_sonar_generator_set_preset. В остальных режимах пользователь
- * может выбрать один из доступных сигналов и определить его параметры с разной
- * степенью детализации.
- *
- * Возможны следующие типы сигналов:
- *
- * - #HYSCAN_SONAR_GENERATOR_SIGNAL_AUTO - автоматический выбор сигнала;
- * - #HYSCAN_SONAR_GENERATOR_SIGNAL_TONE - тональный сигнал;
- * - #HYSCAN_SONAR_GENERATOR_SIGNAL_LFM - линейно-частотно модулированный сигнал.
- *
- * Выбор режима работы генератора осуществляется с помощью функций
- * #hyscan_sonar_generator_set_auto, #hyscan_sonar_generator_set_simple и
- * #hyscan_sonar_generator_set_extended.
+ * С источником гидролокационных данных, может быть связан генератор
+ * излучаемого сигнала. Пользователь может выбрать один из предварительно
+ * настроенных режимов. Установка режима работы генератора осуществляется
+ * функцией #hyscan_sonar_generator_set_preset. Режим работы генератора может
+ * задаваться независимо для каждого источника данных.
  *
  * С источником гидролокационных данных может быть связана подсистема
  * регулировки усиления - ВАРУ. Управление усилением может осуществляться в
@@ -95,7 +73,6 @@
  * Возможны следующие режимы управления усилением:
  *
  * - #HYSCAN_SONAR_TVG_MODE_AUTO - автоматический;
- * - #HYSCAN_SONAR_TVG_MODE_POINTS - по заданым точкам;
  * - #HYSCAN_SONAR_TVG_MODE_CONSTANT - постоянный уровень усиления;
  * - #HYSCAN_SONAR_TVG_MODE_LINEAR_DB - линейное изменение усиления в дБ;
  * - #HYSCAN_SONAR_TVG_MODE_LOGARITHMIC - управление усилением по логарифмическому закону.
@@ -103,10 +80,6 @@
  * При выборе автоматического режима работы, система ВАРУ будет самостоятельно
  * управлять усилением приёмных каналов. Включение автоматического режима
  * осуществляется функцией #hyscan_sonar_tvg_set_auto.
- *
- * Возможно задание произвольного вида усиления по точкам заданным на
- * равномерной временной сетке. Для этого предназначена функция
- * #hyscan_sonar_tvg_set_points.
  *
  * Постоянный уровень усиления можно задать с помощью функции
  * #hyscan_sonar_tvg_set_constant.
@@ -128,12 +101,6 @@
  * - aplha - коэффициент затухания, дБ/м;
  * - r - расстояние, м.
  *
- * Управление излучением в штатном режиме осуществляется с использованием
- * внутреннего таймера гидролокатора или внешней команды. Для некоторых
- * гидролокаторов существует возможность программного управления синхронизацией
- * излучения. Выбрать режим синхонизации излучения можно с помощью функции
- * #hyscan_sonar_set_software_ping.
- *
  * Включить гидролокатор в рабочий режим, в соответствии с установленными
  * параметрами, можно при помощи функции #hyscan_sonar_start, остановить
  * #hyscan_sonar_stop.
@@ -150,9 +117,6 @@
  * гидролокатору с помощью функции #hyscan_sonar_sync. Это необходимо для
  * атомарного применения нескольких изменившихся параметров, например для
  * одновременного изменения времени приёма для левого и правого борта и т.п.
- *
- * Функция #hyscan_sonar_ping используется для программного управления
- * излучением.
  */
 
 #include "hyscan-sonar.h"
@@ -285,9 +249,9 @@ hyscan_sonar_receiver_set_auto (HyScanSonar      *sonar,
  * hyscan_sonar_generator_set_preset:
  * @sonar: указатель на #HyScanSonar
  * @source: идентификатор источника данных #HyScanSourceType
- * @preset: идентификатор преднастройки
+ * @preset: идентификатор режима работы генератора
  *
- * Функция включает преднастроенный режим работы генератора.
+ * Функция устанавливает режим работы генератора.
  *
  * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
@@ -303,90 +267,6 @@ hyscan_sonar_generator_set_preset (HyScanSonar      *sonar,
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->generator_set_preset != NULL)
     return (* iface->generator_set_preset) (sonar, source, preset);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sonar_generator_set_auto:
- * @sonar: указатель на #HyScanSonar
- * @source: идентификатор источника данных #HyScanSourceType
- * @signal: тип сигнала #HyScanSonarGeneratorSignalType
- *
- * Функция включает автоматический режим работы генератора.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_generator_set_auto (HyScanSonar                    *sonar,
-                                 HyScanSourceType                source,
-                                 HyScanSonarGeneratorSignalType  signal)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->generator_set_auto != NULL)
-    return (* iface->generator_set_auto) (sonar, source, signal);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sonar_generator_set_simple:
- * @sonar: указатель на #HyScanSonar
- * @source: идентификатор источника данных #HyScanSourceType
- * @signal: тип сигнала #HyScanSonarGeneratorSignalType
- * @power: энергия сигнала, проценты
- *
- * Функция включает упрощённый режим работы генератора.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_generator_set_simple (HyScanSonar                    *sonar,
-                                   HyScanSourceType                source,
-                                   HyScanSonarGeneratorSignalType  signal,
-                                   gdouble                         power)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->generator_set_simple != NULL)
-    return (* iface->generator_set_simple) (sonar, source, signal, power);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sonar_generator_set_extended:
- * @sonar: указатель на #HyScanSonar
- * @source: идентификатор источника данных #HyScanSourceType
- * @signal: тип сигнала #HyScanSonarGeneratorSignalType
- * @duration: длительность сигнала, условные единицы
- * @power: энергия сигнала, проценты
- *
- * Функция включает расширенный режим работы генератора.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_generator_set_extended (HyScanSonar                    *sonar,
-                                     HyScanSourceType                source,
-                                     HyScanSonarGeneratorSignalType  signal,
-                                     gdouble                         duration,
-                                     gdouble                         power)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->generator_set_extended != NULL)
-    return (* iface->generator_set_extended) (sonar, source, signal, duration, power);
 
   return FALSE;
 }
@@ -420,39 +300,6 @@ hyscan_sonar_tvg_set_auto (HyScanSonar      *sonar,
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->tvg_set_auto != NULL)
     return (* iface->tvg_set_auto) (sonar, source, level, sensitivity);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sonar_tvg_set_points:
- * @sonar: указатель на #HyScanSonar
- * @source: идентификатор источника данных #HyScanSourceType
- * @time_step: интервал времени между точками, с
- * @gains: (array length=n_gains) (transfer none): массив коэффициентов усиления, дБ
- * @n_gains: число коэффициентов усиления
- *
- * Функция устанавливает усиление определённое контрольными точками,заданными
- * на равномерной временной оси. Значения коэффициентов усиления должны
- * находится в пределах от минимального до максимально возможного для источника
- * данных.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_tvg_set_points (HyScanSonar      *sonar,
-                             HyScanSourceType  source,
-                             gdouble           time_step,
-                             const gdouble    *gains,
-                             guint32           n_gains)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->tvg_set_points != NULL)
-    return (* iface->tvg_set_points) (sonar, source, time_step, gains, n_gains);
 
   return FALSE;
 }
@@ -553,30 +400,6 @@ hyscan_sonar_tvg_set_logarithmic (HyScanSonar      *sonar,
 }
 
 /**
- * hyscan_sonar_set_software_ping:
- * @sonar: указатель на #HyScanSonar
- *
- * Функция устанавливает программное управление излучением. Данная функция должна
- * быть вызвана перед запуском гидролокатора с помощью функции #hyscan_sonar_start,
- * если до этого он находился в ждущем режиме.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_set_software_ping (HyScanSonar *sonar)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->set_software_ping != NULL)
-    return (* iface->set_software_ping) (sonar);
-
-  return FALSE;
-}
-
-/**
  * hyscan_sonar_start:
  * @sonar: указатель на #HyScanSonar
  * @project_name: название проекта, в который записывать данные
@@ -647,31 +470,6 @@ hyscan_sonar_sync (HyScanSonar *sonar)
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->sync != NULL)
     return (* iface->sync) (sonar);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sonar_ping:
- * @sonar: указатель на #HyScanSonar
- *
- * Функция выполняет один цикл излучения сигнала и приёма данных. Для использования
- * этой функции данный тип синхронизации должен быть включён функцией
- * #hyscan_sonar_set_software_ping. Гидролокатор должен находится в рабочем режиме
- * (#hyscan_sonar_start).
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_ping (HyScanSonar *sonar)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->ping != NULL)
-    return (* iface->ping) (sonar);
 
   return FALSE;
 }

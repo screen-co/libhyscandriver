@@ -70,9 +70,6 @@ HYSCAN_API
 HyScanSonarSchema *    hyscan_sonar_schema_new                         (HyScanDeviceSchema            *schema);
 
 HYSCAN_API
-gboolean               hyscan_sonar_schema_set_software_ping           (HyScanSonarSchema             *schema);
-
-HYSCAN_API
 gboolean               hyscan_sonar_schema_source_add_full             (HyScanSonarSchema             *schema,
                                                                         HyScanSonarInfoSource         *info);
 
@@ -80,15 +77,7 @@ HYSCAN_API
 gboolean               hyscan_sonar_schema_source_add                  (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
                                                                         const gchar                   *dev_id,
-                                                                        const gchar                   *description,
-                                                                        HyScanSonarReceiverModeType    receiver_capabilities,
-                                                                        HyScanSonarGeneratorModeType   generator_capabilities,
-                                                                        HyScanSonarTVGModeType         tvg_capabilities);
-
-HYSCAN_API
-gboolean               hyscan_sonar_schema_source_set_master           (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source,
-                                                                        HyScanSourceType               master);
+                                                                        const gchar                   *description);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_source_set_position         (HyScanSonarSchema             *schema,
@@ -98,6 +87,7 @@ gboolean               hyscan_sonar_schema_source_set_position         (HyScanSo
 HYSCAN_API
 gboolean               hyscan_sonar_schema_receiver_set_params         (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
+                                                                        HyScanSonarReceiverModeType    capabilities,
                                                                         gdouble                        min_time,
                                                                         gdouble                        max_time);
 
@@ -109,22 +99,9 @@ gboolean               hyscan_sonar_schema_generator_add_preset        (HyScanSo
                                                                         const gchar                   *preset_description);
 
 HYSCAN_API
-gboolean               hyscan_sonar_schema_generator_add_auto          (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source);
-
-HYSCAN_API
-gboolean               hyscan_sonar_schema_generator_set_params        (HyScanSonarSchema             *schema,
-                                                                        HyScanSourceType               source,
-                                                                        HyScanSonarGeneratorSignalType signal,
-                                                                        gdouble                        min_duration,
-                                                                        gdouble                        max_duration,
-                                                                        gdouble                        duration_step,
-                                                                        const gchar                   *duration_name,
-                                                                        gdouble                        dirty_cycle);
-
-HYSCAN_API
 gboolean               hyscan_sonar_schema_tvg_set_params              (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
+                                                                        HyScanSonarTVGModeType         capabilities,
                                                                         gdouble                        min_gain,
                                                                         gdouble                        max_gain,
                                                                         gboolean                       can_decrease);

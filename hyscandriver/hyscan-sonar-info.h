@@ -58,11 +58,8 @@ typedef struct _HyScanSonarInfo HyScanSonarInfo;
 typedef struct _HyScanSonarInfoPrivate HyScanSonarInfoPrivate;
 typedef struct _HyScanSonarInfoClass HyScanSonarInfoClass;
 typedef struct _HyScanSonarInfoSource HyScanSonarInfoSource;
-typedef struct _HyScanSonarInfoCapabilities HyScanSonarInfoCapabilities;
 typedef struct _HyScanSonarInfoReceiver HyScanSonarInfoReceiver;
-typedef struct _HyScanSonarInfoGenerator HyScanSonarInfoGenerator;
 typedef struct _HyScanSonarInfoTVG HyScanSonarInfoTVG;
-typedef struct _HyScanSonarInfoSignal HyScanSonarInfoSignal;
 
 struct _HyScanSonarInfo
 {
@@ -81,11 +78,10 @@ struct _HyScanSonarInfoClass
  * @source: тип источника данных
  * @dev_id: уникальный идентификатор устройства
  * @description: описание источника данных
- * @master: ведущий источник данных
  * @position: местоположение приёмной антенны по умолчанию
  * @capabilities: режимы работы источника данных
  * @receiver: параметры приёмника
- * @generator: параметры генератора
+ * @presets: (element-type HyScanDataSchemaEnumValue) (transfer none): режимы генератора
  * @tvg: параметры ВАРУ
  *
  * Параметры гидролокационного источника данных.
@@ -95,31 +91,15 @@ struct _HyScanSonarInfoSource
   HyScanSourceType                 source;
   const gchar                     *dev_id;
   const gchar                     *description;
-  HyScanSourceType                 master;
   HyScanAntennaPosition           *position;
-  HyScanSonarInfoCapabilities     *capabilities;
   HyScanSonarInfoReceiver         *receiver;
-  HyScanSonarInfoGenerator        *generator;
+  GList                           *presets;
   HyScanSonarInfoTVG              *tvg;
 };
 
 /**
- * HyScanSonarInfoCapabilities:
- * @receiver: допустимые режимы работы приёмника
- * @generator: допустимые режимы работы генератора
- * @tvg: допустимые режимы работы ВАРУ
- *
- * Режимы работы источника данных.
- */
-struct _HyScanSonarInfoCapabilities
-{
-  HyScanSonarReceiverModeType      receiver;
-  HyScanSonarGeneratorModeType     generator;
-  HyScanSonarTVGModeType           tvg;
-};
-
-/**
  * HyScanSonarInfoReceiver:
+ * @capabilities: допустимые режимы работы приёмника
  * @min_time: минимальное время приёма данных, с
  * @max_time: максимальное время приёма данных, с
  *
@@ -127,27 +107,9 @@ struct _HyScanSonarInfoCapabilities
  */
 struct _HyScanSonarInfoReceiver
 {
+  HyScanSonarReceiverModeType      capabilities;
   gdouble                          min_time;
   gdouble                          max_time;
-};
-
-/**
- * HyScanSonarInfoGenerator:
- * @signals: типы сигналов
- * @presets: (element-type HyScanDataSchemaEnumValue): преднастройки генератора
- * @automatic: автоматический выбор сигнала
- * @tone: параметры тонального сигнала
- * @lfm: параметры ЛЧМ сигнала
- *
- * Параметры генератора сигналов.
- */
-struct _HyScanSonarInfoGenerator
-{
-  HyScanSonarGeneratorSignalType   signals;
-  GList                           *presets;
-  gboolean                         automatic;
-  HyScanSonarInfoSignal           *tone;
-  HyScanSonarInfoSignal           *lfm;
 };
 
 /**
@@ -155,33 +117,16 @@ struct _HyScanSonarInfoGenerator
  * @min_gain: минимальное значение коэффициента усиления, дБ
  * @max_gain: максимальное значение коэффициента усиления, дБ
  * @decrease: возможность уменьшения коэффициента усиления
+ * @capabilities: допустимые режимы работы ВАРУ
  *
  * Параметры системы ВАРУ.
  */
 struct _HyScanSonarInfoTVG
 {
+  HyScanSonarTVGModeType           capabilities;
   gdouble                          min_gain;
   gdouble                          max_gain;
   gboolean                         decrease;
-};
-
-/**
- * HyScanSonarInfoSignal:
- * @duration_name: название единицы длительности сигнала
- * @min_duration: минимальная длительность сигнала
- * @max_duration: максимальная длительность сигнала
- * @duration_step: рекомендуемый шаг изменения длительности сигнала
- * @dirty_cycle: скважность
- *
- * Параметры сигнала. Длительность сигнала задаётся в условных единицах.
- */
-struct _HyScanSonarInfoSignal
-{
-  const gchar                     *duration_name;
-  gdouble                          min_duration;
-  gdouble                          max_duration;
-  gdouble                          duration_step;
-  gdouble                          dirty_cycle;
 };
 
 HYSCAN_API
@@ -209,9 +154,6 @@ HYSCAN_API
 HyScanSonarInfo *              hyscan_sonar_info_new                   (HyScanDataSchema                  *schema);
 
 HYSCAN_API
-gboolean                       hyscan_sonar_info_get_software_ping     (HyScanSonarInfo                   *info);
-
-HYSCAN_API
 const HyScanSourceType *       hyscan_sonar_info_list_sources          (HyScanSonarInfo                   *info,
                                                                         guint32                           *n_sources);
 
@@ -226,34 +168,16 @@ HYSCAN_API
 void                           hyscan_sonar_info_source_free           (HyScanSonarInfoSource             *info);
 
 HYSCAN_API
-HyScanSonarInfoCapabilities *  hyscan_sonar_info_capabilities_copy     (const HyScanSonarInfoCapabilities *info);
-
-HYSCAN_API
-void                           hyscan_sonar_info_capabilities_free     (HyScanSonarInfoCapabilities       *info);
-
-HYSCAN_API
 HyScanSonarInfoReceiver *      hyscan_sonar_info_receiver_copy         (const HyScanSonarInfoReceiver     *info);
 
 HYSCAN_API
 void                           hyscan_sonar_info_receiver_free         (HyScanSonarInfoReceiver           *info);
 
 HYSCAN_API
-HyScanSonarInfoGenerator *     hyscan_sonar_info_generator_copy        (const HyScanSonarInfoGenerator    *info);
-
-HYSCAN_API
-void                           hyscan_sonar_info_generator_free        (HyScanSonarInfoGenerator          *info);
-
-HYSCAN_API
 HyScanSonarInfoTVG *           hyscan_sonar_info_tvg_copy              (const HyScanSonarInfoTVG          *info);
 
 HYSCAN_API
 void                           hyscan_sonar_info_tvg_free              (HyScanSonarInfoTVG                *info);
-
-HYSCAN_API
-HyScanSonarInfoSignal *        hyscan_sonar_info_signal_copy           (const HyScanSonarInfoSignal       *info);
-
-HYSCAN_API
-void                           hyscan_sonar_info_signal_free           (HyScanSonarInfoSignal             *info);
 
 G_END_DECLS
 
