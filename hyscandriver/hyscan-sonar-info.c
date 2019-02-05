@@ -57,6 +57,8 @@
 #include "hyscan-discover.h"
 #include <hyscan-param.h>
 
+#include <string.h>
+
 #define SONAR_PARAM_NAME(source, ...)  hyscan_param_name_constructor (key_id, \
                                          (guint)sizeof (key_id), \
                                          "sources", \
@@ -335,23 +337,32 @@ hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
 {
   GList *presets = NULL;
   const gchar * const *keys;
+  guint preset_offset;
   gchar key_id[128];
   guint i;
 
-  SONAR_PARAM_NAME (source, "generator/preset-", NULL);
+  SONAR_PARAM_NAME (source, "generator/", NULL);
+  preset_offset = strlen (key_id);
+
   keys = hyscan_data_schema_list_keys (schema);
   for (i = 0; keys[i] != NULL; i++)
     {
       HyScanDataSchemaEnumValue preset;
-      gint64 id;
+      const gchar *id;
+      gint64 value;
 
       if (!g_str_has_prefix (keys[i], key_id))
         continue;
 
-      if (!hyscan_data_schema_key_get_integer (schema, keys[i], NULL, NULL, &id, NULL))
+      if (!hyscan_data_schema_key_get_integer (schema, keys[i], NULL, NULL, &value, NULL))
         continue;
 
-      preset.value = id;
+      id = keys[i] + preset_offset;
+      if (id == NULL)
+        continue;
+
+      preset.value = value;
+      preset.id = id;
       preset.name = hyscan_data_schema_key_get_name (schema, keys[i]);
       preset.description = hyscan_data_schema_key_get_description (schema, keys[i]);
 

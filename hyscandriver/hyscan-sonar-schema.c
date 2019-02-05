@@ -274,6 +274,7 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
               HyScanDataSchemaEnumValue *preset = cur_preset->data;
 
               status = hyscan_sonar_schema_generator_add_preset (schema, source,
+                                                                 preset->id,
                                                                  preset->value,
                                                                  preset->name,
                                                                  preset->description);
@@ -511,9 +512,10 @@ exit:
  * hyscan_sonar_schema_generator_add_preset:
  * @schema: указатель на #HyScanSonarSchema
  * @source: тип источника данных
- * @preset_id: идентификатор режима
- * @preset_name: название режима
- * @preset_description: описание режима
+ * @id: идентификатор режима
+ * @id: идентификатор режима
+ * @name: название режима
+ * @description: описание режима
  *
  * Функция добавляет рабочий режим генератора.
  *
@@ -522,14 +524,14 @@ exit:
 gboolean
 hyscan_sonar_schema_generator_add_preset (HyScanSonarSchema *schema,
                                           HyScanSourceType   source,
-                                          guint              preset_id,
-                                          const gchar       *preset_name,
-                                          const gchar       *preset_description)
+                                          const gchar       *id,
+                                          guint              value,
+                                          const gchar       *name,
+                                          const gchar       *description)
 {
   HyScanDataSchemaBuilder *builder;
   gboolean status = FALSE;
   gchar key_id[128];
-  gchar id[16];
 
   g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
 
@@ -541,9 +543,8 @@ hyscan_sonar_schema_generator_add_preset (HyScanSonarSchema *schema,
     return FALSE;
 
   /* Преднастройка генератора. */
-  g_snprintf (id, sizeof (id), "preset-%u", preset_id);
   SONAR_PARAM_NAME (source, "generator", id, NULL);
-  if (hyscan_data_schema_builder_key_integer_create (builder, key_id, preset_name, preset_description, preset_id))
+  if (hyscan_data_schema_builder_key_integer_create (builder, key_id, name, description, value))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   return status;

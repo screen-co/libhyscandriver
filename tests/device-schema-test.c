@@ -156,14 +156,16 @@ create_source (HyScanSourceType source,
   for (i = 0; i < source; i++)
     {
       HyScanDataSchemaEnumValue *preset;
-      gchar *name = g_strdup_printf ("%s preset %d", source_name, i + 1);
+      gchar *id = g_strdup_printf ("%s-preset-%d", source_name, i + 1);
+      gchar *name = g_strdup_printf ("%s name %d", source_name, i + 1);
       gchar *description = g_strdup_printf ("%s description %d", source_name, i + 1);
 
-      preset = hyscan_data_schema_enum_value_new (i, name, description);
+      preset = hyscan_data_schema_enum_value_new (i, id, name, description);
       presets = g_list_append (presets, preset);
 
       g_free (description);
       g_free (name);
+      g_free (id);
     }
   info.presets = presets;
 
@@ -275,6 +277,7 @@ verify_source (const HyScanSonarInfoSource *source1,
               HyScanDataSchemaEnumValue *preset2 = presets2->data;
 
               if ((preset1->value == preset2->value) &&
+                  (g_strcmp0 (preset1->id, preset2->id) == 0) &&
                   (g_strcmp0 (preset1->name, preset2->name) == 0) &&
                   (g_strcmp0 (preset1->description, preset2->description) == 0))
                 {

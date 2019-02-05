@@ -173,13 +173,13 @@ hyscan_device_schema_object_constructed (GObject *object)
 
   hyscan_data_schema_builder_enum_create (builder, HYSCAN_DEVICE_STATUS_ENUM);
   hyscan_data_schema_builder_enum_value_create (builder, HYSCAN_DEVICE_STATUS_ENUM,
-                                                HYSCAN_DEVICE_STATUS_ERROR, "Error", NULL);
+                                                HYSCAN_DEVICE_STATUS_ERROR, "error", "Error", NULL);
   hyscan_data_schema_builder_enum_value_create (builder, HYSCAN_DEVICE_STATUS_ENUM,
-                                                HYSCAN_DEVICE_STATUS_CRITICAL, "Critical", NULL);
+                                                HYSCAN_DEVICE_STATUS_CRITICAL, "critical", "Critical", NULL);
   hyscan_data_schema_builder_enum_value_create (builder, HYSCAN_DEVICE_STATUS_ENUM,
-                                                HYSCAN_DEVICE_STATUS_WARNING, "Warning", NULL);
+                                                HYSCAN_DEVICE_STATUS_WARNING, "warning", "Warning", NULL);
   hyscan_data_schema_builder_enum_value_create (builder, HYSCAN_DEVICE_STATUS_ENUM,
-                                                HYSCAN_DEVICE_STATUS_OK, "Ok", NULL);
+                                                HYSCAN_DEVICE_STATUS_OK, "ok", "Ok", NULL);
 }
 
 /**

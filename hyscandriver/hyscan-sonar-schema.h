@@ -94,9 +94,10 @@ gboolean               hyscan_sonar_schema_receiver_set_params         (HyScanSo
 HYSCAN_API
 gboolean               hyscan_sonar_schema_generator_add_preset        (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
-                                                                        guint                          preset_id,
-                                                                        const gchar                   *preset_name,
-                                                                        const gchar                   *preset_description);
+                                                                        const gchar                   *id,
+                                                                        guint                          value,
+                                                                        const gchar                   *name,
+                                                                        const gchar                   *description);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_tvg_set_params              (HyScanSonarSchema             *schema,
