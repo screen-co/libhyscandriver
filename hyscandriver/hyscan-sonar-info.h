@@ -78,7 +78,7 @@ struct _HyScanSonarInfoClass
  * @source: тип источника данных
  * @dev_id: уникальный идентификатор устройства
  * @description: описание источника данных
- * @position: местоположение приёмной антенны по умолчанию
+ * @offset: смещение приёмной антенны по умолчанию
  * @capabilities: режимы работы источника данных
  * @receiver: параметры приёмника
  * @presets: (element-type HyScanDataSchemaEnumValue) (transfer none): режимы генератора
@@ -91,7 +91,7 @@ struct _HyScanSonarInfoSource
   HyScanSourceType                 source;
   const gchar                     *dev_id;
   const gchar                     *description;
-  HyScanAntennaPosition           *position;
+  HyScanAntennaOffset             *offset;
   HyScanSonarInfoReceiver         *receiver;
   GList                           *presets;
   HyScanSonarInfoTVG              *tvg;

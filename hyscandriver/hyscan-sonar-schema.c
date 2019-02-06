@@ -54,16 +54,16 @@
  * - description - описание источника данных, тип STRING, необязательное;
  * - master - название ведущего источника данных, тип STRING, необязательное.
  *
- * Для источника данных может быть задано местоположение по умолчанию.
- * Если местоположение задано, должны быть определены все параметры.
- * Местоположение задают следующие параметры:
+ * Для источника данных может быть задано смещение антенны по умолчанию.
+ * Если смещение задано, должны быть определены все параметры.
+ * Смещение задают следующие параметры:
  *
- * - position/x - смещение антенны по оси X, тип DOUBLE;
- * - position/y - смещение антенны по оси Y, тип DOUBLE;
- * - position/z - смещение антенны по оси Z, тип DOUBLE;
- * - position/psi - поворот антенны по курсу, тип DOUBLE;
- * - position/gamma - поворот антенны по крену, тип DOUBLE;
- * - position/theta - поворот антенны по дифференту, тип DOUBLE.
+ * - offset/x - смещение антенны по оси X, тип DOUBLE;
+ * - offset/y - смещение антенны по оси Y, тип DOUBLE;
+ * - offset/z - смещение антенны по оси Z, тип DOUBLE;
+ * - offset/psi - поворот антенны по курсу, тип DOUBLE;
+ * - offset/gamma - поворот антенны по крену, тип DOUBLE;
+ * - offset/theta - поворот антенны по дифференту, тип DOUBLE.
  *
  * Наличие приёмника и его характеристики определяются параметром -
  * "receiver/capabilities". Если приёмник имеет ручной режим работы, задаётся
@@ -71,8 +71,9 @@
  *
  * Режимы работы генератора приводятся в ветке "generator". Каждый режим
  * имеет уникальный номер, который используется при его включении. Название
- * и описание режима определяются из параметра. Например, для режимов с
- * номерами 1, 2 и 3 задаются следующие параметры:
+ * и описание режима определяются из параметра. Название параметра используется
+ * в качестве уникального идентификатора, а его значение по умолчанию в
+ * качестве уникального номера.
  *
  * - generator/preset-1 - режим 1, тип INTEGER;
  * - generator/preset-2 - режим 2, тип INTEGER;
@@ -91,12 +92,12 @@
  *
  * /sources/ss-port/dev-id
  * /sources/ss-port/description
- * /sources/ss-port/position/x
- * /sources/ss-port/position/y
- * /sources/ss-port/position/z
- * /sources/ss-port/position/psi
- * /sources/ss-port/position/gamma
- * /sources/ss-port/position/theta
+ * /sources/ss-port/offset/x
+ * /sources/ss-port/offset/y
+ * /sources/ss-port/offset/z
+ * /sources/ss-port/offset/psi
+ * /sources/ss-port/offset/gamma
+ * /sources/ss-port/offset/theta
  * /sources/ss-port/receiver/capabilities
  * /sources/ss-port/receiver/time
  * /sources/ss-port/generator/preset-1
@@ -243,10 +244,10 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
   if (!status)
     return FALSE;
 
-  /* Местоположение антенн по умолчанию. */
-  if (info->position != NULL)
+  /* Смещение антенны по умолчанию. */
+  if (info->offset != NULL)
     {
-      if (!hyscan_sonar_schema_source_set_position (schema, source, info->position))
+      if (!hyscan_sonar_schema_source_set_offset (schema, source, info->offset))
         return FALSE;
     }
 
@@ -368,19 +369,19 @@ exit:
 }
 
 /**
- * hyscan_sonar_schema_source_set_position:
+ * hyscan_sonar_schema_source_set_offset:
  * @schema: указатель на #HyScanSonarSchema
  * @source: тип источника данных
- * @position: (transfer none): местоположение антенны по умолчанию
+ * @offset: (transfer none): смещение антенны по умолчанию
  *
- * Функция устанавливает местоположение антенны по умолчанию.
+ * Функция устанавливает смещение антенны по умолчанию.
  *
  * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
-                                         HyScanSourceType       source,
-                                         HyScanAntennaPosition *position)
+hyscan_sonar_schema_source_set_offset (HyScanSonarSchema   *schema,
+                                       HyScanSourceType     source,
+                                       HyScanAntennaOffset *offset)
 {
   HyScanDataSchemaBuilder *builder;
   gboolean status = FALSE;
@@ -395,50 +396,50 @@ hyscan_sonar_schema_source_set_position (HyScanSonarSchema     *schema,
   if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
     return FALSE;
 
-  /* Местоположение антенны. */
+  /* Смещение антенны. */
   status = FALSE;
-  SONAR_PARAM_NAME (source, "position/x", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, position->x))
+  SONAR_PARAM_NAME (source, "offset/x", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, offset->x))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "position/y", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  position->y))
+  SONAR_PARAM_NAME (source, "offset/y", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  offset->y))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "position/z", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  position->z))
+  SONAR_PARAM_NAME (source, "offset/z", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  offset->z))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "position/psi", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, position->psi))
+  SONAR_PARAM_NAME (source, "offset/psi", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, offset->psi))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "position/gamma", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, position->gamma))
+  SONAR_PARAM_NAME (source, "offset/gamma", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, offset->gamma))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "position/theta", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, position->theta))
+  SONAR_PARAM_NAME (source, "offset/theta", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, offset->theta))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
 exit:

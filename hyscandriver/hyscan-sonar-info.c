@@ -89,8 +89,8 @@ static HyScanSourceType *
                        hyscan_sonar_info_list_sources_int      (HyScanDataSchema      *schema,
                                                                 guint32               *n_sources);
 
-static HyScanAntennaPosition *
-                       hyscan_sonar_info_parse_position        (HyScanDataSchema      *schema,
+static HyScanAntennaOffset *
+                       hyscan_sonar_info_parse_offset          (HyScanDataSchema      *schema,
                                                                 HyScanSourceType       source);
 
 static GList *
@@ -260,38 +260,38 @@ hyscan_sonar_info_list_sources_int (HyScanDataSchema *schema,
 }
 
 /* Функция считывает информацию о местоположении антенн. */
-static HyScanAntennaPosition *
-hyscan_sonar_info_parse_position (HyScanDataSchema *schema,
-                                  HyScanSourceType  source)
+static HyScanAntennaOffset *
+hyscan_sonar_info_parse_offset (HyScanDataSchema *schema,
+                                HyScanSourceType  source)
 {
-  HyScanAntennaPosition info = {0};
+  HyScanAntennaOffset offset = {0};
   gchar key_id[128];
 
-  SONAR_PARAM_NAME (source, "position/x", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.x, NULL))
+  SONAR_PARAM_NAME (source, "offset/x", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.x, NULL))
     return NULL;
 
-  SONAR_PARAM_NAME (source, "position/y", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.y, NULL))
+  SONAR_PARAM_NAME (source, "offset/y", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.y, NULL))
     return NULL;
 
-  SONAR_PARAM_NAME (source, "position/z", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.z, NULL))
+  SONAR_PARAM_NAME (source, "offset/z", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.z, NULL))
     return NULL;
 
-  SONAR_PARAM_NAME (source, "position/psi", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.psi, NULL))
+  SONAR_PARAM_NAME (source, "offset/psi", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.psi, NULL))
     return NULL;
 
-  SONAR_PARAM_NAME (source, "position/gamma", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.gamma, NULL))
+  SONAR_PARAM_NAME (source, "offset/gamma", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.gamma, NULL))
     return NULL;
 
-  SONAR_PARAM_NAME (source, "position/theta", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.theta, NULL))
+  SONAR_PARAM_NAME (source, "offset/theta", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.theta, NULL))
     return NULL;
 
-  return hyscan_antenna_position_copy (&info);
+  return hyscan_antenna_offset_copy (&offset);
 }
 
 /* Функция считывает информацию о приёмнике. */
@@ -425,7 +425,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   const gchar *dev_id = NULL;
   const gchar *description = NULL;
   HyScanSonarInfoSource *info = NULL;
-  HyScanAntennaPosition *position = NULL;
+  HyScanAntennaOffset *offset = NULL;
   HyScanSonarInfoReceiver *receiver = NULL;
   HyScanSonarInfoTVG *tvg = NULL;
   GList *presets = NULL;
@@ -440,8 +440,8 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   SONAR_PARAM_NAME (source, "description", NULL);
   description = hyscan_data_schema_key_get_string (schema, key_id);
 
-  /* Местоположение антенн по умолчанию. */
-  position = hyscan_sonar_info_parse_position (schema, source);
+  /* Смещение антенн по умолчанию. */
+  offset = hyscan_sonar_info_parse_offset (schema, source);
 
   /* Параметры приёмника. */
   receiver = hyscan_sonar_info_parse_receiver (schema, source);
@@ -460,7 +460,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   info->source = source;
   info->dev_id = g_strdup (dev_id);
   info->description = g_strdup (description);
-  info->position = position;
+  info->offset = offset;
   info->receiver = receiver;
   info->presets = presets;
   info->tvg = tvg;
@@ -588,7 +588,7 @@ hyscan_sonar_info_source_copy (const HyScanSonarInfoSource *info)
   new_info->source = info->source;
   new_info->dev_id = g_strdup (info->dev_id);
   new_info->description = g_strdup (info->description);
-  new_info->position = hyscan_antenna_position_copy (info->position);
+  new_info->offset = hyscan_antenna_offset_copy (info->offset);
   new_info->receiver = hyscan_sonar_info_receiver_copy (info->receiver);
   new_info->presets = g_list_copy_deep (info->presets, (GCopyFunc)hyscan_data_schema_enum_value_copy, NULL);
   new_info->tvg = hyscan_sonar_info_tvg_copy (info->tvg);
@@ -610,7 +610,7 @@ hyscan_sonar_info_source_free (HyScanSonarInfoSource *info)
 
   g_free ((gchar*)info->dev_id);
   g_free ((gchar*)info->description);
-  hyscan_antenna_position_free (info->position);
+  hyscan_antenna_offset_free (info->offset);
   hyscan_sonar_info_receiver_free (info->receiver);
   g_list_free_full (info->presets, (GDestroyNotify)hyscan_data_schema_enum_value_free);
   hyscan_sonar_info_tvg_free (info->tvg);

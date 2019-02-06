@@ -76,8 +76,8 @@ static void            hyscan_sensor_info_set_property         (GObject         
 static void            hyscan_sensor_info_object_constructed   (GObject               *object);
 static void            hyscan_sensor_info_object_finalize      (GObject               *object);
 
-static HyScanAntennaPosition *
-                       hyscan_sensor_info_parse_position       (HyScanDataSchema      *schema,
+static HyScanAntennaOffset *
+                       hyscan_sensor_info_parse_offset         (HyScanDataSchema      *schema,
                                                                 const gchar           *sensor);
 
 static GHashTable *    hyscan_sensor_info_parse_sensors        (HyScanDataSchema      *schema);
@@ -175,38 +175,38 @@ hyscan_sensor_info_object_finalize (GObject *object)
 }
 
 /* Функция считывает информацию о местоположении антенн. */
-static HyScanAntennaPosition *
-hyscan_sensor_info_parse_position (HyScanDataSchema *schema,
-                                   const gchar      *sensor)
+static HyScanAntennaOffset *
+hyscan_sensor_info_parse_offset (HyScanDataSchema *schema,
+                                 const gchar      *sensor)
 {
-  HyScanAntennaPosition info;
+  HyScanAntennaOffset offset;
   gchar key_id[128];
 
-  SENSOR_PARAM_NAME (sensor, "position/x", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.x, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/x", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.x, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "position/y", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.y, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/y", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.y, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "position/z", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.z, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/z", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.z, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "position/psi", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.psi, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/psi", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.psi, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "position/gamma", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.gamma, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/gamma", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.gamma, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "position/theta", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &info.theta, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/theta", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.theta, NULL))
     return NULL;
 
-  return hyscan_antenna_position_copy (&info);
+  return hyscan_antenna_offset_copy (&offset);
 }
 
 /* Функция считывает параметры датчиков. */
@@ -254,7 +254,7 @@ hyscan_sensor_info_parse_sensors (HyScanDataSchema *schema)
           info->name = g_strdup (keyv[2]);
           info->dev_id = g_strdup (dev_id);
           info->description = g_strdup (description);
-          info->position = hyscan_sensor_info_parse_position (schema, keyv[2]);
+          info->offset = hyscan_sensor_info_parse_offset (schema, keyv[2]);
 
           g_hash_table_insert (sensors, g_strdup (keyv[2]), info);
         }
@@ -345,7 +345,7 @@ hyscan_sensor_info_sensor_copy (const HyScanSensorInfoSensor *info)
   new_info->name = g_strdup (info->name);
   new_info->dev_id = g_strdup (info->dev_id);
   new_info->description = g_strdup (info->description);
-  new_info->position = hyscan_antenna_position_copy (info->position);
+  new_info->offset = hyscan_antenna_offset_copy (info->offset);
 
   return new_info;
 }
@@ -365,7 +365,7 @@ hyscan_sensor_info_sensor_free (HyScanSensorInfoSensor *info)
   g_free ((gchar*)info->name);
   g_free ((gchar*)info->dev_id);
   g_free ((gchar*)info->description);
-  hyscan_antenna_position_free (info->position);
+  hyscan_antenna_offset_free (info->offset);
 
   g_slice_free (HyScanSensorInfoSensor, info);
 }

@@ -80,9 +80,9 @@ gboolean               hyscan_sensor_schema_add_sensor         (HyScanSensorSche
                                                                 const gchar                   *description);
 
 HYSCAN_API
-gboolean               hyscan_sensor_schema_set_position       (HyScanSensorSchema            *schema,
+gboolean               hyscan_sensor_schema_set_offset         (HyScanSensorSchema            *schema,
                                                                 const gchar                   *name,
-                                                                HyScanAntennaPosition         *position);
+                                                                HyScanAntennaOffset           *offset);
 
 G_END_DECLS
 

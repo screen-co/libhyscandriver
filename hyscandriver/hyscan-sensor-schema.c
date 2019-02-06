@@ -50,30 +50,30 @@
  * - dev-id - уникальный идентификатор устройства, тип STRING, обязательное;
  * - description - поле с описанием датчика, тип STRING, необязательное.
  *
- * Для датчика может быть задано местоположение антенн по умолчанию. Если
- * местоположение антенны залано, должны быть определены все параметры.
+ * Для датчика может быть задано смещение антенны по умолчанию. Если
+ * смещение антенны задано, должны быть определены все параметры.
  *
- * Местоположение антенны задают следующие параметры:
+ * Смещение антенны задают следующие параметры:
  *
- * - antenna/position/x - смещение антенны по оси X, тип DOUBLE;
- * - antenna/position/y - смещение антенны по оси Y, тип DOUBLE;
- * - antenna/position/z - смещение антенны по оси Z, тип DOUBLE;
- * - antenna/position/psi - поворот антенны по курсу, тип DOUBLE;
- * - antenna/position/gamma - поворот антенны по крену, тип DOUBLE;
- * - antenna/position/theta - поворот антенны по дифференту, тип DOUBLE.
+ * - antenna/offset/x - смещение антенны по оси X, тип DOUBLE;
+ * - antenna/offset/y - смещение антенны по оси Y, тип DOUBLE;
+ * - antenna/offset/z - смещение антенны по оси Z, тип DOUBLE;
+ * - antenna/offset/psi - поворот антенны по курсу, тип DOUBLE;
+ * - antenna/offset/gamma - поворот антенны по крену, тип DOUBLE;
+ * - antenna/offset/theta - поворот антенны по дифференту, тип DOUBLE.
  *
- * Подробное описание этих параметров приведено в #HyScanAntennaPosition.
+ * Подробное описание этих параметров приведено в #HyScanAntennaOffset.
  *
  * Пример всех параметров для датчика с именем "nmea":
  *
  * - /sensors/nmea/dev-id
  * - /sensors/nmea/description
- * - /sensors/nmea/antenna/position/x
- * - /sensors/nmea/antenna/position/y
- * - /sensors/nmea/antenna/position/z
- * - /sensors/nmea/antenna/position/psi
- * - /sensors/nmea/antenna/position/gamma
- * - /sensors/nmea/antenna/position/theta
+ * - /sensors/nmea/antenna/offset/x
+ * - /sensors/nmea/antenna/offset/y
+ * - /sensors/nmea/antenna/offset/z
+ * - /sensors/nmea/antenna/offset/psi
+ * - /sensors/nmea/antenna/offset/gamma
+ * - /sensors/nmea/antenna/offset/theta
  *
  * Дополнительные параметры, если они необходимы, должны находится в ветках
  * "/params" и "/system". Состояние устройства приводится в ветке "/state",
@@ -85,8 +85,8 @@
  *
  * Датчик добавляется с помощью функции #hyscan_sensor_schema_add_sensor.
  *
- * Местоположение антенны по умолчанию задаётся с помощью функции
- * #hyscan_sensor_schema_set_position.
+ * Смещение антенны по умолчанию задаётся с помощью функции
+ * #hyscan_sensor_schema_set_offset.
  *
  * Функция hyscan_sensor_schema_add_full добавляет датчик описанный
  * стуруктурой #HyScanSensorInfoSensor.
@@ -216,9 +216,9 @@ hyscan_sensor_schema_add_full (HyScanSensorSchema     *schema,
   if (!hyscan_sensor_schema_add_sensor (schema, info->name, info->dev_id, info->description))
     return FALSE;
 
-  if (info->position !=NULL)
+  if (info->offset !=NULL)
     {
-      if (!hyscan_sensor_schema_set_position (schema, info->name, info->position))
+      if (!hyscan_sensor_schema_set_offset (schema, info->name, info->offset))
         return FALSE;
     }
 
@@ -283,19 +283,19 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
 }
 
 /**
- * hyscan_sensor_schema_source_set_position:
+ * hyscan_sensor_schema_source_set_offset:
  * @schema: указатель на #HyScanSensorSchema
  * @name: название датчика
- * @position: местоположение антенны по умолчанию
+ * @offset: смещение антенны по умолчанию
  *
- * Функция устанавливает местоположение антенны по умолчанию.
+ * Функция устанавливает смещение антенны по умолчанию.
  *
  * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
-                                   const gchar           *sensor,
-                                   HyScanAntennaPosition *position)
+hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
+                                 const gchar         *sensor,
+                                 HyScanAntennaOffset *offset)
 {
   HyScanDataSchemaBuilder *builder;
   gboolean status = FALSE;
@@ -311,50 +311,50 @@ hyscan_sensor_schema_set_position (HyScanSensorSchema    *schema,
     return FALSE;
 
 
-  /* Местоположение антенны. */
+  /* CСмещение антенны. */
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "position/x", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, position->x))
+  SENSOR_PARAM_NAME (sensor, "offset/x", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, offset->x))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "position/y", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  position->y))
+  SENSOR_PARAM_NAME (sensor, "offset/y", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  offset->y))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "position/z", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  position->z))
+  SENSOR_PARAM_NAME (sensor, "offset/z", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  offset->z))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "position/psi", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, position->psi))
+  SENSOR_PARAM_NAME (sensor, "offset/psi", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, offset->psi))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "position/gamma", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, position->gamma))
+  SENSOR_PARAM_NAME (sensor, "offset/gamma", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, offset->gamma))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "position/theta", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, position->theta))
+  SENSOR_PARAM_NAME (sensor, "offset/theta", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, offset->theta))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
 exit:

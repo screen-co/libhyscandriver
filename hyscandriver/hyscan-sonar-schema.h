@@ -80,9 +80,9 @@ gboolean               hyscan_sonar_schema_source_add                  (HyScanSo
                                                                         const gchar                   *description);
 
 HYSCAN_API
-gboolean               hyscan_sonar_schema_source_set_position         (HyScanSonarSchema             *schema,
+gboolean               hyscan_sonar_schema_source_set_offset           (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
-                                                                        HyScanAntennaPosition         *position);
+                                                                        HyScanAntennaOffset           *offset);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_receiver_set_params         (HyScanSonarSchema             *schema,

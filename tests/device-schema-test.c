@@ -57,23 +57,6 @@ HyScanSourceType orig_sources[] =
 };
 guint32 orig_n_sources = sizeof (orig_sources) / sizeof (HyScanSourceType);
 
-HyScanAntennaPosition *
-create_sensor_position (const gchar *name,
-                        gdouble      seed)
-{
-  guint index = g_str_hash (name) % N_SENSORS;
-  HyScanAntennaPosition position;
-
-  position.x = 1.0 * index * seed;
-  position.y = 2.0 * index * seed;
-  position.z = 3.0 * index * seed;
-  position.psi = 4.0 * index * seed;
-  position.gamma = 5.0 * index * seed;
-  position.theta = 6.0 * index * seed;
-
-  return hyscan_antenna_position_copy (&position);
-}
-
 HyScanSensorInfoSensor *
 create_sensor (guint   index,
                gdouble seed)
@@ -81,23 +64,23 @@ create_sensor (guint   index,
   HyScanSensorInfoSensor *pinfo;
   HyScanSensorInfoSensor info;
 
-  HyScanAntennaPosition position;
+  HyScanAntennaOffset offset;
 
-  position.x = 1.0 * index * seed;
-  position.y = 2.0 * index * seed;
-  position.z = 3.0 * index * seed;
-  position.psi = 4.0 * index * seed;
-  position.gamma = 5.0 * index * seed;
-  position.theta = 6.0 * index * seed;
+  offset.x = 1.0 * index * seed;
+  offset.y = 2.0 * index * seed;
+  offset.z = 3.0 * index * seed;
+  offset.psi = 4.0 * index * seed;
+  offset.gamma = 5.0 * index * seed;
+  offset.theta = 6.0 * index * seed;
 
   info.name = g_strdup_printf ("nmea-%d", index);
   info.dev_id = g_strdup_printf ("nmea-%d", index);
   info.description = g_strdup_printf ("Nmea sensor %d", index);
 
   if (index % 2)
-    info.position = &position;
+    info.offset = &offset;
   else
-    info.position = NULL;
+    info.offset = NULL;
 
   pinfo = hyscan_sensor_info_sensor_copy (&info);
 
@@ -115,7 +98,7 @@ create_source (HyScanSourceType source,
   HyScanSonarInfoSource info = {0};
   HyScanSonarInfoSource *pinfo;
 
-  HyScanAntennaPosition position = {0};
+  HyScanAntennaOffset offset = {0};
   HyScanSonarInfoReceiver receiver = {0};
   HyScanSonarInfoTVG tvg = {0};
   GList *presets = NULL;
@@ -124,7 +107,7 @@ create_source (HyScanSourceType source,
   HyScanSourceType i;
 
   memset (&info, 0, sizeof (info));
-  memset (&position, 0, sizeof (position));
+  memset (&offset, 0, sizeof (offset));
   memset (&receiver, 0, sizeof (receiver));
   memset (&tvg, 0, sizeof (tvg));
 
@@ -136,14 +119,14 @@ create_source (HyScanSourceType source,
   info.dev_id = source_name;
   info.description = source_name;
 
-  /* Местоположение антенн по умолчанию. */
-  position.x = -seed;
-  position.y = seed;
-  position.z = -seed / 2.0;
-  position.psi = -seed * 2.0;
-  position.gamma = seed / 2.0;
-  position.theta = seed * 2.0;
-  info.position = &position;
+  /* Смещение антенны по умолчанию. */
+  offset.x = -seed;
+  offset.y = seed;
+  offset.z = -seed / 2.0;
+  offset.psi = -seed * 2.0;
+  offset.gamma = seed / 2.0;
+  offset.theta = seed * 2.0;
+  info.offset = &offset;
 
   /* Параметры приёмника. */
   receiver.capabilities = HYSCAN_SONAR_RECEIVER_MODE_MANUAL;
@@ -201,17 +184,17 @@ verify_sensor (const HyScanSensorInfoSensor *sensor1,
   if (g_strcmp0 (sensor1->description, sensor2->description) != 0)
     g_error ("decripton failed");
 
-  if ((sensor1->position != NULL) ||
-      (sensor2->position != NULL))
+  if ((sensor1->offset != NULL) ||
+      (sensor2->offset != NULL))
     {
-      if ((sensor1->position->x != sensor2->position->x) ||
-          (sensor1->position->y != sensor2->position->y) ||
-          (sensor1->position->z != sensor2->position->z) ||
-          (sensor1->position->psi != sensor2->position->psi) ||
-          (sensor1->position->gamma != sensor2->position->gamma) ||
-          (sensor1->position->theta != sensor2->position->theta))
+      if ((sensor1->offset->x != sensor2->offset->x) ||
+          (sensor1->offset->y != sensor2->offset->y) ||
+          (sensor1->offset->z != sensor2->offset->z) ||
+          (sensor1->offset->psi != sensor2->offset->psi) ||
+          (sensor1->offset->gamma != sensor2->offset->gamma) ||
+          (sensor1->offset->theta != sensor2->offset->theta))
         {
-          g_error ("position failed");
+          g_error ("offset failed");
         }
     }
 }
@@ -232,18 +215,18 @@ verify_source (const HyScanSonarInfoSource *source1,
   if (g_strcmp0 (source1->description, source2->description) != 0)
     g_error ("description failed");
 
-  /* Местоположение антенн по умолчанию. */
-  if ((source1->position != NULL) ||
-      (source2->position != NULL))
+  /* Смещение антенны по умолчанию. */
+  if ((source1->offset != NULL) ||
+      (source2->offset != NULL))
     {
-      if ((source1->position->x != source2->position->x) ||
-          (source1->position->y != source2->position->y) ||
-          (source1->position->z != source2->position->z) ||
-          (source1->position->psi != source2->position->psi) ||
-          (source1->position->gamma != source2->position->gamma) ||
-          (source1->position->theta != source2->position->theta))
+      if ((source1->offset->x != source2->offset->x) ||
+          (source1->offset->y != source2->offset->y) ||
+          (source1->offset->z != source2->offset->z) ||
+          (source1->offset->psi != source2->offset->psi) ||
+          (source1->offset->gamma != source2->offset->gamma) ||
+          (source1->offset->theta != source2->offset->theta))
         {
-          g_error ("position failed");
+          g_error ("offset failed");
         }
     }
 
