@@ -187,8 +187,12 @@ hyscan_sonar_info_object_constructed (GObject *object)
   /* Параметры источников данных. */
   priv->sources = hyscan_sonar_info_parse_sources (priv->schema);
 
+  if (priv->sources == NULL)
+    return;
+
   /* Список источников данных. */
   priv->sources_list = g_array_new (FALSE, FALSE, sizeof (HyScanSourceType));
+
   g_hash_table_iter_init (&iter, priv->sources);
   while (g_hash_table_iter_next (&iter, &key, &value))
     {
