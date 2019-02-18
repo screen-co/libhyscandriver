@@ -373,7 +373,7 @@ hyscan_sonar_info_parse_presets (HyScanDataSchema *schema,
       presets = g_list_prepend (presets, hyscan_data_schema_enum_value_copy (&preset));
     }
 
-  return presets;
+  return g_list_reverse (presets);
 }
 
 /* Функция считывает информацию о системе ВАРУ. */
