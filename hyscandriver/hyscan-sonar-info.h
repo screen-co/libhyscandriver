@@ -79,7 +79,6 @@ struct _HyScanSonarInfoClass
  * @dev_id: уникальный идентификатор устройства
  * @description: описание источника данных
  * @offset: смещение приёмной антенны по умолчанию
- * @capabilities: режимы работы источника данных
  * @receiver: параметры приёмника
  * @presets: (element-type HyScanDataSchemaEnumValue) (transfer none): режимы генератора
  * @tvg: параметры ВАРУ
