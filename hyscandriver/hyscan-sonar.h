@@ -88,11 +88,14 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
  * @g_iface: Базовый интерфейс.
  * @receiver_set_time: Функция задаёт время приёма эхосигнала.
  * @receiver_set_auto: Функция задаёт автоматический выбор времени приёма эхосигнала.
+ * @receiver_disable: Функция отключает приём эхосигнала.
  * @generator_set_preset: Функция устанавливает режим работы генератора.
+ * @generator_disable: Функция отключает излучение сигнала генератором.
  * @tvg_set_auto: Функция включает автоматический режим управления системой ВАРУ.
  * @tvg_set_constant: Функция устанавливает постоянный уровень усиления.
  * @tvg_set_linear_db: Функция устанавливает линейное увеличение усиления в дБ на 100 метров.
  * @tvg_set_logarithmic: Функция устанавливает логарифмический вид закона усиления системой ВАРУ.
+ * @tvg_disable: Функция отключает управление усилением.
  * @start: Функция переводит гидролокатор в рабочий режим.
  * @stop: Функция переводит гидролокатор в ждущий режим и отключает запись данных.
  * @sync: Функция синхронизирует состояние гидролокатора в соответствии с заданными параметрами.
@@ -109,9 +112,15 @@ struct _HyScanSonarInterface
   gboolean             (*receiver_set_auto)                    (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source);
 
+  gboolean             (*receiver_disable)                     (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source);
+
   gboolean             (*generator_set_preset)                 (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
                                                                 gint64                          preset);
+
+  gboolean             (*generator_disable)                    (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source);
 
   gboolean             (*tvg_set_auto)                         (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
@@ -132,6 +141,9 @@ struct _HyScanSonarInterface
                                                                 gdouble                         gain0,
                                                                 gdouble                         beta,
                                                                 gdouble                         alpha);
+
+  gboolean             (*tvg_disable)                          (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source);
 
   gboolean             (*start)                                (HyScanSonar                    *sonar,
                                                                 const gchar                    *project_name,
@@ -157,9 +169,17 @@ gboolean               hyscan_sonar_receiver_set_auto          (HyScanSonar     
                                                                 HyScanSourceType                source);
 
 HYSCAN_API
+gboolean               hyscan_sonar_receiver_disable           (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source);
+
+HYSCAN_API
 gboolean               hyscan_sonar_generator_set_preset       (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
                                                                 gint64                          preset);
+
+HYSCAN_API
+gboolean               hyscan_sonar_generator_disable          (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source);
 
 HYSCAN_API
 gboolean               hyscan_sonar_tvg_set_auto               (HyScanSonar                    *sonar,
@@ -184,6 +204,10 @@ gboolean               hyscan_sonar_tvg_set_logarithmic        (HyScanSonar     
                                                                 gdouble                         gain0,
                                                                 gdouble                         beta,
                                                                 gdouble                         alpha);
+
+HYSCAN_API
+gboolean               hyscan_sonar_tvg_disable                (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source);
 
 HYSCAN_API
 gboolean               hyscan_sonar_start                      (HyScanSonar                    *sonar,

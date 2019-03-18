@@ -109,14 +109,17 @@
  * его переводом в рабочий режим из режиме останова. Если для какого-либо
  * источника данных не задан режим работы приёмника, этот источник данных будет
  * отключен. Аналогично, если не заданы параметры генератора или системы ВАРУ,
- * будут отключены эти подсистемы. Для их включения необходимо перевести
- * гидролокатора в режим останова, задать их параметры и включить рабочий режим.
+ * будут отключены эти подсистемы.
  *
- * Параметры включенных подсистем гидролокатора можно менять в рабочем
- * состоянии. Однако после их изменения необходимо сигнализировать об этом
- * гидролокатору с помощью функции #hyscan_sonar_sync. Это необходимо для
- * атомарного применения нескольких изменившихся параметров, например для
- * одновременного изменения времени приёма для левого и правого борта и т.п.
+ * Параметры включенных подсистем гидролокатора можно менять в рабочем состоянии.
+ * Отключить приём, излучение или усиление во время работы можно с помощью
+ * функций #hyscan_sonar_receiver_disable, #hyscan_sonar_generator_disable
+ * и #hyscan_sonar_tvg_disable. Для включения этих подсистем обратно необходимо
+ * выбрать один из доступных для них режимов работы. После изменения режимов
+ * работы, необходимо сигнализировать об этом гидролокатору с помощью функции
+ * #hyscan_sonar_sync. Это необходимо для атомарного применения нескольких
+ * изменившихся параметров, например для одновременного изменения времени приёма
+ * для левого и правого бортов и т.п.
  */
 
 #include "hyscan-sonar.h"
@@ -246,6 +249,30 @@ hyscan_sonar_receiver_set_auto (HyScanSonar      *sonar,
 }
 
 /**
+ * hyscan_sonar_receiver_disable:
+ * @sonar: указатель на #HyScanSonar
+ * @source: идентификатор источника данных #HyScanSourceType
+ *
+ * Функция отключает приём эхосигнала.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_receiver_disable (HyScanSonar      *sonar,
+                               HyScanSourceType  source)
+{
+  HyScanSonarInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
+
+  iface = HYSCAN_SONAR_GET_IFACE (sonar);
+  if (iface->receiver_disable != NULL)
+    return (* iface->receiver_disable) (sonar, source);
+
+  return FALSE;
+}
+
+/**
  * hyscan_sonar_generator_set_preset:
  * @sonar: указатель на #HyScanSonar
  * @source: идентификатор источника данных #HyScanSourceType
@@ -267,6 +294,30 @@ hyscan_sonar_generator_set_preset (HyScanSonar      *sonar,
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->generator_set_preset != NULL)
     return (* iface->generator_set_preset) (sonar, source, preset);
+
+  return FALSE;
+}
+
+/**
+ * hyscan_sonar_generator_disable:
+ * @sonar: указатель на #HyScanSonar
+ * @source: идентификатор источника данных #HyScanSourceType
+ *
+ * Функция отключает излучение сигнала генератором.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_generator_disable (HyScanSonar      *sonar,
+                                HyScanSourceType  source)
+{
+  HyScanSonarInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
+
+  iface = HYSCAN_SONAR_GET_IFACE (sonar);
+  if (iface->generator_disable != NULL)
+    return (* iface->generator_disable) (sonar, source);
 
   return FALSE;
 }
@@ -395,6 +446,30 @@ hyscan_sonar_tvg_set_logarithmic (HyScanSonar      *sonar,
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->tvg_set_logarithmic != NULL)
     return (* iface->tvg_set_logarithmic) (sonar, source, gain0, beta, alpha);
+
+  return FALSE;
+}
+
+/**
+ * hyscan_sonar_tvg_disable:
+ * @sonar: указатель на #HyScanSonar
+ * @source: идентификатор источника данных #HyScanSourceType
+ *
+ * Функция отключает управление усилением.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_tvg_disable (HyScanSonar      *sonar,
+                          HyScanSourceType  source)
+{
+  HyScanSonarInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
+
+  iface = HYSCAN_SONAR_GET_IFACE (sonar);
+  if (iface->tvg_disable != NULL)
+    return (* iface->tvg_disable) (sonar, source);
 
   return FALSE;
 }
