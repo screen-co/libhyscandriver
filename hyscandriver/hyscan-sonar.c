@@ -51,6 +51,9 @@
  * данных. Каждый из источников гидролокационных данных связан с одним из
  * «бортов» гидролокатора.
  *
+ * Задать смещение приёмных антенн гидролокатора можно с помощью функции
+ * #hyscan_sonar_antenna_set_offset.
+ *
  * Рабочая дистанция для каждого источника данных определяется временем приёма
  * эхосигнала. Управлять временем приёма можно только если такая возможность
  * предусмотрена источником данных. Для этого используются функции
@@ -194,6 +197,35 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
                 G_TYPE_INT64,
                 G_TYPE_POINTER,
                 HYSCAN_TYPE_BUFFER);
+}
+
+/**
+ * hyscan_sonar_antenna_set_offset:
+ * @control: указатель на #HyScanControl
+ * @source: идентификатор источника данных #HyScanSourceType
+ * @offset: смещение приёмной антенны
+ *
+ * Функция задаёт смещение приёмных антенн гидролокатора. Подробное
+ * описание параметров приводится в #HyScanTypes.
+ *
+ * Если для источника задано смещение по умолчанию, изменить его нельзя.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_antenna_set_offset (HyScanSonar               *sonar,
+                                 HyScanSourceType           source,
+                                 const HyScanAntennaOffset *offset)
+{
+  HyScanSonarInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
+
+  iface = HYSCAN_SONAR_GET_IFACE (sonar);
+  if (iface->antenna_set_offset != NULL)
+    return (* iface->antenna_set_offset) (sonar, source, offset);
+
+  return FALSE;
 }
 
 /**

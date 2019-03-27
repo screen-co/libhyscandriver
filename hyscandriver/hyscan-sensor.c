@@ -42,9 +42,10 @@
  * быть: навигационная информация, информация об ориентации в пространстве,
  * информация о скорости звука и т.п.
  *
- * Каждый из датчиков идентифицируется уникальным названием. Приём данных
- * каждым из датчиков можно включить или выключить с помощью функции
- * #hyscan_sensor_set_enable.
+ * Каждый из датчиков идентифицируется уникальным названием. Задать смещение
+ * приёмных антенн датчика можно с помощью функции
+ * #hyscan_sensor_antenna_set_offset. Приём данных каждым из датчиков можно
+ * включить или выключить с помощью функции #hyscan_sensor_set_enable.
  */
 
 #include "hyscan-sensor.h"
@@ -75,6 +76,35 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
                 G_TYPE_INT,
                 G_TYPE_INT64,
                 HYSCAN_TYPE_BUFFER);
+}
+
+/**
+ * hyscan_sensor_antenna_set_offset:
+ * @sensor: указатель на #HyScanSensor
+ * @name: название датчика
+ * @offset: смещение приёмной антенны
+ *
+ * Функция задаёт смещение приёмных антенн датчика. Подробное
+ * описание параметров приводится в #HyScanTypes.
+ *
+ * Если для датчика задано смещение по умолчанию, изменить его нельзя.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sensor_antenna_set_offset (HyScanSensor              *sensor,
+                                  const gchar               *name,
+                                  const HyScanAntennaOffset *offset)
+{
+  HyScanSensorInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_SENSOR (sensor), FALSE);
+
+  iface = HYSCAN_SENSOR_GET_IFACE (sensor);
+  if (iface->antenna_set_offset != NULL)
+    return (* iface->antenna_set_offset) (sensor, name, offset);
+
+  return FALSE;
 }
 
 /**

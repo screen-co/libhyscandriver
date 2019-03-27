@@ -50,11 +50,16 @@ typedef struct _HyScanSensorInterface HyScanSensorInterface;
 /**
  * HyScanSensorInterface:
  * @g_iface: Базовый интерфейс.
+ * @antenna_set_offset: Функция задаёт смещение приёмных антенн датчика.
  * @set_enable: Функция включает или выключает приём данных.
  */
 struct _HyScanSensorInterface
 {
   GTypeInterface       g_iface;
+
+  gboolean             (*antenna_set_offset)                   (HyScanSensor                  *sensor,
+                                                                const gchar                   *name,
+                                                                const HyScanAntennaOffset     *offset);
 
   gboolean             (*set_enable)                           (HyScanSensor                  *sensor,
                                                                 const gchar                   *name,
@@ -63,6 +68,11 @@ struct _HyScanSensorInterface
 
 HYSCAN_API
 GType                  hyscan_sensor_get_type                  (void);
+
+HYSCAN_API
+gboolean               hyscan_sensor_antenna_set_offset        (HyScanSensor                  *sensor,
+                                                                const gchar                   *name,
+                                                                const HyScanAntennaOffset     *offset);
 
 HYSCAN_API
 gboolean               hyscan_sensor_set_enable                (HyScanSensor                  *sensor,

@@ -86,6 +86,7 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
 /**
  * HyScanSonarInterface:
  * @g_iface: Базовый интерфейс.
+ * @antenna_set_offset: Функция задаёт смещение приёмных антенн гидролокатора.
  * @receiver_set_time: Функция задаёт время приёма эхосигнала.
  * @receiver_set_auto: Функция задаёт автоматический выбор времени приёма эхосигнала.
  * @receiver_disable: Функция отключает приём эхосигнала.
@@ -103,6 +104,10 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
 struct _HyScanSonarInterface
 {
   GTypeInterface       g_iface;
+
+  gboolean             (*antenna_set_offset)                   (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                const HyScanAntennaOffset      *offset);
 
   gboolean             (*receiver_set_time)                    (HyScanSonar                    *sonar,
                                                                 HyScanSourceType                source,
@@ -157,6 +162,11 @@ struct _HyScanSonarInterface
 
 HYSCAN_API
 GType                  hyscan_sonar_get_type                   (void);
+
+HYSCAN_API
+gboolean               hyscan_sonar_antenna_set_offset         (HyScanSonar                    *sonar,
+                                                                HyScanSourceType                source,
+                                                                const HyScanAntennaOffset      *offset);
 
 HYSCAN_API
 gboolean               hyscan_sonar_receiver_set_time          (HyScanSonar                    *sonar,
