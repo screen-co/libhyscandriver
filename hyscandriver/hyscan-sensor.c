@@ -67,6 +67,10 @@ hyscan_sensor_default_init (HyScanSensorInterface *iface)
    * @data: данные #HyScanBuffer
    *
    * Данный сигнал посылается при получении данных от датчика.
+   *
+   * Для каждого из датчиков, этот сигнал должен посылаться
+   * из одного и того же потока. Также, не допускается отправка данных
+   * с меткой времени меньшей или равной отправленной ранее.
    */
   g_signal_new ("sensor-data", HYSCAN_TYPE_SENSOR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
