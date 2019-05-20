@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 2.8)
 
 project (libhyscandriver)
 
+enable_testing()
+
 set (HYSCAN_MAJOR_VERSION 5)
 set (HYSCAN_DRIVER_VERSION 0)
 set (HYSCAN_DRIVER_LIBRARY "hyscandriver-${HYSCAN_MAJOR_VERSION}")

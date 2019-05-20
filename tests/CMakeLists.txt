@@ -36,3 +36,8 @@ target_compile_definitions (hyscan-dummy1 PRIVATE "-DDUMMY=1")
 target_compile_definitions (hyscan-dummy2 PRIVATE "-DDUMMY=2")
 target_compile_definitions (hyscan-dummy3 PRIVATE "-DDUMMY=3")
 target_compile_definitions (hyscan-dummy4 PRIVATE "-DDUMMY=4")
+
+add_test (NAME DeviceSchemaTest COMMAND device-schema-test
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+add_test (NAME DriverTest COMMAND driver-test .
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
