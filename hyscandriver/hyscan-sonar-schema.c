@@ -129,7 +129,7 @@
 #define SONAR_PARAM_NAME(source, ...)  hyscan_param_name_constructor (key_id, \
                                          (guint)sizeof (key_id), \
                                          "sources", \
-                                         hyscan_source_get_name_by_type (source), \
+                                         hyscan_source_get_id_by_type (source), \
                                          __VA_ARGS__)
 
 enum

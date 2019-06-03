@@ -62,7 +62,7 @@
 #define SONAR_PARAM_NAME(source, ...)  hyscan_param_name_constructor (key_id, \
                                          (guint)sizeof (key_id), \
                                          "sources", \
-                                         hyscan_source_get_name_by_type (source), \
+                                         hyscan_source_get_id_by_type (source), \
                                          __VA_ARGS__)
 
 enum
@@ -242,7 +242,7 @@ hyscan_sonar_info_list_sources_int (HyScanDataSchema *schema,
 
       if ((g_strcmp0 (keyv[1], "sources") == 0) && (g_strcmp0 (keyv[3], "dev-id") == 0))
         {
-          HyScanSourceType source = hyscan_source_get_type_by_name (keyv[2]);
+          HyScanSourceType source = hyscan_source_get_type_by_id (keyv[2]);
 
           if (!hyscan_source_is_sonar (source))
             continue;

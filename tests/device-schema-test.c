@@ -106,7 +106,7 @@ create_source (HyScanSourceType source,
   HyScanSonarInfoTVG tvg = {0};
   GList *presets = NULL;
 
-  const gchar *source_name;
+  const gchar *source_id;
   HyScanSourceType i;
 
   memset (&info, 0, sizeof (info));
@@ -114,13 +114,13 @@ create_source (HyScanSourceType source,
   memset (&receiver, 0, sizeof (receiver));
   memset (&tvg, 0, sizeof (tvg));
 
-  source_name = hyscan_source_get_name_by_type (source);
+  source_id = hyscan_source_get_id_by_type (source);
   seed = seed * source;
 
   /* Описание источника данных. */
   info.source = source;
-  info.dev_id = source_name;
-  info.description = source_name;
+  info.dev_id = source_id;
+  info.description = source_id;
 
   /* Смещение антенны по умолчанию. */
   offset.x = -seed;
@@ -142,9 +142,9 @@ create_source (HyScanSourceType source,
   for (i = 0; i < source; i++)
     {
       HyScanDataSchemaEnumValue *preset;
-      gchar *id = g_strdup_printf ("%s-preset-%d", source_name, i + 1);
-      gchar *name = g_strdup_printf ("%s name %d", source_name, i + 1);
-      gchar *description = g_strdup_printf ("%s description %d", source_name, i + 1);
+      gchar *id = g_strdup_printf ("%s-preset-%d", source_id, i + 1);
+      gchar *name = g_strdup_printf ("%s name %d", source_id, i + 1);
+      gchar *description = g_strdup_printf ("%s description %d", source_id, i + 1);
 
       preset = hyscan_data_schema_enum_value_new (i, id, name, description);
       presets = g_list_append (presets, preset);
@@ -336,7 +336,7 @@ main (int    argc,
       HyScanSonarInfoSource *source = create_source (orig_sources[i], seed);
 
       if (!hyscan_sonar_schema_source_add_full (sonar_schema, source))
-        g_error ("can't add source %s", hyscan_source_get_name_by_type (orig_sources[i]));
+        g_error ("can't add source %s", hyscan_source_get_id_by_type (orig_sources[i]));
 
       hyscan_sonar_info_source_free (source);
     }
@@ -388,7 +388,7 @@ main (int    argc,
       orig_source = create_source (orig_sources[i], seed);
       source = hyscan_sonar_info_get_source (sonar_info, orig_sources[i]);
 
-      g_message ("Check source %s", hyscan_source_get_name_by_type (orig_sources[i]));
+      g_message ("Check source %s", hyscan_source_get_id_by_type (orig_sources[i]));
 
       for (j = 0; j < n_sources; j++)
         if (orig_sources[i] == sources[j])
