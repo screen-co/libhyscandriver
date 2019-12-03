@@ -153,7 +153,8 @@ struct _HyScanSonarInterface
   gboolean             (*start)                                (HyScanSonar                    *sonar,
                                                                 const gchar                    *project_name,
                                                                 const gchar                    *track_name,
-                                                                HyScanTrackType                 track_type);
+                                                                HyScanTrackType                 track_type,
+                                                                const HyScanTrackPlan          *track_plan);
 
   gboolean             (*stop)                                 (HyScanSonar                    *sonar);
 
@@ -223,7 +224,8 @@ HYSCAN_API
 gboolean               hyscan_sonar_start                      (HyScanSonar                    *sonar,
                                                                 const gchar                    *project_name,
                                                                 const gchar                    *track_name,
-                                                                HyScanTrackType                 track_type);
+                                                                HyScanTrackType                 track_type,
+                                                                const HyScanTrackPlan          *track_plan);
 
 HYSCAN_API
 gboolean               hyscan_sonar_stop                       (HyScanSonar                    *sonar);

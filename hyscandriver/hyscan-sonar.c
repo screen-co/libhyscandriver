@@ -525,16 +525,18 @@ hyscan_sonar_tvg_disable (HyScanSonar      *sonar,
  * @project_name: название проекта, в который записывать данные
  * @track_name: название галса, в который записывать данные
  * @track_type: тип галса
+ * @track_plan: (nullable): запланированные параметры галса
  *
  * Функция переводит гидролокатор в рабочий режим.
  *
  * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_start (HyScanSonar     *sonar,
-                    const gchar     *project_name,
-                    const gchar     *track_name,
-                    HyScanTrackType  track_type)
+hyscan_sonar_start (HyScanSonar           *sonar,
+                    const gchar           *project_name,
+                    const gchar           *track_name,
+                    HyScanTrackType        track_type,
+                    const HyScanTrackPlan *track_plan)
 {
   HyScanSonarInterface *iface;
 
@@ -542,7 +544,7 @@ hyscan_sonar_start (HyScanSonar     *sonar,
 
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->start != NULL)
-    return (* iface->start) (sonar, project_name, track_name, track_type);
+    return (* iface->start) (sonar, project_name, track_name, track_type, track_plan);
 
   return FALSE;
 }
