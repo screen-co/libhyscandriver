@@ -398,48 +398,48 @@ hyscan_sonar_schema_source_set_offset (HyScanSonarSchema   *schema,
 
   /* Смещение антенны. */
   status = FALSE;
-  SONAR_PARAM_NAME (source, "offset/x", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, offset->x))
+  SONAR_PARAM_NAME (source, "offset/starboard", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, offset->starboard))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "offset/y", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  offset->y))
+  SONAR_PARAM_NAME (source, "offset/forward", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  offset->forward))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "offset/z", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  offset->z))
+  SONAR_PARAM_NAME (source, "offset/vertical", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  offset->vertical))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "offset/psi", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, offset->psi))
+  SONAR_PARAM_NAME (source, "offset/yaw", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, offset->yaw))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "offset/gamma", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, offset->gamma))
+  SONAR_PARAM_NAME (source, "offset/pitch", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, offset->pitch))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SONAR_PARAM_NAME (source, "offset/theta", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, offset->theta))
+  SONAR_PARAM_NAME (source, "offset/roll", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, offset->roll))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
 exit:

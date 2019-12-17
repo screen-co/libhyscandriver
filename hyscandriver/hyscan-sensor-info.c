@@ -182,28 +182,28 @@ hyscan_sensor_info_parse_offset (HyScanDataSchema *schema,
   HyScanAntennaOffset offset;
   gchar key_id[128];
 
-  SENSOR_PARAM_NAME (sensor, "offset/x", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.x, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/starboard", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.starboard, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "offset/y", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.y, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/forward", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.forward, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "offset/z", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.z, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/vertical", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.vertical, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "offset/psi", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.psi, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/yaw", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.yaw, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "offset/gamma", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.gamma, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/pitch", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.pitch, NULL))
     return NULL;
 
-  SENSOR_PARAM_NAME (sensor, "offset/theta", NULL);
-  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.theta, NULL))
+  SENSOR_PARAM_NAME (sensor, "offset/roll", NULL);
+  if (!hyscan_data_schema_key_get_double (schema, key_id, NULL, NULL, &offset.roll, NULL))
     return NULL;
 
   return hyscan_antenna_offset_copy (&offset);

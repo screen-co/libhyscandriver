@@ -311,50 +311,50 @@ hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
     return FALSE;
 
 
-  /* CСмещение антенны. */
+  /* Cмещение антенны. */
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "offset/x", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, offset->x))
+  SENSOR_PARAM_NAME (sensor, "offset/starboard", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, offset->starboard))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "offset/y", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  offset->y))
+  SENSOR_PARAM_NAME (sensor, "offset/forward", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  offset->forward))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "offset/z", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  offset->z))
+  SENSOR_PARAM_NAME (sensor, "offset/vertical", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  offset->vertical))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "offset/psi", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, offset->psi))
+  SENSOR_PARAM_NAME (sensor, "offset/yaw", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, offset->yaw))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "offset/gamma", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, offset->gamma))
+  SENSOR_PARAM_NAME (sensor, "offset/pitch", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, offset->pitch))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
   if (!status)
     goto exit;
 
   status = FALSE;
-  SENSOR_PARAM_NAME (sensor, "offset/theta", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, offset->theta))
+  SENSOR_PARAM_NAME (sensor, "offset/roll", NULL);
+  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, offset->roll))
     status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
 exit:

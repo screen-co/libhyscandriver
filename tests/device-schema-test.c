@@ -69,12 +69,12 @@ create_sensor (guint   index,
 
   HyScanAntennaOffset offset;
 
-  offset.x = 1.0 * index * seed;
-  offset.y = 2.0 * index * seed;
-  offset.z = 3.0 * index * seed;
-  offset.psi = 4.0 * index * seed;
-  offset.gamma = 5.0 * index * seed;
-  offset.theta = 6.0 * index * seed;
+  offset.starboard = 1.0 * index * seed;
+  offset.forward = 2.0 * index * seed;
+  offset.vertical = 3.0 * index * seed;
+  offset.yaw = 4.0 * index * seed;
+  offset.pitch = 5.0 * index * seed;
+  offset.roll = 6.0 * index * seed;
 
   info.name = g_strdup_printf ("nmea-%d", index);
   info.dev_id = g_strdup_printf ("nmea-%d", index);
@@ -123,12 +123,12 @@ create_source (HyScanSourceType source,
   info.description = source_id;
 
   /* Смещение антенны по умолчанию. */
-  offset.x = -seed;
-  offset.y = seed;
-  offset.z = -seed / 2.0;
-  offset.psi = -seed * 2.0;
-  offset.gamma = seed / 2.0;
-  offset.theta = seed * 2.0;
+  offset.starboard = -seed;
+  offset.forward = seed;
+  offset.vertical = -seed / 2.0;
+  offset.yaw = -seed * 2.0;
+  offset.pitch = seed / 2.0;
+  offset.roll = seed * 2.0;
   info.offset = &offset;
 
   /* Параметры приёмника. */
@@ -190,12 +190,12 @@ verify_sensor (const HyScanSensorInfoSensor *sensor1,
   if ((sensor1->offset != NULL) ||
       (sensor2->offset != NULL))
     {
-      if ((sensor1->offset->x != sensor2->offset->x) ||
-          (sensor1->offset->y != sensor2->offset->y) ||
-          (sensor1->offset->z != sensor2->offset->z) ||
-          (sensor1->offset->psi != sensor2->offset->psi) ||
-          (sensor1->offset->gamma != sensor2->offset->gamma) ||
-          (sensor1->offset->theta != sensor2->offset->theta))
+      if ((sensor1->offset->starboard != sensor2->offset->starboard) ||
+          (sensor1->offset->forward != sensor2->offset->forward) ||
+          (sensor1->offset->vertical != sensor2->offset->vertical) ||
+          (sensor1->offset->yaw != sensor2->offset->yaw) ||
+          (sensor1->offset->pitch != sensor2->offset->pitch) ||
+          (sensor1->offset->roll != sensor2->offset->roll))
         {
           g_error ("offset failed");
         }
@@ -222,12 +222,12 @@ verify_source (const HyScanSonarInfoSource *source1,
   if ((source1->offset != NULL) ||
       (source2->offset != NULL))
     {
-      if ((source1->offset->x != source2->offset->x) ||
-          (source1->offset->y != source2->offset->y) ||
-          (source1->offset->z != source2->offset->z) ||
-          (source1->offset->psi != source2->offset->psi) ||
-          (source1->offset->gamma != source2->offset->gamma) ||
-          (source1->offset->theta != source2->offset->theta))
+      if ((source1->offset->starboard != source2->offset->starboard) ||
+          (source1->offset->forward != source2->offset->forward) ||
+          (source1->offset->vertical != source2->offset->vertical) ||
+          (source1->offset->yaw != source2->offset->yaw) ||
+          (source1->offset->pitch != source2->offset->pitch) ||
+          (source1->offset->roll != source2->offset->roll))
         {
           g_error ("offset failed");
         }
