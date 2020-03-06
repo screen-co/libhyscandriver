@@ -55,12 +55,12 @@
  *
  * Смещение антенны задают следующие параметры:
  *
- * - antenna/offset/x - смещение антенны по оси X, тип DOUBLE;
- * - antenna/offset/y - смещение антенны по оси Y, тип DOUBLE;
- * - antenna/offset/z - смещение антенны по оси Z, тип DOUBLE;
- * - antenna/offset/psi - поворот антенны по курсу, тип DOUBLE;
- * - antenna/offset/gamma - поворот антенны по крену, тип DOUBLE;
- * - antenna/offset/theta - поворот антенны по дифференту, тип DOUBLE.
+ * - antenna/offset/starboard - смещение антенны на правый борт, тип DOUBLE;
+ * - antenna/offset/forward - смещение антенны к носу судна, тип DOUBLE;
+ * - antenna/offset/vertical - смещение антенны по вертикали вниз, тип DOUBLE;
+ * - antenna/offset/yaw - разворот антенны от продольной оси судна, тип DOUBLE;
+ * - antenna/offset/pitch - разворот антенны от вертикальной оси судна, тип DOUBLE;
+ * - antenna/offset/roll - разворот антенны от поперечной оси судна, тип DOUBLE.
  *
  * Подробное описание этих параметров приведено в #HyScanAntennaOffset.
  *
@@ -68,12 +68,12 @@
  *
  * - /sensors/nmea/dev-id
  * - /sensors/nmea/description
- * - /sensors/nmea/antenna/offset/x
- * - /sensors/nmea/antenna/offset/y
- * - /sensors/nmea/antenna/offset/z
- * - /sensors/nmea/antenna/offset/psi
- * - /sensors/nmea/antenna/offset/gamma
- * - /sensors/nmea/antenna/offset/theta
+ * - /sensors/nmea/antenna/offset/starboard
+ * - /sensors/nmea/antenna/offset/forward
+ * - /sensors/nmea/antenna/offset/vertical
+ * - /sensors/nmea/antenna/offset/yaw
+ * - /sensors/nmea/antenna/offset/pitch
+ * - /sensors/nmea/antenna/offset/roll
  *
  * Дополнительные параметры, если они необходимы, должны находится в ветках
  * "/params" и "/system". Состояние устройства приводится в ветке "/state",
@@ -213,16 +213,17 @@ gboolean
 hyscan_sensor_schema_add_full (HyScanSensorSchema     *schema,
                                HyScanSensorInfoSensor *info)
 {
-  if (!hyscan_sensor_schema_add_sensor (schema, info->name, info->dev_id, info->description))
-    return FALSE;
+  gboolean status = FALSE;
+
+  status = hyscan_sensor_schema_add_sensor (schema, info->name, info->dev_id, info->description);
+  if (!status)
+    goto exit;
 
   if (info->offset !=NULL)
-    {
-      if (!hyscan_sensor_schema_set_offset (schema, info->name, info->offset))
-        return FALSE;
-    }
+    status = hyscan_sensor_schema_set_offset (schema, info->name, info->offset);
 
-  return TRUE;
+exit:
+  return status;
 }
 
 /**
@@ -243,35 +244,37 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
                                  const gchar        *description)
 {
   HyScanDataSchemaBuilder *builder;
-  gboolean status;
+  gboolean status = FALSE;
   gchar key_id[128];
 
   g_return_val_if_fail (HYSCAN_IS_SENSOR_SCHEMA (schema), FALSE);
 
   builder = schema->priv->builder;
   if (builder == NULL)
-    return FALSE;
+    goto exit;
 
   if (g_hash_table_contains (schema->priv->sensors, sensor))
-    return FALSE;
+    goto exit;
 
   /* Уникальный идентификатор устройства. */
-  status = FALSE;
   SENSOR_PARAM_NAME (sensor, "dev-id", NULL);
-  if (hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  status = hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id);
+  if (!status)
+    return FALSE;
 
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   if (!status)
     return FALSE;
 
   /* Описание датчика. */
   if (description != NULL)
     {
-      status = FALSE;
       SENSOR_PARAM_NAME (sensor, "description", NULL);
-      if (hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+      status = hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description);
+      if (!status)
+        return FALSE;
 
+      status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
       if (!status)
         return FALSE;
     }
@@ -279,6 +282,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   if (status)
     g_hash_table_insert (schema->priv->sensors, g_strdup (sensor), NULL);
 
+exit:
   return status;
 }
 
@@ -305,59 +309,64 @@ hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
 
   builder = schema->priv->builder;
   if (builder == NULL)
-    return FALSE;
+    goto exit;
 
   if (!g_hash_table_contains (schema->priv->sensors, sensor))
-    return FALSE;
+    goto exit;
 
-
-  /* Cмещение антенны. */
-  status = FALSE;
+  /* Смещение антенны. */
   SENSOR_PARAM_NAME (sensor, "offset/starboard", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, offset->starboard))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "starboard", NULL, offset->starboard);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SENSOR_PARAM_NAME (sensor, "offset/forward", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  offset->forward))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "forward", NULL,  offset->forward);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SENSOR_PARAM_NAME (sensor, "offset/vertical", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  offset->vertical))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "vertical", NULL,  offset->vertical);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SENSOR_PARAM_NAME (sensor, "offset/yaw", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, offset->yaw))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "yaw", NULL, offset->yaw);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SENSOR_PARAM_NAME (sensor, "offset/pitch", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, offset->pitch))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "pitch", NULL, offset->pitch);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SENSOR_PARAM_NAME (sensor, "offset/roll", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, offset->roll))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "roll", NULL, offset->roll);
+  if (!status)
+    goto exit;
+
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
 exit:
-
   return status;
 }

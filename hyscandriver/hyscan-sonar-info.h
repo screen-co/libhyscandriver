@@ -76,6 +76,7 @@ struct _HyScanSonarInfoClass
 /**
  * HyScanSonarInfoSource:
  * @source: тип источника данных
+ * @link: связанный источник данных
  * @dev_id: уникальный идентификатор устройства
  * @description: описание источника данных
  * @offset: смещение приёмной антенны по умолчанию
@@ -87,13 +88,14 @@ struct _HyScanSonarInfoClass
  */
 struct _HyScanSonarInfoSource
 {
-  HyScanSourceType                 source;
-  const gchar                     *dev_id;
-  const gchar                     *description;
-  HyScanAntennaOffset             *offset;
-  HyScanSonarInfoReceiver         *receiver;
-  GList                           *presets;
-  HyScanSonarInfoTVG              *tvg;
+  HyScanSourceType             source;
+  HyScanSourceType             link;
+  const gchar                 *dev_id;
+  const gchar                 *description;
+  HyScanAntennaOffset         *offset;
+  HyScanSonarInfoReceiver     *receiver;
+  GList                       *presets;
+  HyScanSonarInfoTVG          *tvg;
 };
 
 /**
@@ -106,9 +108,9 @@ struct _HyScanSonarInfoSource
  */
 struct _HyScanSonarInfoReceiver
 {
-  HyScanSonarReceiverModeType      capabilities;
-  gdouble                          min_time;
-  gdouble                          max_time;
+  HyScanSonarReceiverModeType  capabilities;
+  gdouble                      min_time;
+  gdouble                      max_time;
 };
 
 /**
@@ -122,10 +124,10 @@ struct _HyScanSonarInfoReceiver
  */
 struct _HyScanSonarInfoTVG
 {
-  HyScanSonarTVGModeType           capabilities;
-  gdouble                          min_gain;
-  gdouble                          max_gain;
-  gboolean                         decrease;
+  HyScanSonarTVGModeType       capabilities;
+  gdouble                      min_gain;
+  gdouble                      max_gain;
+  gboolean                     decrease;
 };
 
 HYSCAN_API

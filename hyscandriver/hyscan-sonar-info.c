@@ -41,9 +41,6 @@
  * Для создания объекта используется функция #hyscan_sonar_info_new, в
  * которую передаётся схема устройства.
  *
- * Определить возможность программного управления излучением можно с помощью
- * функции #hyscan_sonar_info_get_software_ping.
- *
  * Список источников данных можно узнать с помощью функции
  * #hyscan_sonar_info_list_sources.
  *
@@ -84,6 +81,9 @@ static void            hyscan_sonar_info_set_property          (GObject         
                                                                 GParamSpec            *pspec);
 static void            hyscan_sonar_info_object_constructed    (GObject               *object);
 static void            hyscan_sonar_info_object_finalize       (GObject               *object);
+
+static gpointer        hyscan_sonar_info_preset_copy           (gconstpointer          preset,
+                                                                gpointer               data);
 
 static HyScanSourceType *
                        hyscan_sonar_info_list_sources_int      (HyScanDataSchema      *schema,
@@ -212,6 +212,14 @@ hyscan_sonar_info_object_finalize (GObject *object)
   g_clear_pointer (&priv->sources_list, g_array_unref);
 
   G_OBJECT_CLASS (hyscan_sonar_info_parent_class)->finalize (object);
+}
+
+/* Функция копирует структуру HyScanDataSchemaEnumValue. */
+static gpointer
+hyscan_sonar_info_preset_copy (gconstpointer preset,
+                               gpointer      data)
+{
+  return hyscan_data_schema_enum_value_copy (preset);
 }
 
 /* Функуция возвращает список источников гидролокационных данных. */
@@ -404,17 +412,21 @@ hyscan_sonar_info_parse_tvg (HyScanDataSchema *schema,
         info.capabilities |= HYSCAN_SONAR_TVG_MODE_LOGARITHMIC;
     }
 
+  if ((info.capabilities & HYSCAN_SONAR_TVG_MODE_CONSTANT) ||
+      (info.capabilities & HYSCAN_SONAR_TVG_MODE_LINEAR_DB) ||
+      (info.capabilities & HYSCAN_SONAR_TVG_MODE_LOGARITHMIC))
+    {
+      SONAR_PARAM_NAME (source, "tvg/gain", NULL);
+      status = hyscan_data_schema_key_get_double (schema, key_id,
+                                                  &info.min_gain, &info.max_gain,
+                                                  NULL, NULL);
+      if (!status)
+        return NULL;
 
-  SONAR_PARAM_NAME (source, "tvg/gain", NULL);
-  status = hyscan_data_schema_key_get_double (schema, key_id,
-                                              &info.min_gain, &info.max_gain,
-                                              NULL, NULL);
-  if (!status)
-    return NULL;
-
-  SONAR_PARAM_NAME (source, "tvg/decrease", NULL);
-  if (!hyscan_data_schema_key_get_boolean (schema, key_id, &info.decrease))
-    info.decrease = FALSE;
+      SONAR_PARAM_NAME (source, "tvg/decrease", NULL);
+      if (!hyscan_data_schema_key_get_boolean (schema, key_id, &info.decrease))
+        info.decrease = FALSE;
+    }
 
   return hyscan_sonar_info_tvg_copy (&info);
 }
@@ -428,6 +440,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
 
   const gchar *dev_id = NULL;
   const gchar *description = NULL;
+  const gchar *link = NULL;
   HyScanSonarInfoSource *info = NULL;
   HyScanAntennaOffset *offset = NULL;
   HyScanSonarInfoReceiver *receiver = NULL;
@@ -443,6 +456,10 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   /* Описание источника данных. */
   SONAR_PARAM_NAME (source, "description", NULL);
   description = hyscan_data_schema_key_get_string (schema, key_id);
+
+  /* Связанный источник данных. */
+  SONAR_PARAM_NAME (source, "link", NULL);
+  link = hyscan_data_schema_key_get_string (schema, key_id);
 
   /* Смещение антенн по умолчанию. */
   offset = hyscan_sonar_info_parse_offset (schema, source);
@@ -463,6 +480,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   info = g_slice_new0 (HyScanSonarInfoSource);
   info->source = source;
   info->dev_id = g_strdup (dev_id);
+  info->link = hyscan_source_get_type_by_id (link);
   info->description = g_strdup (description);
   info->offset = offset;
   info->receiver = receiver;
@@ -592,9 +610,10 @@ hyscan_sonar_info_source_copy (const HyScanSonarInfoSource *info)
   new_info->source = info->source;
   new_info->dev_id = g_strdup (info->dev_id);
   new_info->description = g_strdup (info->description);
+  new_info->link = info->link;
   new_info->offset = hyscan_antenna_offset_copy (info->offset);
   new_info->receiver = hyscan_sonar_info_receiver_copy (info->receiver);
-  new_info->presets = g_list_copy_deep (info->presets, (GCopyFunc)hyscan_data_schema_enum_value_copy, NULL);
+  new_info->presets = g_list_copy_deep (info->presets, hyscan_sonar_info_preset_copy, NULL);
   new_info->tvg = hyscan_sonar_info_tvg_copy (info->tvg);
 
   return new_info;

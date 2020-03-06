@@ -48,22 +48,31 @@
  * определения названия источника и его типа необходимо использовать функции
  * #hyscan_source_get_name_by_type и #hyscan_source_get_type_by_name.
  *
+ * Два источника данных могут быть связанны друг с другом. Обычно такая связь
+ * возникает если используется один и тот же приёмник данных, но обработка их
+ * производится по разному. Например, в интерферометрическом гидролокаторе
+ * возможно получение как акустического изображения, так и батиметрических
+ * данных. Информация о такой связи может использоваться программой управления,
+ * чтобы соответствующим образом сформировать GUI.
+ *
  * Для описания источника данных используются следующие параметры:
  *
  * - dev-id - уникальный идентификатор устройства, тип STRING, обязательное;
  * - description - описание источника данных, тип STRING, необязательное;
- * - master - название ведущего источника данных, тип STRING, необязательное.
+ * - link - название связанного источника данных, тип STRING, необязательное.
  *
  * Для источника данных может быть задано смещение антенны по умолчанию.
  * Если смещение задано, должны быть определены все параметры.
  * Смещение задают следующие параметры:
  *
- * - offset/x - смещение антенны по оси X, тип DOUBLE;
- * - offset/y - смещение антенны по оси Y, тип DOUBLE;
- * - offset/z - смещение антенны по оси Z, тип DOUBLE;
- * - offset/psi - поворот антенны по курсу, тип DOUBLE;
- * - offset/gamma - поворот антенны по крену, тип DOUBLE;
- * - offset/theta - поворот антенны по дифференту, тип DOUBLE.
+ * - antenna/offset/starboard - смещение антенны на правый борт, тип DOUBLE;
+ * - antenna/offset/forward - смещение антенны к носу судна, тип DOUBLE;
+ * - antenna/offset/vertical - смещение антенны по вертикали вниз, тип DOUBLE;
+ * - antenna/offset/yaw - разворот антенны от продольной оси судна, тип DOUBLE;
+ * - antenna/offset/pitch - разворот антенны от вертикальной оси судна, тип DOUBLE;
+ * - antenna/offset/roll - разворот антенны от поперечной оси судна, тип DOUBLE.
+ *
+ * Подробное описание этих параметров приведено в #HyScanAntennaOffset.
  *
  * Наличие приёмника и его характеристики определяются параметром -
  * "receiver/capabilities". Если приёмник имеет ручной режим работы, задаётся
@@ -92,12 +101,13 @@
  *
  * /sources/ss-port/dev-id
  * /sources/ss-port/description
- * /sources/ss-port/offset/x
- * /sources/ss-port/offset/y
- * /sources/ss-port/offset/z
- * /sources/ss-port/offset/psi
- * /sources/ss-port/offset/gamma
- * /sources/ss-port/offset/theta
+ * /sources/ss-port/link
+ * /sources/ss-port/offset/starboard
+ * /sources/ss-port/offset/forward
+ * /sources/ss-port/offset/vertical
+ * /sources/ss-port/offset/yaw
+ * /sources/ss-port/offset/pitch
+ * /sources/ss-port/offset/roll
  * /sources/ss-port/receiver/capabilities
  * /sources/ss-port/receiver/time
  * /sources/ss-port/generator/preset-1
@@ -242,13 +252,18 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                            info->dev_id,
                                            info->description);
   if (!status)
-    return FALSE;
+    goto exit;
+
+  status = hyscan_sonar_schema_source_link (schema, source, info->link);
+  if (!status)
+    goto exit;
 
   /* Смещение антенны по умолчанию. */
   if (info->offset != NULL)
     {
-      if (!hyscan_sonar_schema_source_set_offset (schema, source, info->offset))
-        return FALSE;
+      status = hyscan_sonar_schema_source_set_offset (schema, source, info->offset);
+      if (!status)
+        goto exit;
     }
 
   /* Приёмник данных. */
@@ -259,7 +274,7 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                                         info->receiver->min_time,
                                                         info->receiver->max_time);
       if (!status)
-        return FALSE;
+        goto exit;
     }
 
   /* Генератор сигналов. */
@@ -280,7 +295,7 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                                                  preset->name,
                                                                  preset->description);
               if (!status)
-                return FALSE;
+                goto exit;
 
               cur_preset = g_list_next (cur_preset);
             }
@@ -297,10 +312,11 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
                                                    info->tvg->max_gain,
                                                    info->tvg->decrease);
       if (!status)
-        return FALSE;
+        goto exit;
     }
 
-  return TRUE;
+exit:
+  return status;
 }
 
 /**
@@ -322,47 +338,110 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
                                 const gchar                  *description)
 {
   HyScanDataSchemaBuilder *builder;
-  gboolean status;
+  gboolean status = FALSE;
   gchar key_id[128];
 
   g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
 
   builder = schema->priv->builder;
   if (builder == NULL)
-    return FALSE;
+    goto exit;
 
   if (!hyscan_source_is_sonar (source))
-    return FALSE;
+    goto exit;
 
   if (dev_id == NULL)
-    return FALSE;
+    goto exit;
 
   if (g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
-    return FALSE;
+    goto exit;
 
   /* Уникальный идентификатор устройства. */
-  status = FALSE;
   SONAR_PARAM_NAME (source, "dev-id", NULL);
-  if (hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  status = hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id);
+  if (!status)
+    goto exit;
 
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   if (!status)
     goto exit;
 
   /* Описание источника данных. */
   if (description != NULL)
     {
-      status = FALSE;
       SONAR_PARAM_NAME (source, "description", NULL);
-      if (hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+      status = hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description);
+      if (!status)
+        goto exit;
 
+      status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
       if (!status)
         goto exit;
     }
 
   if (status)
     g_hash_table_insert (schema->priv->sources, GINT_TO_POINTER (source), GINT_TO_POINTER (source));
+
+exit:
+  return status;
+}
+
+/**
+ * hyscan_sonar_schema_source_link:
+ * @schema: указатель на #HyScanSonarSchema
+ * @source: тип источника данных
+ * @link: связанный источник данных
+ *
+ * Функция определяет связь двух источников данных.
+ *
+ * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_sonar_schema_source_link (HyScanSonarSchema *schema,
+                                 HyScanSourceType   source,
+                                 HyScanSourceType   link)
+{
+  HyScanDataSchemaBuilder *builder;
+  const gchar *link_name;
+  gboolean status = FALSE;
+  gchar key_id[128];
+
+  g_return_val_if_fail (HYSCAN_IS_SONAR_SCHEMA (schema), FALSE);
+
+  builder = schema->priv->builder;
+  if (builder == NULL)
+    goto exit;
+
+  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
+    goto exit;
+  if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (link)))
+    {
+      status = TRUE;
+      goto exit;
+    }
+
+  link_name = hyscan_source_get_id_by_type (link);
+  if (link_name == NULL)
+    goto exit;
+
+  /* Связанный источник данных. */
+  SONAR_PARAM_NAME (source, "link", NULL);
+  status = hyscan_data_schema_builder_key_string_create (builder, key_id, "link", NULL,
+                                                         hyscan_source_get_id_by_type (link));
+  if (!status)
+    goto exit;
+
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
+  SONAR_PARAM_NAME (link, "link", NULL);
+  status = hyscan_data_schema_builder_key_string_create (builder, key_id, "link", NULL,
+                                                         hyscan_source_get_id_by_type (source));
+  if (!status)
+    goto exit;
+
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
 exit:
   return status;
@@ -391,59 +470,65 @@ hyscan_sonar_schema_source_set_offset (HyScanSonarSchema   *schema,
 
   builder = schema->priv->builder;
   if (builder == NULL)
-    return FALSE;
+    goto exit;
 
   if (!g_hash_table_contains (schema->priv->sources, GINT_TO_POINTER (source)))
-    return FALSE;
+    goto exit;
 
   /* Смещение антенны. */
-  status = FALSE;
   SONAR_PARAM_NAME (source, "offset/starboard", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "x", NULL, offset->starboard))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "starboard", NULL, offset->starboard);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SONAR_PARAM_NAME (source, "offset/forward", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "y", NULL,  offset->forward))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "forward", NULL,  offset->forward);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SONAR_PARAM_NAME (source, "offset/vertical", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "z", NULL,  offset->vertical))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "vertical", NULL,  offset->vertical);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SONAR_PARAM_NAME (source, "offset/yaw", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "psi", NULL, offset->yaw))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "yaw", NULL, offset->yaw);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SONAR_PARAM_NAME (source, "offset/pitch", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gamma", NULL, offset->pitch))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "pitch", NULL, offset->pitch);
   if (!status)
     goto exit;
 
-  status = FALSE;
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  if (!status)
+    goto exit;
+
   SONAR_PARAM_NAME (source, "offset/roll", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "theta", NULL, offset->roll))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "roll", NULL, offset->roll);
+  if (!status)
+    goto exit;
+
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
 exit:
-
   return status;
 }
 
@@ -474,10 +559,10 @@ hyscan_sonar_schema_receiver_set_params (HyScanSonarSchema           *schema,
 
   builder = schema->priv->builder;
   if (builder == NULL)
-    return FALSE;
+    goto exit;
 
   if (!g_hash_table_lookup (schema->priv->sources, GINT_TO_POINTER (source)))
-    return FALSE;
+    goto exit;
 
   /* Режимы работы приёмника. */
   if (capabilities)
@@ -486,24 +571,28 @@ hyscan_sonar_schema_receiver_set_params (HyScanSonarSchema           *schema,
         (capabilities & HYSCAN_SONAR_RECEIVER_MODE_MANUAL) ? "manual" : "",
         (capabilities & HYSCAN_SONAR_RECEIVER_MODE_AUTO) ? "auto" : "");
 
-      status = FALSE;
       SONAR_PARAM_NAME (source, "receiver/capabilities", NULL);
-      if (hyscan_data_schema_builder_key_string_create (builder, key_id, "capabilities", NULL, cap_string))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+      status = hyscan_data_schema_builder_key_string_create (builder, key_id, "capabilities", NULL, cap_string);
       g_free (cap_string);
+      if (!status)
+        goto exit;
 
+      status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
       if (!status)
         goto exit;
     }
 
   /* Время приёма эхосигнала источником данных. */
   SONAR_PARAM_NAME (source, "receiver/time", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "time", NULL, min_time))
-    {
-      if (hyscan_data_schema_builder_key_double_range (builder, key_id, min_time, max_time, 1.0))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-    }
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "time", NULL, min_time);
+  if (!status)
+    goto exit;
+
+   status = hyscan_data_schema_builder_key_double_range (builder, key_id, min_time, max_time, 1.0);
+   if (!status)
+     goto exit;
+
+   status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
 
 exit:
   return status;
@@ -538,16 +627,20 @@ hyscan_sonar_schema_generator_add_preset (HyScanSonarSchema *schema,
 
   builder = schema->priv->builder;
   if (builder == NULL)
-    return FALSE;
+    goto exit;
 
   if (!g_hash_table_lookup (schema->priv->sources, GINT_TO_POINTER (source)))
-    return FALSE;
+    goto exit;
 
   /* Преднастройка генератора. */
   SONAR_PARAM_NAME (source, "generator", id, NULL);
-  if (hyscan_data_schema_builder_key_integer_create (builder, key_id, name, description, value))
-    status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+  status = hyscan_data_schema_builder_key_integer_create (builder, key_id, name, description, value);
+  if (!status)
+    goto exit;
 
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+
+exit:
   return status;
 }
 
@@ -580,10 +673,10 @@ hyscan_sonar_schema_tvg_set_params (HyScanSonarSchema      *schema,
 
   builder = schema->priv->builder;
   if (builder == NULL)
-    return FALSE;
+    goto exit;
 
   if (!g_hash_table_lookup (schema->priv->sources, GINT_TO_POINTER (source)))
-    return FALSE;
+    goto exit;
 
   /* Режимы работы ВАРУ. */
   if (capabilities)
@@ -594,35 +687,41 @@ hyscan_sonar_schema_tvg_set_params (HyScanSonarSchema      *schema,
         (capabilities & HYSCAN_SONAR_TVG_MODE_LINEAR_DB) ? "linear-db" : "",
         (capabilities & HYSCAN_SONAR_TVG_MODE_LOGARITHMIC) ? "logarithmic" : "");
 
-      status = FALSE;
       SONAR_PARAM_NAME (source, "tvg/capabilities", NULL);
-      if (hyscan_data_schema_builder_key_string_create (builder, key_id, "capabilities", NULL, cap_string))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-
+      status = hyscan_data_schema_builder_key_string_create (builder, key_id, "capabilities", NULL, cap_string);
       g_free (cap_string);
+      if (!status)
+        goto exit;
+
+      status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+      if (!status)
+        goto exit;
     }
 
   /* Параметры ВАРУ. */
-  status = FALSE;
   SONAR_PARAM_NAME (source, "tvg/gain", NULL);
-  if (hyscan_data_schema_builder_key_double_create (builder, key_id, "gain", NULL, min_gain))
-    {
-      if (hyscan_data_schema_builder_key_double_range (builder, key_id, min_gain, max_gain, 1.0))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
-    }
+  status = hyscan_data_schema_builder_key_double_create (builder, key_id, "gain", NULL, min_gain);
+  if (!status)
+    goto exit;
 
+  status = hyscan_data_schema_builder_key_double_range (builder, key_id, min_gain, max_gain, 1.0);
+    if (!status)
+      goto exit;
+
+  status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
   if (!status)
     goto exit;
 
   if (decrease)
     {
-      status = FALSE;
       SONAR_PARAM_NAME (source, "tvg/decrease", NULL);
-      if (hyscan_data_schema_builder_key_boolean_create (builder, key_id, "decrease", NULL, decrease))
-        status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+      status = hyscan_data_schema_builder_key_boolean_create (builder, key_id, "decrease", NULL, decrease);
+      if (!status)
+        goto exit;
+
+      status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
     }
 
 exit:
-
   return status;
 }

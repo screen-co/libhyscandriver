@@ -52,13 +52,65 @@ HyScanSourceType orig_sources[] =
   HYSCAN_SOURCE_PROFILER,
   HYSCAN_SOURCE_PROFILER_ECHO,
   HYSCAN_SOURCE_BATHYMETRY_STARBOARD,
+  HYSCAN_SOURCE_BATHYMETRY_STARBOARD_LOW,
+  HYSCAN_SOURCE_BATHYMETRY_STARBOARD_HI,
   HYSCAN_SOURCE_BATHYMETRY_PORT,
+  HYSCAN_SOURCE_BATHYMETRY_PORT_LOW,
+  HYSCAN_SOURCE_BATHYMETRY_PORT_HI,
   HYSCAN_SOURCE_LOOK_AROUND_STARBOARD,
   HYSCAN_SOURCE_LOOK_AROUND_PORT,
   HYSCAN_SOURCE_FORWARD_LOOK,
   HYSCAN_SOURCE_FORWARD_ECHO
 };
 guint32 orig_n_sources = sizeof (orig_sources) / sizeof (HyScanSourceType);
+
+HyScanSourceType
+source_link (HyScanSourceType source)
+{
+  switch (source)
+    {
+    case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD:
+      return HYSCAN_SOURCE_BATHYMETRY_STARBOARD;
+
+    case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_LOW:
+      return HYSCAN_SOURCE_BATHYMETRY_STARBOARD_LOW;
+
+    case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI:
+      return HYSCAN_SOURCE_BATHYMETRY_STARBOARD_HI;
+
+    case HYSCAN_SOURCE_SIDE_SCAN_PORT:
+      return HYSCAN_SOURCE_BATHYMETRY_PORT;
+
+    case HYSCAN_SOURCE_SIDE_SCAN_PORT_LOW:
+      return HYSCAN_SOURCE_BATHYMETRY_PORT_LOW;
+
+    case HYSCAN_SOURCE_SIDE_SCAN_PORT_HI:
+      return HYSCAN_SOURCE_BATHYMETRY_PORT_HI;
+
+    case HYSCAN_SOURCE_BATHYMETRY_STARBOARD:
+      return HYSCAN_SOURCE_SIDE_SCAN_STARBOARD;
+
+    case HYSCAN_SOURCE_BATHYMETRY_STARBOARD_LOW:
+      return HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_LOW;
+
+    case HYSCAN_SOURCE_BATHYMETRY_STARBOARD_HI:
+      return HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI;
+
+    case HYSCAN_SOURCE_BATHYMETRY_PORT:
+      return HYSCAN_SOURCE_SIDE_SCAN_PORT;
+
+    case HYSCAN_SOURCE_BATHYMETRY_PORT_LOW:
+      return HYSCAN_SOURCE_SIDE_SCAN_PORT_LOW;
+
+    case HYSCAN_SOURCE_BATHYMETRY_PORT_HI:
+      return HYSCAN_SOURCE_SIDE_SCAN_PORT_HI;
+
+    default:
+      break;
+    }
+
+  return HYSCAN_SOURCE_INVALID;
+}
 
 HyScanSensorInfoSensor *
 create_sensor (guint   index,
@@ -121,6 +173,7 @@ create_source (HyScanSourceType source,
   info.source = source;
   info.dev_id = source_id;
   info.description = source_id;
+  info.link = source_link (source);
 
   /* Смещение антенны по умолчанию. */
   offset.starboard = -seed;
@@ -217,6 +270,10 @@ verify_source (const HyScanSonarInfoSource *source1,
   /* Описание источника данных. */
   if (g_strcmp0 (source1->description, source2->description) != 0)
     g_error ("description failed");
+
+  /* Связанный источник данных. */
+  if (source1->link != source2->link)
+    g_error ("link failed");
 
   /* Смещение антенны по умолчанию. */
   if ((source1->offset != NULL) ||
