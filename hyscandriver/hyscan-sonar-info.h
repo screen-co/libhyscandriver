@@ -134,19 +134,10 @@ HYSCAN_API
 GType                          hyscan_sonar_info_source_get_type       (void);
 
 HYSCAN_API
-GType                          hyscan_sonar_info_capabilities_get_type (void);
-
-HYSCAN_API
 GType                          hyscan_sonar_info_receiver_get_type     (void);
 
 HYSCAN_API
-GType                          hyscan_sonar_info_generator_get_type    (void);
-
-HYSCAN_API
 GType                          hyscan_sonar_info_tvg_get_type          (void);
-
-HYSCAN_API
-GType                          hyscan_sonar_info_signal_get_type       (void);
 
 HYSCAN_API
 GType                          hyscan_sonar_info_get_type              (void);
