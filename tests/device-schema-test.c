@@ -32,11 +32,13 @@
  * лицензии. Для этого свяжитесь с ООО Экран - <info@screen-co.ru>.
  */
 
+#include <hyscan-actuator-schema.h>
 #include <hyscan-sensor-schema.h>
 #include <hyscan-sonar-schema.h>
 #include <string.h>
 
-#define N_SENSORS 16
+#define N_ACTUATORS 8
+#define N_SENSORS   16
 
 HyScanSourceType orig_sources[] =
 {
@@ -112,6 +114,33 @@ source_link (HyScanSourceType source)
   return HYSCAN_SOURCE_INVALID;
 }
 
+HyScanActuatorInfoActuator *
+create_actuator (guint   index,
+                 gdouble seed)
+{
+  HyScanActuatorInfoActuator *pinfo;
+  HyScanActuatorInfoActuator info;
+
+  info.name = g_strdup_printf ("actuator-%d", index);
+  info.dev_id = g_strdup_printf ("actuator-%d", index);
+  info.description = g_strdup_printf ("Actuator %d", index);
+
+  info.capabilities = HYSCAN_ACTUATOR_MODE_SCAN;
+  info.capabilities |= (index % 2) ? HYSCAN_ACTUATOR_MODE_MANUAL : 0;
+  info.min_range = 1.0 * index * seed;
+  info.max_range = 2.0 * index * seed;
+  info.min_speed = 3.0 * index * seed;
+  info.max_speed = 4.0 * index * seed;
+
+  pinfo = hyscan_actuator_info_actuator_copy (&info);
+
+  g_free ((gchar*)info.description);
+  g_free ((gchar*)info.dev_id);
+  g_free ((gchar*)info.name);
+
+  return pinfo;
+}
+
 HyScanSensorInfoSensor *
 create_sensor (guint   index,
                gdouble seed)
@@ -159,6 +188,7 @@ create_source (HyScanSourceType source,
   GList *presets = NULL;
 
   const gchar *source_id;
+  gchar *actuator;
   HyScanSourceType i;
 
   memset (&info, 0, sizeof (info));
@@ -167,12 +197,14 @@ create_source (HyScanSourceType source,
   memset (&tvg, 0, sizeof (tvg));
 
   source_id = hyscan_source_get_id_by_type (source);
+  actuator = g_strdup_printf ("actuator%d", source);
   seed = seed * source;
 
   /* Описание источника данных. */
   info.source = source;
   info.dev_id = source_id;
   info.description = source_id;
+  info.actuator = actuator;
   info.link = source_link (source);
 
   /* Смещение антенны по умолчанию. */
@@ -225,8 +257,36 @@ create_source (HyScanSourceType source,
   pinfo = hyscan_sonar_info_source_copy (&info);
 
   g_list_free_full (presets, (GDestroyNotify)hyscan_data_schema_enum_value_free);
+  g_free (actuator);
 
   return pinfo;
+}
+
+void
+verify_actuator (const HyScanActuatorInfoActuator *actuator1,
+                 const HyScanActuatorInfoActuator *actuator2)
+{
+  if (g_strcmp0 (actuator1->name, actuator2->name) != 0)
+    g_error ("name failed");
+  if (g_strcmp0 (actuator1->dev_id, actuator2->dev_id) != 0)
+    g_error ("dev-id failed");
+  if (g_strcmp0 (actuator1->description, actuator2->description) != 0)
+    g_error ("decripton failed");
+
+  if (actuator1->capabilities != actuator2->capabilities)
+    g_error ("capabilities failed");
+
+  if ((actuator1->min_range != actuator2->min_range) ||
+      (actuator1->max_range != actuator2->max_range))
+    {
+      g_error ("range failed");
+    }
+
+  if ((actuator1->min_speed != actuator2->min_speed) ||
+      (actuator1->max_speed != actuator2->max_speed))
+    {
+      g_error ("speed failed");
+    }
 }
 
 void
@@ -270,6 +330,10 @@ verify_source (const HyScanSonarInfoSource *source1,
   /* Описание источника данных. */
   if (g_strcmp0 (source1->description, source2->description) != 0)
     g_error ("description failed");
+
+  /* Используемый привод. */
+  if (g_strcmp0 (source1->actuator, source2->actuator) != 0)
+    g_error ("actuator failed");
 
   /* Связанный источник данных. */
   if (source1->link != source2->link)
@@ -358,13 +422,16 @@ main (int    argc,
       char **argv)
 {
   HyScanDeviceSchema *device_schema;
+  HyScanActuatorSchema *actuator_schema;
   HyScanSensorSchema *sensor_schema;
   HyScanSonarSchema *sonar_schema;
+  HyScanActuatorInfo *actuator_info;
   HyScanSensorInfo *sensor_info;
   HyScanSonarInfo *sonar_info;
   HyScanDataSchema *schema;
 
   const HyScanSourceType *sources;
+  const gchar * const *actuators;
   const gchar * const *sensors;
   guint n_sources;
   gdouble seed;
@@ -373,8 +440,20 @@ main (int    argc,
   seed = 1000.0 * g_random_double ();
 
   device_schema = hyscan_device_schema_new (HYSCAN_DEVICE_SCHEMA_VERSION);
+  actuator_schema = hyscan_actuator_schema_new (device_schema);
   sensor_schema = hyscan_sensor_schema_new (device_schema);
   sonar_schema = hyscan_sonar_schema_new (device_schema);
+
+  /* Создаём приводы. */
+  for (i = 0; i < N_ACTUATORS; i++)
+    {
+      HyScanActuatorInfoActuator *actuator = create_actuator (i, seed);
+
+      if (!hyscan_actuator_schema_add_full (actuator_schema, actuator))
+        g_error ("can't add actuator %s", actuator->name);
+
+      hyscan_actuator_info_actuator_free (actuator);
+    }
 
   /* Создаём датчики. */
   for (i = 0; i < N_SENSORS; i++)
@@ -400,8 +479,37 @@ main (int    argc,
 
   /* Создаём схему устройства. */
   schema = hyscan_data_schema_builder_get_schema (HYSCAN_DATA_SCHEMA_BUILDER (device_schema));
+  actuator_info = hyscan_actuator_info_new (schema);
   sensor_info = hyscan_sensor_info_new (schema);
   sonar_info = hyscan_sonar_info_new (schema);
+
+  /* Проверяем список приводов. */
+  actuators = hyscan_actuator_info_list_actuators (actuator_info);
+  if (g_strv_length ((gchar **)actuators) != N_ACTUATORS)
+    g_error ("n_actuators mismatch");
+
+  /* Проверяем параметры приводов. */
+  for (i = 0; i < N_ACTUATORS; i++)
+    {
+      HyScanActuatorInfoActuator *orig_actuator;
+      const HyScanActuatorInfoActuator *actuator;
+
+      orig_actuator = create_actuator (i, seed);
+      actuator = hyscan_actuator_info_get_actuator (actuator_info, orig_actuator->name);
+
+      g_message ("Check actuator %s", orig_actuator->name);
+
+      for (j = 0; j < N_ACTUATORS; j++)
+        if (g_strcmp0 (orig_actuator->name, actuators[j]) == 0)
+          break;
+
+      if (j == N_ACTUATORS)
+        g_error ("list failed");
+
+      verify_actuator (orig_actuator, actuator);
+
+      hyscan_actuator_info_actuator_free (orig_actuator);
+    }
 
   /* Проверяем список датчиков. */
   sensors = hyscan_sensor_info_list_sensors (sensor_info);
@@ -461,8 +569,10 @@ main (int    argc,
 
   g_object_unref (schema);
   g_object_unref (device_schema);
+  g_object_unref (actuator_schema);
   g_object_unref (sensor_schema);
   g_object_unref (sonar_schema);
+  g_object_unref (actuator_info);
   g_object_unref (sensor_info);
   g_object_unref (sonar_info);
 

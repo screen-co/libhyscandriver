@@ -120,7 +120,7 @@
  * и #hyscan_sonar_tvg_disable. Для включения этих подсистем обратно необходимо
  * выбрать один из доступных для них режимов работы. После изменения режимов
  * работы, необходимо сигнализировать об этом гидролокатору с помощью функции
- * #hyscan_sonar_sync. Это необходимо для атомарного применения нескольких
+ * #hyscan_device_sync. Это необходимо для атомарного применения нескольких
  * изменившихся параметров, например для одновременного изменения времени приёма
  * для левого и правого бортов и т.п.
  */
@@ -135,6 +135,29 @@ G_DEFINE_INTERFACE (HyScanSonar, hyscan_sonar, G_TYPE_OBJECT)
 static void
 hyscan_sonar_default_init (HyScanSonarInterface *iface)
 {
+   /**
+    * HyScanSonar::sonar-source-info:
+    * @sonar: указатель на #HyScanSonar
+    * @source: идентификатор источника данных #HyScanSourceType
+    * @channel: индекс канала данных
+    * @description: (nullable): описание источника данных
+    * @actuator: (nullable): название привода
+    * @info: параметры данных #HyScanAcousticDataInfo
+    *
+    * Сигнал посылается для каждого активированного источника данных
+    * в начале работы устройства (после вызова #hyscan_sonar_start) и
+    * содержит информацию о нём.
+    */
+   g_signal_new ("sonar-source-info", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
+                 NULL, NULL,
+                 hyscan_driver_marshal_VOID__INT_UINT_STRING_STRING_POINTER,
+                 G_TYPE_NONE, 5,
+                 G_TYPE_INT,
+                 G_TYPE_UINT,
+                 G_TYPE_STRING,
+                 G_TYPE_STRING,
+                 G_TYPE_POINTER);
+
   /**
    * HyScanSonar::sonar-signal:
    * @sonar: указатель на #HyScanSonar
@@ -143,12 +166,11 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
    * @time: время начала действия сигнала, мкс
    * @image: (nullable): образ сигнала #HyScanBuffer
    *
-   * Данный сигнал посылается при изменении излучаемого сигнала.
-   * В нём передаётся новый образ сигнала для свёртки.
+   * Сигнал посылается при изменении излучаемого сигнала. В нём передаётся
+   * новый образ сигнала для свёртки.
    *
-   * Для каждого из источников данных, этот сигнал должен посылаться
-   * из одного и того же потока. Также, не допускается отправка данных
-   * с меткой времени меньшей или равной отправленной ранее.
+   * Не допускается отправка данных с меткой времени меньшей или равной
+   * отправленной ранее.
    */
   g_signal_new ("sonar-signal", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
@@ -167,12 +189,11 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
    * @time: время начала действия параметров ВАРУ, мкс
    * @gains: коэффициенты усиления #HyScanBuffer
    *
-   * Данный сигнал посылается при изменении параметров ВАРУ.
-   * В нём передаются новые коэффициенты усиления.
+   * Сигнал посылается при изменении параметров ВАРУ. В нём передаются
+   * новые коэффициенты усиления.
    *
-   * Для каждого из источников данных, этот сигнал должен посылаться
-   * из одного и того же потока. Также, не допускается отправка данных
-   * с меткой времени меньшей или равной отправленной ранее.
+   * Не допускается отправка данных с меткой времени меньшей или равной
+   * отправленной ранее.
    */
   g_signal_new ("sonar-tvg", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
@@ -190,24 +211,21 @@ hyscan_sonar_default_init (HyScanSonarInterface *iface)
    * @channel: индекс канала данных
    * @noise: признак данных шума (выключенное излучение)
    * @time: время приёма данных, мкс
-   * @info: параметры данных #HyScanAcousticDataInfo
    * @data: данные #HyScanBuffer
    *
-   * Данный сигнал посылается при получении гидроакустических данных.
+   * Сигнал посылается при получении гидроакустических данных.
    *
-   * Для каждого из источников данных, этот сигнал должен посылаться
-   * из одного и того же потока. Также, не допускается отправка данных
-   * с меткой времени меньшей или равной отправленной ранее.
+   * Не допускается отправка данных с меткой времени меньшей или равной
+   * отправленной ранее.
    */
   g_signal_new ("sonar-acoustic-data", HYSCAN_TYPE_SONAR, G_SIGNAL_RUN_LAST, 0,
                 NULL, NULL,
-                hyscan_driver_marshal_VOID__INT_UINT_BOOLEAN_INT64_POINTER_OBJECT,
-                G_TYPE_NONE, 6,
+                hyscan_driver_marshal_VOID__INT_UINT_BOOLEAN_INT64_OBJECT,
+                G_TYPE_NONE, 5,
                 G_TYPE_INT,
                 G_TYPE_UINT,
                 G_TYPE_BOOLEAN,
                 G_TYPE_INT64,
-                G_TYPE_POINTER,
                 HYSCAN_TYPE_BUFFER);
 }
 
@@ -567,31 +585,6 @@ hyscan_sonar_stop (HyScanSonar *sonar)
   iface = HYSCAN_SONAR_GET_IFACE (sonar);
   if (iface->stop != NULL)
     return (* iface->stop) (sonar);
-
-  return FALSE;
-}
-
-/**
- * hyscan_sonar_sync:
- * @sonar: указатель на #HyScanSonar
- *
- * Функция синхронизирует состояние гидролокатора в соответствии с заданными
- * параметрами. Данная функция должна вызываться при изменении параметров во
- * время работы гидролокатора. При переводе гидролокатора в рабочий режим данная
- * функция вызывается автоматически.
- *
- * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
- */
-gboolean
-hyscan_sonar_sync (HyScanSonar *sonar)
-{
-  HyScanSonarInterface *iface;
-
-  g_return_val_if_fail (HYSCAN_IS_SONAR (sonar), FALSE);
-
-  iface = HYSCAN_SONAR_GET_IFACE (sonar);
-  if (iface->sync != NULL)
-    return (* iface->sync) (sonar);
 
   return FALSE;
 }

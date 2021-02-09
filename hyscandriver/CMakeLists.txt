@@ -26,12 +26,15 @@ add_library (${HYSCAN_DRIVER_LIBRARY} SHARED
              hyscan-device.c
              hyscan-sonar.c
              hyscan-sensor.c
+             hyscan-actuator.c
              hyscan-driver-schema.c
              hyscan-device-schema.c
              hyscan-sonar-schema.c
              hyscan-sensor-schema.c
+             hyscan-actuator-schema.c
              hyscan-sonar-info.c
              hyscan-sensor-info.c
+             hyscan-actuator-info.c
              hyscan-device-driver.c
              hyscan-sonar-driver.c
              hyscan-sensor-driver.c
@@ -64,12 +67,15 @@ install (FILES hyscan-discover.h
                hyscan-device.h
                hyscan-sonar.h
                hyscan-sensor.h
+               hyscan-actuator.h
                hyscan-driver-schema.h
                hyscan-device-schema.h
                hyscan-sonar-schema.h
                hyscan-sensor-schema.h
+               hyscan-actuator-schema.h
                hyscan-sonar-info.h
                hyscan-sensor-info.h
+               hyscan-actuator-info.h
                hyscan-device-driver.h
                hyscan-sonar-driver.h
                hyscan-sensor-driver.h

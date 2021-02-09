@@ -77,7 +77,8 @@ HYSCAN_API
 gboolean               hyscan_sonar_schema_source_add                  (HyScanSonarSchema             *schema,
                                                                         HyScanSourceType               source,
                                                                         const gchar                   *dev_id,
-                                                                        const gchar                   *description);
+                                                                        const gchar                   *description,
+                                                                        const gchar                   *actuator);
 
 HYSCAN_API
 gboolean               hyscan_sonar_schema_source_link                 (HyScanSonarSchema             *schema,

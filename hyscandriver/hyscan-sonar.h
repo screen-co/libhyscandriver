@@ -99,7 +99,6 @@ typedef struct _HyScanSonarInterface HyScanSonarInterface;
  * @tvg_disable: Функция отключает управление усилением.
  * @start: Функция переводит гидролокатор в рабочий режим.
  * @stop: Функция переводит гидролокатор в ждущий режим и отключает запись данных.
- * @sync: Функция синхронизирует состояние гидролокатора в соответствии с заданными параметрами.
  */
 struct _HyScanSonarInterface
 {
@@ -157,8 +156,6 @@ struct _HyScanSonarInterface
                                                                 const HyScanTrackPlan          *track_plan);
 
   gboolean             (*stop)                                 (HyScanSonar                    *sonar);
-
-  gboolean             (*sync)                                 (HyScanSonar                    *sonar);
 };
 
 HYSCAN_API
@@ -229,9 +226,6 @@ gboolean               hyscan_sonar_start                      (HyScanSonar     
 
 HYSCAN_API
 gboolean               hyscan_sonar_stop                       (HyScanSonar                    *sonar);
-
-HYSCAN_API
-gboolean               hyscan_sonar_sync                       (HyScanSonar                    *sonar);
 
 G_END_DECLS
 

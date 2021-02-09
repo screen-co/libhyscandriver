@@ -226,7 +226,7 @@ hyscan_discover_check (HyScanDiscover  *discover,
  * hyscan_discover_connect:
  * @discover: указатель на #HyScanDiscover
  * @uri: путь для подключения к устройству
- * @params: параметры драйвера
+ * @params: (nullable): параметры драйвера
  *
  * Функция производит подключение к устройству.
  *

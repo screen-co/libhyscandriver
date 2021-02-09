@@ -41,6 +41,14 @@
 G_BEGIN_DECLS
 
 HYSCAN_API
+void           hyscan_sonar_driver_send_source_info    (gpointer                   sonar,
+                                                        HyScanSourceType           source,
+                                                        guint                      channel,
+                                                        const gchar               *description,
+                                                        const gchar               *actuator,
+                                                        HyScanAcousticDataInfo    *info);
+
+HYSCAN_API
 void           hyscan_sonar_driver_send_signal         (gpointer                   sonar,
                                                         HyScanSourceType           source,
                                                         guint                      channel,
@@ -60,7 +68,6 @@ void           hyscan_sonar_driver_send_acoustic_data  (gpointer                
                                                         guint                      channel,
                                                         gboolean                   noise,
                                                         gint64                     time,
-                                                        HyScanAcousticDataInfo    *info,
                                                         HyScanBuffer              *data);
 
 G_END_DECLS

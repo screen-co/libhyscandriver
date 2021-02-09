@@ -250,7 +250,8 @@ hyscan_sonar_schema_source_add_full (HyScanSonarSchema     *schema,
   /* Источник гидролокационных данных. */
   status = hyscan_sonar_schema_source_add (schema, source,
                                            info->dev_id,
-                                           info->description);
+                                           info->description,
+                                           info->actuator);
   if (!status)
     goto exit;
 
@@ -325,17 +326,18 @@ exit:
  * @source: тип источника данных
  * @dev_id: уникальный идентификатор устройства
  * @description: описание источника данных
- * @master: ведущий источник данных или #HYSCAN_SOURCE_INVALID
+ * @actuator: используемый привод
  *
  * Функция добавляет в схему описание источника данных.
  *
  * Returns: %TRUE если функция выполнена успешно, иначе %FALSE.
  */
 gboolean
-hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
-                                HyScanSourceType              source,
-                                const gchar                  *dev_id,
-                                const gchar                  *description)
+hyscan_sonar_schema_source_add (HyScanSonarSchema *schema,
+                                HyScanSourceType   source,
+                                const gchar       *dev_id,
+                                const gchar       *description,
+                                const gchar       *actuator)
 {
   HyScanDataSchemaBuilder *builder;
   gboolean status = FALSE;
@@ -371,6 +373,19 @@ hyscan_sonar_schema_source_add (HyScanSonarSchema            *schema,
     {
       SONAR_PARAM_NAME (source, "description", NULL);
       status = hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description);
+      if (!status)
+        goto exit;
+
+      status = hyscan_data_schema_builder_key_set_access (builder, key_id, HYSCAN_DATA_SCHEMA_ACCESS_READ);
+      if (!status)
+        goto exit;
+    }
+
+  /* Используемый привод. */
+  if (actuator != NULL)
+    {
+      SONAR_PARAM_NAME (source, "actuator", NULL);
+      status = hyscan_data_schema_builder_key_string_create (builder, key_id, "actuator", NULL, actuator);
       if (!status)
         goto exit;
 

@@ -37,8 +37,13 @@
  * @Short_description: интерфейс управления устройством
  * @Title: HyScanDevice
  *
- * Интерфейс управления устройством содержит функции, применимые как к
- * датчикам, так и к гидролокаторам.
+ * Интерфейс управления устройством содержит функции, применимые к датчикам,
+ * гидролокаторам и приводам кругового обзора.
+ *
+ * Во время работы устройства (после вызова функции #hyscan_sonar_start) имеется
+ * возможность изменять любые пармемтры. При этом требуется чтобы эти изменения
+ * вступили в силу одновременно. Для этих целей предназначена функция
+ * #hyscan_device_sync. Она даёт указание устройству применить все изменения.
  *
  * Перед началом работы рекомендуется задать профиль скорости звука. Для этого
  * используется функция #hyscan_device_set_sound_velocity. По умолчанию
@@ -91,6 +96,30 @@ hyscan_device_default_init (HyScanDeviceInterface *iface)
                 G_TYPE_INT64,
                 G_TYPE_INT,
                 G_TYPE_STRING);
+}
+
+/**
+ * hyscan_device_sync:
+ * @device: указатель на #HyScanDevice
+ *
+ * Функция синхронизирует состояние устройства в соответствии с заданными
+ * параметрами. Данная функция должна вызываться при изменении параметров во
+ * время работы устройства.
+ *
+ * Returns: %TRUE если команда выполнена успешно, иначе %FALSE.
+ */
+gboolean
+hyscan_device_sync (HyScanDevice *device)
+{
+  HyScanDeviceInterface *iface;
+
+  g_return_val_if_fail (HYSCAN_IS_DEVICE (device), FALSE);
+
+  iface = HYSCAN_DEVICE_GET_IFACE (device);
+  if (iface->sync != NULL)
+    return (* iface->sync) (device);
+
+  return TRUE;
 }
 
 /**

@@ -133,7 +133,7 @@ hyscan_sonar_info_class_init (HyScanSonarInfoClass *klass)
   object_class->finalize = hyscan_sonar_info_object_finalize;
 
   g_object_class_install_property (object_class, PROP_SCHEMA,
-    g_param_spec_object ("schema", "Schema", "Sonar schema", HYSCAN_TYPE_DATA_SCHEMA,
+    g_param_spec_object ("schema", "Schema", "Device schema", HYSCAN_TYPE_DATA_SCHEMA,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 
@@ -173,7 +173,7 @@ hyscan_sonar_info_object_constructed (GObject *object)
   GHashTableIter iter;
   gpointer key, value;
 
-  /* Должна быть задана схема гидролокатора. */
+  /* Должна быть задана схема устройства. */
   if (priv->schema == NULL)
     return;
 
@@ -440,6 +440,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
 
   const gchar *dev_id = NULL;
   const gchar *description = NULL;
+  const gchar *actuator = NULL;
   const gchar *link = NULL;
   HyScanSonarInfoSource *info = NULL;
   HyScanAntennaOffset *offset = NULL;
@@ -456,6 +457,10 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   /* Описание источника данных. */
   SONAR_PARAM_NAME (source, "description", NULL);
   description = hyscan_data_schema_key_get_string (schema, key_id);
+
+  /* Используемый привод. */
+  SONAR_PARAM_NAME (source, "actuator", NULL);
+  actuator = hyscan_data_schema_key_get_string (schema, key_id);
 
   /* Связанный источник данных. */
   SONAR_PARAM_NAME (source, "link", NULL);
@@ -482,6 +487,7 @@ hyscan_sonar_info_parse_source (HyScanDataSchema *schema,
   info->dev_id = g_strdup (dev_id);
   info->link = hyscan_source_get_type_by_id (link);
   info->description = g_strdup (description);
+  info->actuator = g_strdup (actuator);
   info->offset = offset;
   info->receiver = receiver;
   info->presets = presets;
@@ -610,6 +616,7 @@ hyscan_sonar_info_source_copy (const HyScanSonarInfoSource *info)
   new_info->source = info->source;
   new_info->dev_id = g_strdup (info->dev_id);
   new_info->description = g_strdup (info->description);
+  new_info->actuator = g_strdup (info->actuator);
   new_info->link = info->link;
   new_info->offset = hyscan_antenna_offset_copy (info->offset);
   new_info->receiver = hyscan_sonar_info_receiver_copy (info->receiver);

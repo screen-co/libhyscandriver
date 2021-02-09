@@ -67,12 +67,15 @@ typedef enum
 /**
  * HyScanDeviceInterface:
  * @g_iface: Базовый интерфейс.
+ * @sync: Функция синхронизирует состояние устройства в соответствии с заданными параметрами.
  * @set_sound_velocity: Функция задаёт таблицу профиля скорости звука.
  * @disconnect: Функция выполняет отключение от устройства.
  */
 struct _HyScanDeviceInterface
 {
   GTypeInterface       g_iface;
+
+  gboolean             (*sync)                                 (HyScanDevice                   *device);
 
   gboolean             (*set_sound_velocity)                   (HyScanDevice                   *device,
                                                                 GList                          *svp);
@@ -82,6 +85,9 @@ struct _HyScanDeviceInterface
 
 HYSCAN_API
 GType                  hyscan_device_get_type                  (void);
+
+HYSCAN_API
+gboolean               hyscan_device_sync                      (HyScanDevice                   *device);
 
 HYSCAN_API
 gboolean               hyscan_device_set_sound_velocity        (HyScanDevice                   *device,

@@ -229,7 +229,7 @@ exit:
 /**
  * hyscan_sensor_schema_add_sensor:
  * @schema: указатель на #HyScanSensorSchema
- * @sensor: название датчика
+ * @name: название датчика
  * @dev_id: уникальный идентификатор устройства
  * @description: описание датчика
  *
@@ -239,7 +239,7 @@ exit:
  */
 gboolean
 hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
-                                 const gchar        *sensor,
+                                 const gchar        *name,
                                  const gchar        *dev_id,
                                  const gchar        *description)
 {
@@ -253,11 +253,11 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   if (builder == NULL)
     goto exit;
 
-  if (g_hash_table_contains (schema->priv->sensors, sensor))
+  if (g_hash_table_contains (schema->priv->sensors, name))
     goto exit;
 
   /* Уникальный идентификатор устройства. */
-  SENSOR_PARAM_NAME (sensor, "dev-id", NULL);
+  SENSOR_PARAM_NAME (name, "dev-id", NULL);
   status = hyscan_data_schema_builder_key_string_create (builder, key_id, "dev-id", NULL, dev_id);
   if (!status)
     return FALSE;
@@ -269,7 +269,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
   /* Описание датчика. */
   if (description != NULL)
     {
-      SENSOR_PARAM_NAME (sensor, "description", NULL);
+      SENSOR_PARAM_NAME (name, "description", NULL);
       status = hyscan_data_schema_builder_key_string_create (builder, key_id, "description", NULL, description);
       if (!status)
         return FALSE;
@@ -280,7 +280,7 @@ hyscan_sensor_schema_add_sensor (HyScanSensorSchema *schema,
     }
 
   if (status)
-    g_hash_table_insert (schema->priv->sensors, g_strdup (sensor), NULL);
+    g_hash_table_insert (schema->priv->sensors, g_strdup (name), NULL);
 
 exit:
   return status;
@@ -298,7 +298,7 @@ exit:
  */
 gboolean
 hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
-                                 const gchar         *sensor,
+                                 const gchar         *name,
                                  HyScanAntennaOffset *offset)
 {
   HyScanDataSchemaBuilder *builder;
@@ -311,11 +311,11 @@ hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
   if (builder == NULL)
     goto exit;
 
-  if (!g_hash_table_contains (schema->priv->sensors, sensor))
+  if (!g_hash_table_contains (schema->priv->sensors, name))
     goto exit;
 
   /* Смещение антенны. */
-  SENSOR_PARAM_NAME (sensor, "offset/starboard", NULL);
+  SENSOR_PARAM_NAME (name, "offset/starboard", NULL);
   status = hyscan_data_schema_builder_key_double_create (builder, key_id, "starboard", NULL, offset->starboard);
   if (!status)
     goto exit;
@@ -324,7 +324,7 @@ hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
   if (!status)
     goto exit;
 
-  SENSOR_PARAM_NAME (sensor, "offset/forward", NULL);
+  SENSOR_PARAM_NAME (name, "offset/forward", NULL);
   status = hyscan_data_schema_builder_key_double_create (builder, key_id, "forward", NULL,  offset->forward);
   if (!status)
     goto exit;
@@ -333,7 +333,7 @@ hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
   if (!status)
     goto exit;
 
-  SENSOR_PARAM_NAME (sensor, "offset/vertical", NULL);
+  SENSOR_PARAM_NAME (name, "offset/vertical", NULL);
   status = hyscan_data_schema_builder_key_double_create (builder, key_id, "vertical", NULL,  offset->vertical);
   if (!status)
     goto exit;
@@ -342,7 +342,7 @@ hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
   if (!status)
     goto exit;
 
-  SENSOR_PARAM_NAME (sensor, "offset/yaw", NULL);
+  SENSOR_PARAM_NAME (name, "offset/yaw", NULL);
   status = hyscan_data_schema_builder_key_double_create (builder, key_id, "yaw", NULL, offset->yaw);
   if (!status)
     goto exit;
@@ -351,7 +351,7 @@ hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
   if (!status)
     goto exit;
 
-  SENSOR_PARAM_NAME (sensor, "offset/pitch", NULL);
+  SENSOR_PARAM_NAME (name, "offset/pitch", NULL);
   status = hyscan_data_schema_builder_key_double_create (builder, key_id, "pitch", NULL, offset->pitch);
   if (!status)
     goto exit;
@@ -360,7 +360,7 @@ hyscan_sensor_schema_set_offset (HyScanSensorSchema  *schema,
   if (!status)
     goto exit;
 
-  SENSOR_PARAM_NAME (sensor, "offset/roll", NULL);
+  SENSOR_PARAM_NAME (name, "offset/roll", NULL);
   status = hyscan_data_schema_builder_key_double_create (builder, key_id, "roll", NULL, offset->roll);
   if (!status)
     goto exit;

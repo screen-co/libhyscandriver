@@ -48,6 +48,30 @@
  * @sonar: указатель на #HyScanSonar
  * @source: идентификатор источника данных #HyScanSourceType
  * @channel: индекс канала данных
+ * @description: (nullable): описание источника данных
+ * @actuator: (nullable): описание источника данных
+ * @info: параметры данных #HyScanAcousticDataInfo
+ *
+ * Функция отправляет сигнал #HyScanSonar::sonar-source-info.
+ */
+void
+hyscan_sonar_driver_send_source_info (gpointer                sonar,
+                                      HyScanSourceType        source,
+                                      guint                   channel,
+                                      const gchar            *description,
+                                      const gchar            *actuator,
+                                      HyScanAcousticDataInfo *info)
+{
+  g_return_if_fail (HYSCAN_IS_SONAR (sonar));
+
+  g_signal_emit_by_name (sonar, "sonar-source-info", (gint)source, channel, description, actuator, info);
+}
+
+/*
+ * hyscan_sonar_driver_send_signal:
+ * @sonar: указатель на #HyScanSonar
+ * @source: идентификатор источника данных #HyScanSourceType
+ * @channel: индекс канала данных
  * @time: время начала действия сигнала, мкс
  * @image: (nullable): образ сигнала #HyScanBuffer
  *
@@ -94,7 +118,6 @@ hyscan_sonar_driver_send_tvg (gpointer          sonar,
  * @channel: индекс канала данных
  * @noise: признак данных шума (выключенное излучение)
  * @time: время приёма данных, мкс
- * @info: параметры данных #HyScanAcousticDataInfo
  * @data: данные #HyScanBuffer
  *
  * Функция отправляет сигнал #HyScanSonar::sonar-acoustic-data.
@@ -105,10 +128,9 @@ hyscan_sonar_driver_send_acoustic_data (gpointer                sonar,
                                         guint                   channel,
                                         gboolean                noise,
                                         gint64                  time,
-                                        HyScanAcousticDataInfo *info,
                                         HyScanBuffer           *data)
 {
   g_return_if_fail (HYSCAN_IS_SONAR (sonar));
 
-  g_signal_emit_by_name (sonar, "sonar-acoustic-data", (gint)source, channel, noise, time, info, data);
+  g_signal_emit_by_name (sonar, "sonar-acoustic-data", (gint)source, channel, noise, time, data);
 }

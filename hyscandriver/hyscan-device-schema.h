@@ -45,7 +45,7 @@ G_BEGIN_DECLS
  *
  * Версия схемы устройства.
  */
-#define HYSCAN_DEVICE_SCHEMA_VERSION          20190100
+#define HYSCAN_DEVICE_SCHEMA_VERSION          20210100
 
 /**
  * HYSCAN_DEVICE_STATUS_ENUM:

@@ -50,7 +50,6 @@
 
 #include "hyscan-sensor-info.h"
 #include "hyscan-device-schema.h"
-#include <hyscan-data-schema.h>
 
 #define SENSOR_PARAM_NAME(...)  hyscan_param_name_constructor (key_id, \
                                   (guint)sizeof (key_id), \
@@ -64,7 +63,7 @@ enum
 
 struct _HyScanSensorInfoPrivate
 {
-  HyScanDataSchema    *schema;                                  /* Схема устройства. */
+  HyScanDataSchema    *schema;                                 /* Схема устройства. */
   GHashTable          *sensors;                                /* Параметры датчиков. */
   GArray              *sensors_list;                           /* Список датчиков. */
 };
@@ -98,7 +97,7 @@ hyscan_sensor_info_class_init (HyScanSensorInfoClass *klass)
   object_class->finalize = hyscan_sensor_info_object_finalize;
 
   g_object_class_install_property (object_class, PROP_SCHEMA,
-    g_param_spec_object ("schema", "Schema", "Sonar schema", HYSCAN_TYPE_DATA_SCHEMA,
+    g_param_spec_object ("schema", "Schema", "Device schema", HYSCAN_TYPE_DATA_SCHEMA,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 
@@ -110,9 +109,9 @@ hyscan_sensor_info_init (HyScanSensorInfo *sensor_info)
 
 static void
 hyscan_sensor_info_set_property (GObject      *object,
-                             guint         prop_id,
-                             const GValue *value,
-                             GParamSpec   *pspec)
+                                 guint         prop_id,
+                                 const GValue *value,
+                                 GParamSpec   *pspec)
 {
   HyScanSensorInfo *sensor_info = HYSCAN_SENSOR_INFO (object);
   HyScanSensorInfoPrivate *priv = sensor_info->priv;
@@ -138,7 +137,7 @@ hyscan_sensor_info_object_constructed (GObject *object)
   GHashTableIter iter;
   gpointer name;
 
-  /* Должна быть задана схема гидролокатора. */
+  /* Должна быть задана схема устройства. */
   if (priv->schema == NULL)
     return;
 
@@ -285,7 +284,7 @@ hyscan_sensor_info_new (HyScanDataSchema *schema)
 }
 
 /**
- * hyscan_sonar_info_get_sensors:
+ * hyscan_sensor_info_get_sensors:
  * @info: указатель на #HyScanSensorInfo
  *
  * Функция возвращает список датчиков.

@@ -67,7 +67,7 @@ HYSCAN_API
 GType                  hyscan_sensor_schema_get_type           (void);
 
 HYSCAN_API
-HyScanSensorSchema    *hyscan_sensor_schema_new                (HyScanDeviceSchema            *schema);
+HyScanSensorSchema *   hyscan_sensor_schema_new                (HyScanDeviceSchema            *schema);
 
 HYSCAN_API
 gboolean               hyscan_sensor_schema_add_full           (HyScanSensorSchema            *schema,
