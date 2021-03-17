@@ -35,9 +35,10 @@ add_library (${HYSCAN_DRIVER_LIBRARY} SHARED
              hyscan-device-driver.c
              hyscan-sonar-driver.c
              hyscan-sensor-driver.c
+             hyscan-uart.c
              "${CMAKE_BINARY_DIR}/marshallers/hyscan-driver-marshallers.c")
 
-target_link_libraries (${HYSCAN_DRIVER_LIBRARY} ${GLIB2_LIBRARIES} ${GMODULE2_LIBRARIES} ${HYSCAN_LIBRARIES})
+target_link_libraries (${HYSCAN_DRIVER_LIBRARY} ${GLIB2_LIBRARIES} ${GMODULE2_LIBRARIES} ${HYSCAN_LIBRARIES} ${WIN32_LIBRARIES})
 
 set_target_properties (${HYSCAN_DRIVER_LIBRARY} PROPERTIES DEFINE_SYMBOL "HYSCAN_API_EXPORTS")
 set_target_properties (${HYSCAN_DRIVER_LIBRARY} PROPERTIES SOVERSION ${HYSCAN_DRIVER_VERSION})
@@ -72,6 +73,7 @@ install (FILES hyscan-discover.h
                hyscan-device-driver.h
                hyscan-sonar-driver.h
                hyscan-sensor-driver.h
+               hyscan-uart.h
          COMPONENT development
          DESTINATION "include/hyscan-${HYSCAN_MAJOR_VERSION}/hyscandriver"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

@@ -51,6 +51,10 @@ if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
   set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 endif ()
 
+if (WIN32)
+  set (WIN32_LIBRARIES setupapi ws2_32 iphlpapi winmm)
+endif ()
+
 pkg_check_modules (GLIB2 REQUIRED glib-2.0 gobject-2.0 gthread-2.0 gio-2.0)
 pkg_check_modules (GMODULE2 REQUIRED gmodule-2.0)
 link_directories (${GLIB2_LIBRARY_DIRS} ${GMODULE2_LIBRARY_DIRS})
