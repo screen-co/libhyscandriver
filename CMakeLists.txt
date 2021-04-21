@@ -1,36 +1,18 @@
 
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 
 project (libhyscandriver)
 
 enable_testing()
 
+include (FindPkgConfig)
+
 set (HYSCAN_MAJOR_VERSION 5)
 set (HYSCAN_DRIVER_VERSION 0)
 set (HYSCAN_DRIVER_LIBRARY "hyscandriver-${HYSCAN_MAJOR_VERSION}")
 
-include (FindPkgConfig)
-
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE Release)
-endif ()
-
-if (${CMAKE_C_COMPILER_ID} STREQUAL GNU)
-  set (DEBUG_OPT_LEVEL "-Og")
-elseif (${CMAKE_C_COMPILER_ID} STREQUAL Clang)
-  set (DEBUG_OPT_LEVEL "-O1")
-endif ()
-
-if (${CMAKE_C_COMPILER_ID} STREQUAL GNU OR ${CMAKE_C_COMPILER_ID} STREQUAL Clang)
-  set (C_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers $ENV{CFLAGS}")
-  set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2 ${C_FLAGS}")
-  set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_OPT_LEVEL} ${C_FLAGS}")
-elseif (${CMAKE_C_COMPILER_ID} STREQUAL MSVC)
-  set (C_FLAGS "/wd4244 $ENV{CFLAGS}")
-  set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${C_FLAGS}")
-  set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${C_FLAGS}")
-else ()
-  message (FATAL_ERROR "Unsupported compiler ${CMAKE_C_COMPILER_ID}")
 endif ()
 
 if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
@@ -51,6 +33,24 @@ if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
   set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 endif ()
 
+if (${CMAKE_C_COMPILER_ID} STREQUAL GNU)
+  set (DEBUG_OPT_LEVEL "-Og")
+elseif (${CMAKE_C_COMPILER_ID} STREQUAL Clang)
+  set (DEBUG_OPT_LEVEL "-O1")
+endif ()
+
+if (${CMAKE_C_COMPILER_ID} STREQUAL GNU OR ${CMAKE_C_COMPILER_ID} STREQUAL Clang)
+  set (C_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers $ENV{CFLAGS}")
+  set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2 ${C_FLAGS}")
+  set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_OPT_LEVEL} ${C_FLAGS}")
+elseif (${CMAKE_C_COMPILER_ID} STREQUAL MSVC)
+  set (C_FLAGS "/wd4244 $ENV{CFLAGS}")
+  set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${C_FLAGS}")
+  set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${C_FLAGS}")
+else ()
+  message (FATAL_ERROR "Unsupported compiler ${CMAKE_C_COMPILER_ID}")
+endif ()
+
 if (WIN32)
   set (WIN32_LIBRARIES setupapi ws2_32 iphlpapi winmm)
 endif ()
@@ -60,7 +60,7 @@ pkg_check_modules (GMODULE2 REQUIRED gmodule-2.0)
 link_directories (${GLIB2_LIBRARY_DIRS} ${GMODULE2_LIBRARY_DIRS})
 add_definitions (${GLIB2_CFLAGS} ${GMODULE2_CFLAGS})
 
-if (HYSCAN_USE_SYS_LIBS)
+if (HYSCAN_SYS_LIBS)
   pkg_check_modules (HYSCAN REQUIRED "hyscantypes-${HYSCAN_MAJOR_VERSION}")
   link_directories (${HYSCAN_LIBRARY_DIRS})
   add_definitions (${HYSCAN_CFLAGS})
