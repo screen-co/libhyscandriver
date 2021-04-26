@@ -43,3 +43,24 @@ add_test (NAME DeviceSchemaTest COMMAND device-schema-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 add_test (NAME DriverTest COMMAND driver-test .
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+install (TARGETS device-schema-test
+                 driver-test
+         COMPONENT test
+         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+install (TARGETS hyscan-dummy0
+         COMPONENT test
+         RUNTIME DESTINATION "${HYSCAN_INSTALL_DRVDIR}"
+         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+
+install (TARGETS hyscan-dummy1
+                 hyscan-dummy2
+                 hyscan-dummy3
+                 hyscan-dummy4
+         COMPONENT test
+         RUNTIME DESTINATION "${HYSCAN_INSTALL_DRVDIR}"
+         LIBRARY DESTINATION "${HYSCAN_INSTALL_DRVDIR}"
+         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

@@ -3,9 +3,10 @@ cmake_minimum_required (VERSION 3.0)
 
 project (libhyscandriver)
 
-enable_testing()
+enable_testing ()
 
 include (FindPkgConfig)
+include (GNUInstallDirs)
 
 set (HYSCAN_MAJOR_VERSION 5)
 set (HYSCAN_DRIVER_VERSION 0)
@@ -71,6 +72,16 @@ else ()
 endif ()
 
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/hyscandriver")
+
+if (NOT HYSCAN_INSTALLED)
+  set (CMAKE_INSTALL_RPATH "../${CMAKE_INSTALL_LIBDIR}")
+endif ()
+
+if (HYSCAN_INSTALLED AND UNIX)
+  set (HYSCAN_INSTALL_DRVDIR "${CMAKE_INSTALL_LIBDIR}/hyscan${HYSCAN_MAJOR_VERSION}/drivers")
+else ()
+  set (HYSCAN_INSTALL_DRVDIR "${CMAKE_INSTALL_BINDIR}")
+endif ()
 
 add_definitions (-DG_LOG_DOMAIN="HyScanDriver")
 add_subdirectory (hyscandriver)

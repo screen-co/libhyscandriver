@@ -1,6 +1,6 @@
 prefix=@CMAKE_INSTALL_PREFIX@
-libdir=${prefix}/lib
-includedir=${prefix}/include/hyscan-@HYSCAN_MAJOR_VERSION@/hyscandriver
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@/hyscan-@HYSCAN_MAJOR_VERSION@/hyscandriver
 
 Name: HyScanDriver
 Version: @HYSCAN_MAJOR_VERSION@.@HYSCAN_DRIVER_VERSION@

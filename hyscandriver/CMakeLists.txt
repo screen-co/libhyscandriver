@@ -52,14 +52,13 @@ configure_file (hyscandriver.pc.in
 
 install (TARGETS ${HYSCAN_DRIVER_LIBRARY}
          COMPONENT runtime
-         RUNTIME DESTINATION bin
-         LIBRARY DESTINATION lib
-         ARCHIVE DESTINATION lib
+         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
 install (FILES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hyscandriver-${HYSCAN_MAJOR_VERSION}.pc"
          COMPONENT development
-         DESTINATION "lib/pkgconfig"
+         DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
 install (FILES hyscan-discover.h
@@ -81,5 +80,5 @@ install (FILES hyscan-discover.h
                hyscan-sensor-driver.h
                hyscan-uart.h
          COMPONENT development
-         DESTINATION "include/hyscan-${HYSCAN_MAJOR_VERSION}/hyscandriver"
+         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/hyscan-${HYSCAN_MAJOR_VERSION}/hyscandriver"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
