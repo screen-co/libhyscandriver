@@ -442,9 +442,9 @@ hyscan_uart_timeout_internal (HANDLE  fd,
 {
   COMMTIMEOUTS cto = {0};
 
-  cto.ReadIntervalTimeout = 1000 * rx_timeout;
-  cto.ReadTotalTimeoutMultiplier = 0;
-  cto.ReadTotalTimeoutConstant = 0;
+  cto.ReadIntervalTimeout = MAXDWORD;
+  cto.ReadTotalTimeoutMultiplier = MAXDWORD;
+  cto.ReadTotalTimeoutConstant = 1000 * rx_timeout;
   cto.WriteTotalTimeoutMultiplier = 0;
   cto.WriteTotalTimeoutConstant = 1000 * tx_timeout;
 
@@ -456,17 +456,27 @@ hyscan_uart_read_internal (HyScanUARTPrivate *priv,
                            guint8            *buffer,
                            guint32           *size)
 {
-  DWORD readed;
-  BOOL status;
+  guint32 total = 0;
+  guint32 remain = *size;
 
-  status = ReadFile (priv->fd, buffer, *size, &readed, NULL);
-  if ((!status) || (*size != readed))
+  *size = 0;
+  while (remain > 0)
     {
-	  if (GetLastError ())
-	    return  HYSCAN_UART_STATUS_ERROR;
+      DWORD readed;
+      BOOL status;
 
-	  *size = readed;
-	  return  HYSCAN_UART_STATUS_TIMEOUT;
+      status = ReadFile (priv->fd, buffer + total, remain, &readed, NULL);
+      if ((!status) || (readed == 0))
+        {
+          if (GetLastError ())
+            return  HYSCAN_UART_STATUS_ERROR;
+
+          return  HYSCAN_UART_STATUS_TIMEOUT;
+        }
+
+      total += readed;
+      remain -= readed;
+      *size = total;
     }
 
   return HYSCAN_UART_STATUS_OK;
