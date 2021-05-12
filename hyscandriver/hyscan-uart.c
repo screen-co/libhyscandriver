@@ -463,16 +463,11 @@ hyscan_uart_read_internal (HyScanUARTPrivate *priv,
   while (remain > 0)
     {
       DWORD readed;
-      BOOL status;
 
-      status = ReadFile (priv->fd, buffer + total, remain, &readed, NULL);
-      if ((!status) || (readed == 0))
-        {
-          if (GetLastError ())
-            return  HYSCAN_UART_STATUS_ERROR;
-
-          return  HYSCAN_UART_STATUS_TIMEOUT;
-        }
+      if (!ReadFile (priv->fd, buffer + total, remain, &readed, NULL))
+        return  HYSCAN_UART_STATUS_ERROR;
+      else if (readed == 0)
+        return  HYSCAN_UART_STATUS_TIMEOUT;
 
       total += readed;
       remain -= readed;
